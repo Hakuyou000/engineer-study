@@ -94,7 +94,8 @@ ul.plain, ul.choices { list-style: none; padding: 0; margin: 12px 0; }
 .scope label { display: grid; grid-template-columns: auto 1fr; align-items: start; column-gap: 6px; padding: 6px 0; }
 .scope label input { margin-top: 5px; }
 .scope .meta { grid-column: 2; }
-.inline { display: inline-flex; align-items: center; gap: 8px; }
+.inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.inline select { max-width: 100%; min-width: 0; }
 .kinds { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 fieldset { border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px 8px; margin: 0; }
 fieldset label { display: block; }
@@ -108,6 +109,25 @@ input[type='checkbox'] { width: 18px; height: 18px; margin-right: 6px; vertical-
 .field .correct { display: block; margin-top: 4px; }
 
 .scroll { overflow-x: auto; }
+
+.toc { display: flex; flex-direction: column; align-items: flex-start; margin: 12px 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; }
+.toc button.link { color: var(--accent); text-align: left; }
+.prose { overflow-wrap: anywhere; min-width: 0; }
+.prose pre { max-width: 100%; }
+.prose h1 { font-size: 1.3rem; margin: 20px 0 8px; }
+.prose h2 { font-size: 1.15rem; margin: 32px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); scroll-margin-top: 8px; }
+.prose h3 { font-size: 1rem; margin: 24px 0 6px; }
+.prose p { margin: 8px 0; }
+.prose ul, .prose ol { padding-left: 24px; margin: 8px 0; }
+.prose blockquote { margin: 8px 0; padding: 2px 14px; border-left: 4px solid var(--line); color: var(--muted); }
+.prose pre code { padding: 0; background: none; }
+.prose table { font-size: 0.9rem; }
+.prose th { background: var(--code-bg); white-space: nowrap; }
+.prose hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+.prose a { color: var(--accent); }
+.section-text { margin-top: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; }
+.section-text summary { cursor: pointer; color: var(--accent); }
+.section-text .prose h2 { margin-top: 12px; }
 .stats { width: 100%; font-size: 0.9rem; }
 .stats th, .stats td { border-width: 0 0 1px; white-space: nowrap; }
 .stats th[scope='row'] { white-space: normal; font-weight: 400; }

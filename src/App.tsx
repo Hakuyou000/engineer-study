@@ -4,6 +4,7 @@ import { Exam } from './components/Exam'
 import { Home, type StartOptions } from './components/Home'
 import { StatsView } from './components/StatsView'
 import { Study } from './components/Study'
+import { TextView } from './components/TextView'
 import data from './data/questions.json'
 import * as db from './lib/db'
 import { buildStudySession, isCorrect, review, shuffle } from './lib/srs'
@@ -12,7 +13,7 @@ import type { Attempt, Card, DrillAttempt, Question } from './lib/types'
 
 const QUESTIONS = data as Question[]
 
-type View = { name: 'home' | 'drill' | 'stats' } | { name: 'study' | 'exam'; questions: Question[] }
+type View = { name: 'home' | 'drill' | 'text' | 'stats' } | { name: 'study' | 'exam'; questions: Question[] }
 
 interface Store {
   attempts: Attempt[]
@@ -101,7 +102,7 @@ export function App() {
     URL.revokeObjectURL(a.href)
   }
 
-  const tab = (name: 'home' | 'drill' | 'stats', label: string) => (
+  const tab = (name: 'home' | 'drill' | 'text' | 'stats', label: string) => (
     <button className={view.name === name ? 'tab on' : 'tab'} onClick={name === 'home' ? home : () => setView({ name })}>
       {label}
     </button>
@@ -114,6 +115,7 @@ export function App() {
         <nav>
           {tab('home', '問題演習')}
           {tab('drill', '計算ドリル')}
+          {tab('text', 'テキスト')}
           {tab('stats', '成績')}
         </nav>
       </header>
@@ -164,6 +166,8 @@ export function App() {
           }}
         />
       )}
+
+      {view.name === 'text' && <TextView />}
 
       {view.name === 'stats' && (
         <StatsView
