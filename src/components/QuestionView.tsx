@@ -1,6 +1,7 @@
 import { isCorrect } from '../lib/srs'
 import type { Question } from '../lib/types'
 import { Md, inline } from './Md'
+import { SectionText } from './SectionText'
 
 interface Props {
   q: Question
@@ -52,6 +53,7 @@ export function QuestionView({ q, chosen, onChange, revealed }: Props) {
           <p>{inline(q.explanation)}</p>
         </div>
       )}
+      {revealed && <SectionText key={q.id} q={q} />}
     </div>
   )
 }
