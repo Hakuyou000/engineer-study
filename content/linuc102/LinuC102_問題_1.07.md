@@ -242,14 +242,14 @@
 | 5 | B | SSH は 22、NTP は 123、SMTP は 25。110 は POP3、143 は IMAP、23 は Telnet。 |
 | 6 | A | HTTPS は TCP 443、NTP は UDP 123。 |
 | 7 | B、D | NTP と DHCP は UDP。SSH と HTTP は TCP。 |
-| 8 | C | ICMP は通信の状態やエラーを伝えるプロトコルで、ポート番号を持たない。A、B、D は TCP の特徴。 |
-| 9 | C | `::` は1か所だけ使える。2か所あると、それぞれ何グループの 0 か決まらない。B はグループが足りない。 |
+| 8 | C | ICMP は通信の状態やエラーを伝えるプロトコルで、ポート番号を持たない。サービスの区別、3ウェイハンドシェイク、到達確認と再送は TCP の特徴。 |
+| 9 | C | `::` は1か所だけ使える。2か所あると、それぞれ何グループの 0 か決まらない。`2001:db8:1` はグループが足りない。 |
 | 10 | D | IPv6 にブロードキャストはなく、マルチキャストで代用する。 |
 | 11 | D | ifup に対応するのは `ip link set ... up`。`ip neigh` は ARP テーブル(近隣キャッシュ)を扱う。 |
 | 12 | D | `ip route` では `via`、`route` では `gw` でゲートウェイを指定する。 |
 | 13 | B | ip、ifconfig、route による設定は一時的。永続化は設定ファイルか nmcli で行う。 |
 | 14 | B | `modify` は設定を保存するだけ。`nmcli connection up` で反映する。 |
-| 15 | A | Red Hat 系は `BOOTPROTO=dhcp`。B は Debian 系の `/etc/network/interfaces` の書き方。 |
+| 15 | A | Red Hat 系は `BOOTPROTO=dhcp`。`iface eth0 inet dhcp` は Debian 系の `/etc/network/interfaces` の書き方。 |
 | 16 | B | IP アドレスが先、ホスト名が後。別名は空白で区切って並べる。 |
 | 17 | A | `hosts:` 行は左から順に調べる。dns が先なので DNS、次に `/etc/hosts`。 |
 | 18 | B | `hostname web01` は一時的な変更。hostnamectl は `/etc/hostname` に保存する。 |
@@ -264,5 +264,5 @@
 | 27 | C | nameserver は上から順に使われ、最大 3 つ。 |
 | 28 | C | getent は nsswitch.conf に従うので `/etc/hosts` を見る。dig と host は DNS サーバーに直接問い合わせる。 |
 | 29 | D | dig は `@サーバー` で問い合わせ先を指定し、レコードの種類は名前の後に書く。 |
-| 30 | D | PTR は IP アドレスからホスト名。A は IPv4、AAAA は IPv6、CNAME は別名。 |
+| 30 | D | PTR は IP アドレスからホスト名。A レコードは IPv4、AAAA は IPv6、CNAME は別名。 |
 | 31 | A | search はドメイン名を省略したときに補うドメイン。順番を変えるのは nsswitch.conf。 |

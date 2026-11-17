@@ -371,7 +371,7 @@ Gi0/24           Root FWD 4         128.24   P2p
 | 30 | C | まずプライオリティが小さいスイッチ。SW3 の 28672 が最小。MAC アドレスの比較は同値のときだけ。 |
 | 31 | C | 現在のルートが 24576 より大きければ 24576 を設定する。 |
 | 32 | A | Gi0/1 経由は 4。Fa0/2 経由は 19 + 4 = 23。小さいほうがルートポート。 |
-| 33 | B | RSTP は3状態。A は 802.1D。 |
+| 33 | B | RSTP は3状態。Blocking と Listening を含む4状態は 802.1D。 |
 | 34 | B | BPDU ガードは BPDU を受信するとポートを err-disabled にする。 |
 | 35 | B | ルートガードは優位な BPDU を受けたポートを root-inconsistent にする。 |
 | 36 | B | 4106 = 4096 + VLAN 10。Root ID と Bridge ID が異なるので SW2 はルートではない。Altn は代替ポート。Edge は PortFast(端末)。rstp は Rapid PVST+。 |
