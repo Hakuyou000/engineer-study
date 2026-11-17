@@ -9,6 +9,7 @@ import { TextView } from './components/TextView'
 import data from './data/questions.json'
 import * as db from './lib/db'
 import { buildStudySession, isCorrect, review, shuffle } from './lib/srs'
+import { loadShufflePref, originalKeys, shuffleChoices } from './lib/shuffle'
 import { computeStats } from './lib/stats'
 import { weakQuestions } from './lib/weak'
 import type { Attempt, Card, DrillAttempt, Question } from './lib/types'
@@ -84,7 +85,8 @@ export function App() {
     const attempts = [...store.attempts]
     for (const { q, chosen, ms } of entries) {
       const correct = isCorrect(q, chosen)
-      const attempt: Attempt = { questionId: q.id, ts: now, chosen, correct, ms, mode }
+      // 並べ替えた問題でも、履歴には元の記号で保存する
+      const attempt: Attempt = { questionId: q.id, ts: now, chosen: originalKeys(q, chosen), correct, ms, mode }
       const card = review(cards.get(q.id), q.id, correct ? 'good' : 'again', now)
       cards.set(q.id, card)
       attempts.push(attempt)
@@ -92,6 +94,8 @@ export function App() {
     }
     setStore({ ...store, attempts, cards, now })
   }
+
+  const prepare = (qs: Question[]) => (loadShufflePref() ? qs.map((q) => shuffleChoices(q)) : qs)
 
   const start = ({ kind, domains, size }: StartOptions) => {
     const pool = QUESTIONS.filter((q) => domains.includes(`${q.exam} ${q.domain}`))
@@ -102,14 +106,14 @@ export function App() {
           ? weakQuestions(pool, store.attempts).slice(0, size)
           : shuffle(pool).slice(0, size)
     if (questions.length === 0) return
-    setView({ name: kind === 'exam' ? 'exam' : 'study', questions })
+    setView({ name: kind === 'exam' ? 'exam' : 'study', questions: prepare(questions) })
   }
 
   /** 成績画面から、小項目の弱点だけを解く */
   const practiceSection = (domainKey: string, section: string) => {
     const pool = QUESTIONS.filter((q) => `${q.exam} ${q.domain}` === domainKey && q.section === section)
     const questions = weakQuestions(pool, store.attempts)
-    if (questions.length > 0) setView({ name: 'study', questions })
+    if (questions.length > 0) setView({ name: 'study', questions: prepare(questions) })
   }
 
   const home = () => {

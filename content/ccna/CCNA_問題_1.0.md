@@ -258,12 +258,12 @@ GigabitEthernet0/2 is up, line protocol is up
 | 1 | B | PC とルータはどちらも MDI(1,2 で送信)。同種の機器はクロス。 |
 | 2 | B | 速度は信号から検出できる。デュプレックスは検出できず、10/100 Mbps では半二重になる。 |
 | 3 | D | 全二重側は相手の送信中にも送るため、壊れたフレームを受け取り CRC と runts が増える。late collisions は半二重側。 |
-| 4 | C | 半二重で late collision が多いのはデュプレックス不一致の典型。up/up なので A、B は該当しない。 |
+| 4 | C | 半二重で late collision が多いのはデュプレックス不一致の典型。up/up なので、ケーブル抜けや対向の shutdown は該当しない。 |
 | 5 | D | administratively down は管理者による shutdown。未接続は down/down、BPDU ガードは err-disabled。 |
 | 6 | C | LR はシングルモードで 10 km。SR は数百 m、10GBASE-T は 100 m、SX は 1 Gbps。 |
 | 7 | D | 受信光レベルの低下は、経路上の損失(汚れ、曲げ、距離)が原因。光ファイバにデュプレックス不一致の典型症状は当てはまらない。 |
-| 8 | C | giants は最大長超過。A は runts、B は CRC。 |
-| 9 | D | Type 1 はベアメタル。A は Type 2。 |
+| 8 | C | giants は最大長超過。64 バイト未満は runts、FCS の不一致は CRC。 |
+| 9 | D | Type 1 はベアメタル。ホスト OS のアプリケーションとして動くのは Type 2。 |
 | 10 | C | コンテナはカーネルを共有するため軽量で起動が速い。必要なのはコンテナエンジン。 |
 | 11 | A | vNIC は仮想スイッチに接続し、物理 NIC 経由で外部へ出る。複数 VLAN を運ぶのでトランク。 |
 | 12 | A | /20 は第3オクテットを 16 刻みで区切る。45 は 32〜47 の範囲。 |
@@ -278,7 +278,7 @@ GigabitEthernet0/2 is up, line protocol is up
 | 21 | A | 中央に fffe を挿入し、先頭バイト 00 の 7 ビット目を反転して 02。0250:56ff:feab:cdef。 |
 | 22 | D | `ipv6 unicast-routing` がないとルータは RA を送らない。 |
 | 23 | C | NS がアドレス解決の要求、NA が応答。 |
-| 24 | C | M=1 はステートフル DHCPv6。B は O=1。 |
+| 24 | C | M=1 はステートフル DHCPv6。アドレスは SLAAC で、DNS などの情報だけ DHCPv6 で取得するのは O=1。 |
 | 25 | A | SLAAC のインターフェース ID は 64 ビット。LAN は /64 にする。 |
 | 26 | B | 2.4 GHz で重ならないのは 1、6、11。 |
 | 27 | B | SAE。TKIP は WPA の暗号化、EAP-TLS はエンタープライズの認証方式。 |

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { loadShufflePref, saveShufflePref } from '../lib/shuffle'
 import type { DomainStat } from '../lib/stats'
 
 export interface StartOptions {
@@ -31,6 +32,7 @@ export function Home({ stats, onStart }: Props) {
   const all = stats.map((d) => d.key)
   const [domains, setDomains] = useState<string[]>(() => loadScope(all))
   const [size, setSize] = useState(10)
+  const [shuffleOn, setShuffleOn] = useState(loadShufflePref)
 
   const update = (next: string[]) => {
     setDomains(next)
@@ -78,6 +80,18 @@ export function Home({ stats, onStart }: Props) {
             </option>
           ))}
         </select>
+      </label>
+
+      <label className="inline">
+        <input
+          type="checkbox"
+          checked={shuffleOn}
+          onChange={(e) => {
+            setShuffleOn(e.target.checked)
+            saveShufflePref(e.target.checked)
+          }}
+        />
+        選択肢の並びを毎回入れ替える
       </label>
 
       <p className="meta">
