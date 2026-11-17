@@ -1,0 +1,109 @@
+# sre-drill
+
+資格試験(CCNA、LinuC)と SRE の基礎知識を定着させるための学習アプリ。静的 SPA で、サーバを持たない。
+
+## 機能
+
+- 問題演習: 4 択と複数選択。出題範囲は分野単位で選ぶ
+- 間隔反復: 誤答は 10 分後、正答は 1 日 → 3 日 → 間隔 × ease で再出題(SM-2 の簡略版)
+- 模擬試験: 1 問 90 秒の制限時間。提出後にまとめて採点し、解説を表示
+- 計算ドリル: IPv4 サブネット、IPv6 省略表記、EUI-64、パーミッション。問題は毎回生成する
+- 成績: 分野と小項目ごとの着手数、正答率、復習待ち
+- 履歴のエクスポートとインポート(JSON)
+
+## 必要なもの
+
+- Node.js 22 以上
+- Git
+
+## 使い方
+
+```
+npm install
+npm run dev
+```
+
+表示された URL(既定は http://localhost:5173/)をブラウザで開く。
+
+| コマンド | 内容 |
+|---|---|
+| `npm run dev` | 開発サーバ |
+| `npm test` | 単体テスト |
+| `npm run lint` | ESLint |
+| `npm run build` | 型検査と本番ビルド(`dist/`) |
+| `npm run gen` | `content/` から `src/data/questions.json` を生成 |
+
+`dev`、`test`、`build` は実行前に `gen` を自動で呼ぶ。
+
+## 問題の追加
+
+`content/<試験>/` に Markdown を置く。書式は次のとおり。合わない箇所があると `npm run gen` が失敗し、ファイル名と問番号を表示する。
+
+````
+# CCNA 問題 1.0 分野名
+
+対象: 全2問
+
+## 問題
+
+### 1.1 小項目
+
+**問1** 問題文。コードブロックと表が使える。
+
+```
+show interfaces の出力など
+```
+
+- A. 選択肢
+- B. 選択肢
+- C. 選択肢
+- D. 選択肢
+
+**問2** 正しいものを**2つ**選べ。
+
+- A. 選択肢
+- B. 選択肢
+- C. 選択肢
+
+## 解答・解説
+
+| 問 | 正解 | 解説 |
+|---|---|---|
+| 1 | B | 解説。 |
+| 2 | A、C | 解説。 |
+````
+
+- タイトル行の先頭の語が試験名、次が分野番号になる。問題 ID は `<試験名>-<分野番号>-q<問番号>`
+- 問題 ID は履歴のキーになる。公開後に問番号を振り直すと、その問題の履歴が別の問題に付く
+- 解説が選択肢の記号(「A は…」)を参照するため、選択肢の並びは入れ替えない
+
+## 構成
+
+```
+content/            問題の正本(Markdown)
+scripts/            Markdown → JSON の変換
+src/lib/parser.ts   問題 Markdown の解析
+src/lib/srs.ts      間隔反復と出題順
+src/lib/stats.ts    成績の集計
+src/lib/drills/     計算ドリルの生成と採点
+src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴)
+src/components/     画面
+```
+
+## データの保存先
+
+履歴はブラウザの IndexedDB にだけ保存する。ブラウザのサイトデータを消すと履歴も消える。別の PC やブラウザへ移すときは、成績画面のエクスポートとインポートを使う。
+
+## CI とデプロイ
+
+`.github/workflows/ci.yml` が push と pull request で lint、テスト、ビルドを実行する。`main` への push では GitHub Pages にデプロイする。
+
+GitHub Pages を使うには、リポジトリの Settings → Pages → Source を「GitHub Actions」にする。
+
+問題文を公開したくない場合は、リポジトリを private にするか、`deploy` ジョブを削除する。
+
+## 今後
+
+- P2: バックエンド(FastAPI + PostgreSQL、Docker Compose)。履歴をサーバ側へ移す
+- P3: Terraform で AWS に構築、Prometheus + Grafana、SLI / SLO、障害演習
+- LinuC 102 の問題、出力読解、コマンド実技

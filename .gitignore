@@ -1,0 +1,4 @@
+node_modules/
+dist/
+# content/ から生成する(npm run gen)
+src/data/questions.json
