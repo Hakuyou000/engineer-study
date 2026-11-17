@@ -1,11 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { TEXTS, loadText, splitSections } from '../lib/texts'
+import { TEXTS as ALL_TEXTS, loadText, splitSections, type TextInfo } from '../lib/texts'
 
 const Markdown = lazy(() => import('./Markdown'))
 
 const KEY = 'sre-drill:text'
 
-function initialId(): string {
+function initialId(TEXTS: TextInfo[]): string {
   try {
     const saved = localStorage.getItem(KEY)
     if (saved && TEXTS.some((t) => t.id === saved)) return saved
@@ -15,8 +15,9 @@ function initialId(): string {
   return TEXTS[0]?.id ?? ''
 }
 
-export function TextView() {
-  const [id, setId] = useState(initialId)
+export function TextView({ exam }: { exam: string | null }) {
+  const TEXTS = exam === null ? ALL_TEXTS : ALL_TEXTS.filter((t) => t.exam === exam)
+  const [id, setId] = useState(() => initialId(TEXTS))
   const [loaded, setLoaded] = useState<{ id: string; md: string } | { id: string; error: string } | null>(null)
   const refs = useRef<(HTMLElement | null)[]>([])
 

@@ -9,15 +9,17 @@ export interface StartOptions {
 }
 
 interface Props {
+  /** 出題範囲の保存先を試験ごとに分けるための名前 */
+  scopeKey: string
   stats: DomainStat[]
   onStart: (o: StartOptions) => void
 }
 
 const KEY = 'sre-drill:scope'
 
-function loadScope(all: string[]): string[] {
+function loadScope(key: string, all: string[]): string[] {
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) ?? 'null') as unknown
+    const saved = JSON.parse(localStorage.getItem(key) ?? 'null') as unknown
     if (Array.isArray(saved)) {
       const valid = saved.filter((k): k is string => typeof k === 'string' && all.includes(k))
       if (valid.length) return valid
@@ -28,16 +30,17 @@ function loadScope(all: string[]): string[] {
   return all
 }
 
-export function Home({ stats, onStart }: Props) {
+export function Home({ scopeKey, stats, onStart }: Props) {
+  const key = `${KEY}:${scopeKey}`
   const all = stats.map((d) => d.key)
-  const [domains, setDomains] = useState<string[]>(() => loadScope(all))
+  const [domains, setDomains] = useState<string[]>(() => loadScope(key, all))
   const [size, setSize] = useState(10)
   const [shuffleOn, setShuffleOn] = useState(loadShufflePref)
 
   const update = (next: string[]) => {
     setDomains(next)
     try {
-      localStorage.setItem(KEY, JSON.stringify(next))
+      localStorage.setItem(key, JSON.stringify(next))
     } catch {
       // 保存できなくても動作に支障はない
     }

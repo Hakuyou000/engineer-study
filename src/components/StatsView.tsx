@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
-import { DRILLS } from '../lib/drills'
+import { drillsFor } from '../lib/drills'
 import { accuracy, groupByExam, type DomainStat, type SectionStat } from '../lib/stats'
 import type { DrillAttempt } from '../lib/types'
 
 interface Props {
+  /** 表示中の試験。null ならすべて */
+  exam: string | null
   stats: DomainStat[]
   drills: DrillAttempt[]
   onPractice: (domainKey: string, section: string) => void
@@ -50,7 +52,7 @@ function Row({
   )
 }
 
-export function StatsView({ stats, drills, onPractice, onExport, onImport, onReset }: Props) {
+export function StatsView({ exam, stats, drills, onPractice, onExport, onImport, onReset }: Props) {
   const [confirming, setConfirming] = useState(false)
   const file = useRef<HTMLInputElement>(null)
 
@@ -93,7 +95,7 @@ export function StatsView({ stats, drills, onPractice, onExport, onImport, onRes
           </tr>
         </thead>
         <tbody>
-          {DRILLS.map((k) => {
+          {drillsFor(exam).map((k) => {
             const xs = drills.filter((a) => a.type === k.type)
             return (
               <tr key={k.type} className="sub">
