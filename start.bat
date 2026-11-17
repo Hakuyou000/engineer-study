@@ -12,10 +12,11 @@ if errorlevel 1 goto failed
 
 echo.
 echo [2/2] 起動する。ブラウザが自動で開く
-echo       終了するときは、このウィンドウを閉じる
+echo       終了するときは、画面右上の「終了」を押す
 echo.
 call npm run dev -- --open
-goto end
+if errorlevel 1 goto failed
+exit /b 0
 
 :nonode
 echo Node.js が見つからない。https://nodejs.org/ から LTS 版を入れてからやり直す
@@ -26,6 +27,3 @@ echo.
 echo 失敗した。上の表示を確認する
 pause
 exit /b 1
-
-:end
-pause

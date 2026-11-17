@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { DrillView } from './components/DrillView'
 import { Exam } from './components/Exam'
 import { Home, type StartOptions } from './components/Home'
+import { Quit } from './components/Quit'
 import { StatsView } from './components/StatsView'
 import { Study } from './components/Study'
 import { TextView } from './components/TextView'
@@ -34,6 +35,7 @@ export function App() {
   const [store, setStore] = useState<Store | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [view, setView] = useState<View>({ name: 'home' })
+  const [stopped, setStopped] = useState(false)
   // 「自信なし」で格下げするために、直前の解答より前のカード状態を残す
   const prevCard = useRef<{ id: string; card: Card | undefined } | null>(null)
 
@@ -51,6 +53,16 @@ export function App() {
     [store],
   )
 
+  if (stopped) {
+    return (
+      <main>
+        <section className="card">
+          <h2>終了した</h2>
+          <p>このタブは閉じてよい。履歴は保存済み。</p>
+        </section>
+      </main>
+    )
+  }
   if (error) {
     return (
       <main>
@@ -117,6 +129,7 @@ export function App() {
           {tab('drill', '計算ドリル')}
           {tab('text', 'テキスト')}
           {tab('stats', '成績')}
+          {import.meta.env.DEV && <Quit onQuit={() => setStopped(true)} onError={setError} />}
         </nav>
       </header>
 
