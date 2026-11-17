@@ -16,7 +16,37 @@ export interface SectionStat {
 }
 
 export interface DomainStat extends SectionStat {
+  exam: string
+  /** 試験名を除いたラベル。例: 1.06 シェルおよびスクリプト */
+  shortLabel: string
   sections: SectionStat[]
+}
+
+export interface ExamStat extends SectionStat {
+  domains: DomainStat[]
+}
+
+/** 表示用の試験名。LinuC102 → LinuC 102 */
+export const examLabel = (exam: string) => exam.replace(/^([A-Za-z]+)(\d+)$/, '$1 $2')
+
+/** 分野の集計を試験ごとにまとめる。順番は元の並び(LinuC → CCNA)を保つ。 */
+export function groupByExam(domains: readonly DomainStat[]): ExamStat[] {
+  const out: ExamStat[] = []
+  for (const d of domains) {
+    let g = out.find((x) => x.key === d.exam)
+    if (!g) {
+      g = { ...empty(d.exam, examLabel(d.exam)), domains: [] }
+      out.push(g)
+    }
+    g.domains.push(d)
+    g.total += d.total
+    g.seen += d.seen
+    g.attempts += d.attempts
+    g.correct += d.correct
+    g.due += d.due
+    g.weak += d.weak
+  }
+  return out
 }
 
 const empty = (key: string, label: string): SectionStat => ({
@@ -43,7 +73,12 @@ export function computeStats(
     const dk = `${q.exam} ${q.domain}`
     let d = domains.get(dk)
     if (!d) {
-      d = { ...empty(dk, `${q.exam} ${q.domain} ${q.domainTitle}`), sections: [] }
+      d = {
+        ...empty(dk, `${q.exam} ${q.domain} ${q.domainTitle}`),
+        exam: q.exam,
+        shortLabel: `${q.domain} ${q.domainTitle}`,
+        sections: [],
+      }
       domains.set(dk, d)
     }
     let s = d.sections.find((x) => x.key === q.section)

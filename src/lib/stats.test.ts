@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { accuracy, computeStats } from './stats'
+import { accuracy, computeStats, examLabel, groupByExam } from './stats'
 import type { Attempt, Card, Question } from './types'
 
 const q = (id: string, domain: string, section: string): Question => ({
@@ -39,5 +39,23 @@ describe('computeStats', () => {
     ])
     expect(accuracy(d1)).toBeCloseTo(2 / 3)
     expect(accuracy(d2)).toBeNull()
+  })
+})
+
+describe('groupByExam', () => {
+  it('試験ごとにまとめ、元の順番を保つ', () => {
+    const mk = (id: string, exam: string, domain: string): Question => ({ ...q(id, domain, 's'), exam })
+    const questions = [mk('a', 'LinuC102', '1.06'), mk('b', 'LinuC102', '1.07'), mk('c', 'CCNA', '1.0')]
+    const groups = groupByExam(computeStats(questions, [at('a', false), at('c', true)], new Map(), 0))
+    expect(groups.map((g) => [g.key, g.label, g.total, g.seen, g.weak, g.domains.length])).toEqual([
+      ['LinuC102', 'LinuC 102', 2, 1, 1, 2],
+      ['CCNA', 'CCNA', 1, 1, 0, 1],
+    ])
+    expect(groups[0].domains[0].shortLabel).toBe('1.06 T')
+  })
+
+  it('試験名の表示', () => {
+    expect(examLabel('LinuC102')).toBe('LinuC 102')
+    expect(examLabel('CCNA')).toBe('CCNA')
   })
 })
