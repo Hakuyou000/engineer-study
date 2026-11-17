@@ -1,6 +1,7 @@
 // content/**/*.md を解析し、src/data/questions.json を生成する。
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { compareExam } from '../src/lib/order'
 import { parseQuestions } from '../src/lib/parser'
 import type { Question } from '../src/lib/types'
 
@@ -21,6 +22,9 @@ for (const file of walk(contentDir)) {
   all.push(...qs)
   console.log(`${relative(root, file)}: ${qs.length} 問`)
 }
+
+// 画面の並びを決める。試験の表示順 → 分野番号 → 問番号
+all.sort((a, b) => compareExam({ exam: a.exam, number: a.domain }, { exam: b.exam, number: b.domain }) || a.number - b.number)
 
 const ids = new Set(all.map((q) => q.id))
 if (ids.size !== all.length) throw new Error('問題 ID が重複している')

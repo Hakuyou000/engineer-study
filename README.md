@@ -26,7 +26,7 @@ npm run dev
 
 表示された URL(既定は http://localhost:5173/)をブラウザで開く。
 
-Windows では `start.bat` をダブルクリックしても起動できる。依存パッケージの確認、開発サーバの起動、ブラウザを開くところまでを行う。終了するときは黒いウィンドウを閉じる。
+Windows では `start.bat` をダブルクリックしても起動できる。依存パッケージの確認、開発サーバの起動、ブラウザを開くところまでを行う。終了するときは、画面右上の「終了」を押す。開発サーバが止まり、黒いウィンドウも閉じる。「終了」は開発サーバで動かしているときだけ表示される。
 
 | コマンド | 内容 |
 |---|---|
@@ -97,6 +97,7 @@ src/lib/parser.ts   問題 Markdown の解析
 src/lib/srs.ts      間隔反復と出題順
 src/lib/stats.ts    成績の集計
 src/lib/texts.ts    テキストの一覧と節の切り出し
+src/lib/order.ts    試験の表示順(LinuC → CCNA)
 src/lib/drills/     計算ドリルの生成と採点
 src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴)
 src/components/     画面

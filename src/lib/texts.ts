@@ -1,4 +1,5 @@
 // テキスト(texts/**/*.md)の一覧と、節の切り出し。
+import { compareExam } from './order'
 
 export interface TextInfo {
   /** 例: ccna/CCNA_1.0_ネットワークインフラストラクチャと接続 */
@@ -64,7 +65,7 @@ const loaders = import.meta.glob<string>('../../texts/**/*.md', { query: '?raw',
 const entries = Object.entries(loaders)
   .map(([path, load]) => ({ info: parseTextPath(path), load }))
   .filter((e): e is { info: TextInfo; load: () => Promise<string> } => e.info !== null)
-  .sort((a, b) => a.info.id.localeCompare(b.info.id, 'ja', { numeric: true }))
+  .sort((a, b) => compareExam(a.info, b.info))
 
 export const TEXTS: TextInfo[] = entries.map((e) => e.info)
 

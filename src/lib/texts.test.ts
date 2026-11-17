@@ -44,6 +44,13 @@ describe('同梱のテキスト', () => {
     expect(TEXTS.length).toBeGreaterThan(0)
     const linuc = TEXTS.filter((t) => t.exam === 'LinuC102').map((t) => t.number)
     expect(linuc).toEqual([...linuc].sort())
+    const ccna = TEXTS.filter((t) => t.exam === 'CCNA').map((t) => t.number)
+    expect(ccna).toEqual(['0', '1.0', '2.0', '3.0', '4.0', '5.0'])
+  })
+
+  it('LinuC が CCNA より先に並ぶ', () => {
+    const exams = [...new Set(TEXTS.map((t) => t.exam))]
+    expect(exams).toEqual(['LinuC102', 'CCNA'])
   })
 
   it('全問題の小項目に、対応するテキストの節がある', async () => {
