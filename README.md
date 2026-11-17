@@ -6,8 +6,9 @@
 
 - 問題演習: 4 択と複数選択。出題範囲は分野単位で選ぶ
 - 間隔反復: 誤答は 10 分後、正答は 1 日 → 3 日 → 間隔 × ease で再出題(SM-2 の簡略版)
+- 間違えた問題の演習: 直近で間違えた問題と、2 回以上解いて正答率が 70% 未満の問題を出題する。成績画面の小項目ごとの「解く」からも始められる
 - 模擬試験: 1 問 90 秒の制限時間。提出後にまとめて採点し、解説を表示
-- 計算ドリル: IPv4 サブネット、IPv6 省略表記、EUI-64、パーミッション。問題は毎回生成する
+- 計算ドリル: パーミッション(8 進と記号、chmod 記号モード、umask)、cron の次の実行日時、IPv4 サブネット、IPv6 省略表記、EUI-64。問題は毎回生成する
 - テキスト: `texts/` の Markdown を閲覧する。解答後は、その問題に対応する節をその場で開ける
 - 成績: 分野と小項目ごとの着手数、正答率、復習待ち
 - 履歴のエクスポートとインポート(JSON)
@@ -95,6 +96,7 @@ texts/              テキスト(Markdown)
 scripts/            Markdown → JSON の変換
 src/lib/parser.ts   問題 Markdown の解析
 src/lib/srs.ts      間隔反復と出題順
+src/lib/weak.ts     間違えた問題の抽出
 src/lib/stats.ts    成績の集計
 src/lib/texts.ts    テキストの一覧と節の切り出し
 src/lib/order.ts    試験の表示順(LinuC → CCNA)
@@ -119,4 +121,4 @@ GitHub Pages を使うには、リポジトリの Settings → Pages → Source 
 
 - P2: バックエンド(FastAPI + PostgreSQL、Docker Compose)。履歴をサーバ側へ移す
 - P3: Terraform で AWS に構築、Prometheus + Grafana、SLI / SLO、障害演習
-- LinuC 102 の問題、出力読解、コマンド実技
+- LinuC 101 のテキストと問題、出力読解、コマンド実技

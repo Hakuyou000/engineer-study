@@ -10,6 +10,7 @@ import data from './data/questions.json'
 import * as db from './lib/db'
 import { buildStudySession, isCorrect, review, shuffle } from './lib/srs'
 import { computeStats } from './lib/stats'
+import { weakQuestions } from './lib/weak'
 import type { Attempt, Card, DrillAttempt, Question } from './lib/types'
 
 const QUESTIONS = data as Question[]
@@ -95,9 +96,20 @@ export function App() {
   const start = ({ kind, domains, size }: StartOptions) => {
     const pool = QUESTIONS.filter((q) => domains.includes(`${q.exam} ${q.domain}`))
     const questions =
-      kind === 'study' ? buildStudySession(pool, store.cards, Date.now(), size) : shuffle(pool).slice(0, size)
+      kind === 'study'
+        ? buildStudySession(pool, store.cards, Date.now(), size)
+        : kind === 'weak'
+          ? weakQuestions(pool, store.attempts).slice(0, size)
+          : shuffle(pool).slice(0, size)
     if (questions.length === 0) return
     setView({ name: kind === 'exam' ? 'exam' : 'study', questions })
+  }
+
+  /** 成績画面から、小項目の弱点だけを解く */
+  const practiceSection = (domainKey: string, section: string) => {
+    const pool = QUESTIONS.filter((q) => `${q.exam} ${q.domain}` === domainKey && q.section === section)
+    const questions = weakQuestions(pool, store.attempts)
+    if (questions.length > 0) setView({ name: 'study', questions })
   }
 
   const home = () => {
@@ -186,6 +198,7 @@ export function App() {
         <StatsView
           stats={stats}
           drills={store.drills}
+          onPractice={practiceSection}
           onExport={() => void exportData().catch(fail)}
           onImport={(file) =>
             void file

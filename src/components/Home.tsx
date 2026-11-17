@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { DomainStat } from '../lib/stats'
 
 export interface StartOptions {
-  kind: 'study' | 'random' | 'exam'
+  kind: 'study' | 'random' | 'exam' | 'weak'
   domains: string[]
   size: number
 }
@@ -45,6 +45,7 @@ export function Home({ stats, onStart }: Props) {
   const total = picked.reduce((n, d) => n + d.total, 0)
   const due = picked.reduce((n, d) => n + d.due, 0)
   const unseen = picked.reduce((n, d) => n + d.total - d.seen, 0)
+  const weak = picked.reduce((n, d) => n + d.weak, 0)
   const none = domains.length === 0
 
   return (
@@ -61,7 +62,7 @@ export function Home({ stats, onStart }: Props) {
               />
               <span>{d.label}</span>
               <span className="meta">
-                {d.total} 問 ・ 復習待ち {d.due} ・ 未出題 {d.total - d.seen}
+                {d.total} 問 ・ 復習待ち {d.due} ・ 未出題 {d.total - d.seen} ・ 要復習 {d.weak}
               </span>
             </label>
           </li>
@@ -80,12 +81,15 @@ export function Home({ stats, onStart }: Props) {
       </label>
 
       <p className="meta">
-        選択中: {total} 問 ・ 復習待ち {due} ・ 未出題 {unseen}
+        選択中: {total} 問 ・ 復習待ち {due} ・ 未出題 {unseen} ・ 要復習 {weak}
       </p>
 
       <div className="actions">
         <button className="primary" disabled={none || due + unseen === 0} onClick={() => onStart({ kind: 'study', domains, size })}>
           学習(復習待ち → 未出題)
+        </button>
+        <button disabled={none || weak === 0} onClick={() => onStart({ kind: 'weak', domains, size })}>
+          間違えた問題({weak})
         </button>
         <button disabled={none} onClick={() => onStart({ kind: 'random', domains, size })}>
           ランダム
@@ -94,6 +98,7 @@ export function Home({ stats, onStart }: Props) {
           模擬試験(1 問 90 秒)
         </button>
       </div>
+      <p className="meta">要復習: 直近で間違えた問題と、2 回以上解いて正答率が 70% 未満の問題。</p>
       {!none && due + unseen === 0 && (
         <p className="meta">復習待ちも未出題もない。次の復習期限まで待つか、ランダムで解く。</p>
       )}
