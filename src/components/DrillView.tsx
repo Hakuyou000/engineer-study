@@ -1,13 +1,16 @@
 import { useRef, useState } from 'react'
-import { DRILLS, checkField, type Drill } from '../lib/drills'
+import { checkField, drillsFor, type Drill } from '../lib/drills'
 import { inline, Md } from './Md'
 
 interface Props {
+  /** 表示する試験。null ならすべて */
+  exam: string | null
   onRecord: (type: string, correct: boolean, ms: number) => void
 }
 
-export function DrillView({ onRecord }: Props) {
-  const [enabled, setEnabled] = useState<string[]>(DRILLS.map((d) => d.type))
+export function DrillView({ exam, onRecord }: Props) {
+  const DRILLS = drillsFor(exam)
+  const [enabled, setEnabled] = useState<string[]>(() => DRILLS.map((d) => d.type))
   const [drill, setDrill] = useState<Drill | null>(null)
   const [inputs, setInputs] = useState<string[]>([])
   const [checked, setChecked] = useState(false)

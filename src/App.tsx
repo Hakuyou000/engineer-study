@@ -6,17 +6,21 @@ import { Quit } from './components/Quit'
 import { StatsView } from './components/StatsView'
 import { Study } from './components/Study'
 import { TextView } from './components/TextView'
+import { Toc, type Section } from './components/Toc'
 import data from './data/questions.json'
 import * as db from './lib/db'
 import { buildStudySession, isCorrect, review, shuffle } from './lib/srs'
 import { loadShufflePref, originalKeys, shuffleChoices } from './lib/shuffle'
-import { computeStats } from './lib/stats'
+import { examList, loadGroup, saveGroup } from './lib/groups'
+import { computeStats, examLabel, groupByExam } from './lib/stats'
+import { TEXTS } from './lib/texts'
 import { weakQuestions } from './lib/weak'
 import type { Attempt, Card, DrillAttempt, Question } from './lib/types'
 
-const QUESTIONS = data as Question[]
+const ALL_QUESTIONS = data as Question[]
+const EXAMS = examList([...ALL_QUESTIONS.map((q) => q.exam), ...TEXTS.map((t) => t.exam)])
 
-type View = { name: 'home' | 'drill' | 'text' | 'stats' } | { name: 'study' | 'exam'; questions: Question[] }
+type View = { name: 'toc' | Section } | { name: 'study' | 'exam'; questions: Question[] }
 
 interface Store {
   attempts: Attempt[]
@@ -36,7 +40,13 @@ async function fetchStore(): Promise<Store> {
 export function App() {
   const [store, setStore] = useState<Store | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [view, setView] = useState<View>({ name: 'home' })
+  // 選択中の試験。null は「すべての試験」
+  const [group, setGroup] = useState<string | null>(() => loadGroup(EXAMS))
+  const [view, setView] = useState<View>(() => ({ name: loadGroup(EXAMS) === null ? 'toc' : 'home' }))
+  const QUESTIONS = useMemo(
+    () => (group === null ? ALL_QUESTIONS : ALL_QUESTIONS.filter((q) => q.exam === group)),
+    [group],
+  )
   const [stopped, setStopped] = useState(false)
   // 「自信なし」で格下げするために、直前の解答より前のカード状態を残す
   const prevCard = useRef<{ id: string; card: Card | undefined } | null>(null)
@@ -52,6 +62,10 @@ export function App() {
 
   const stats = useMemo(
     () => (store ? computeStats(QUESTIONS, store.attempts, store.cards, store.now) : []),
+    [store, QUESTIONS],
+  )
+  const allGroups = useMemo(
+    () => (store ? groupByExam(computeStats(ALL_QUESTIONS, store.attempts, store.cards, store.now)) : []),
     [store],
   )
 
@@ -130,7 +144,14 @@ export function App() {
     URL.revokeObjectURL(a.href)
   }
 
-  const tab = (name: 'home' | 'drill' | 'text' | 'stats', label: string) => (
+  const openGroup = (g: string | null, section: Section) => {
+    setGroup(g)
+    saveGroup(g)
+    setStore({ ...store, now: Date.now() })
+    setView({ name: section })
+  }
+
+  const tab = (name: 'toc' | Section, label: string) => (
     <button className={view.name === name ? 'tab on' : 'tab'} onClick={name === 'home' ? home : () => setView({ name })}>
       {label}
     </button>
@@ -139,8 +160,14 @@ export function App() {
   return (
     <main>
       <header>
-        <h1>sre-drill</h1>
+        <h1>
+          sre-drill
+          <button className="link group-name" onClick={() => setView({ name: 'toc' })}>
+            {group === null ? 'すべての試験' : examLabel(group)}
+          </button>
+        </h1>
         <nav>
+          {tab('toc', '目次')}
           {tab('home', '問題演習')}
           {tab('drill', '計算ドリル')}
           {tab('text', 'テキスト')}
@@ -149,7 +176,16 @@ export function App() {
         </nav>
       </header>
 
-      {view.name === 'home' && <Home stats={stats} onStart={start} />}
+      {view.name === 'toc' && (
+        <Toc
+          groups={allGroups}
+          textCount={(exam) => TEXTS.filter((t) => t.exam === exam).length}
+          current={group}
+          onOpen={openGroup}
+        />
+      )}
+
+      {view.name === 'home' && <Home key={group ?? '*'} scopeKey={group ?? '*'} stats={stats} onStart={start} />}
 
       {session?.name === 'study' && (
         <Study
@@ -188,6 +224,8 @@ export function App() {
 
       {view.name === 'drill' && (
         <DrillView
+          key={group ?? '*'}
+          exam={group}
           onRecord={(type, correct, ms) => {
             const a: DrillAttempt = { type, correct, ms, ts: Date.now() }
             db.saveDrill(a).catch(fail)
@@ -196,10 +234,11 @@ export function App() {
         />
       )}
 
-      {view.name === 'text' && <TextView />}
+      {view.name === 'text' && <TextView key={group ?? '*'} exam={group} />}
 
       {view.name === 'stats' && (
         <StatsView
+          exam={group}
           stats={stats}
           drills={store.drills}
           onPractice={practiceSection}
