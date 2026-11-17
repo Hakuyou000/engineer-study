@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { loadShufflePref, saveShufflePref } from '../lib/shuffle'
-import type { DomainStat } from '../lib/stats'
+import { groupByExam, type DomainStat } from '../lib/stats'
 
 export interface StartOptions {
   kind: 'study' | 'random' | 'exam' | 'weak'
@@ -53,23 +53,51 @@ export function Home({ stats, onStart }: Props) {
   return (
     <section className="card">
       <h2>出題範囲</h2>
-      <ul className="plain scope">
-        {stats.map((d) => (
-          <li key={d.key}>
-            <label>
-              <input
-                type="checkbox"
-                checked={domains.includes(d.key)}
-                onChange={(e) => update(e.target.checked ? [...domains, d.key] : domains.filter((k) => k !== d.key))}
-              />
-              <span>{d.label}</span>
+      {groupByExam(stats).map((g) => {
+        const keys = g.domains.map((d) => d.key)
+        const on = keys.filter((k) => domains.includes(k)).length
+        return (
+          <fieldset key={g.key} className="exam-group">
+            <legend>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={on === keys.length}
+                  ref={(el) => {
+                    if (el) el.indeterminate = on > 0 && on < keys.length
+                  }}
+                  onChange={(e) =>
+                    update(e.target.checked ? [...new Set([...domains, ...keys])] : domains.filter((k) => !keys.includes(k)))
+                  }
+                />
+                {g.label}
+              </label>
               <span className="meta">
-                {d.total} 問 ・ 復習待ち {d.due} ・ 未出題 {d.total - d.seen} ・ 要復習 {d.weak}
+                {g.total} 問 ・ 要復習 {g.weak}
               </span>
-            </label>
-          </li>
-        ))}
-      </ul>
+            </legend>
+            <ul className="plain scope">
+              {g.domains.map((d) => (
+                <li key={d.key}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={domains.includes(d.key)}
+                      onChange={(e) =>
+                        update(e.target.checked ? [...domains, d.key] : domains.filter((k) => k !== d.key))
+                      }
+                    />
+                    <span>{d.shortLabel}</span>
+                    <span className="meta">
+                      {d.total} 問 ・ 復習待ち {d.due} ・ 未出題 {d.total - d.seen} ・ 要復習 {d.weak}
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </fieldset>
+        )
+      })}
 
       <label className="inline">
         問題数

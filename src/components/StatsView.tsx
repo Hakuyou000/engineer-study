@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { DRILLS } from '../lib/drills'
-import { accuracy, type DomainStat, type SectionStat } from '../lib/stats'
+import { accuracy, groupByExam, type DomainStat, type SectionStat } from '../lib/stats'
 import type { DrillAttempt } from '../lib/types'
 
 interface Props {
@@ -14,10 +14,18 @@ interface Props {
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v * 100)}%`)
 
-function Row({ s, sub, onPractice }: { s: SectionStat; sub?: boolean; onPractice?: () => void }) {
+function Row({
+  s,
+  level,
+  onPractice,
+}: {
+  s: SectionStat
+  level: 'exam' | 'domain' | 'sub'
+  onPractice?: () => void
+}) {
   const acc = accuracy(s)
   return (
-    <tr className={sub ? 'sub' : 'domain'}>
+    <tr className={level}>
       <th scope="row">{s.label}</th>
       <td>
         {s.seen} / {s.total}
@@ -62,11 +70,14 @@ export function StatsView({ stats, drills, onPractice, onExport, onImport, onRes
             </tr>
           </thead>
           <tbody>
-            {stats.flatMap((d) => [
-              <Row key={d.key} s={d} />,
-              ...d.sections.map((s) => (
-                <Row key={`${d.key}/${s.key}`} s={s} sub onPractice={() => onPractice(d.key, s.key)} />
-              )),
+            {groupByExam(stats).flatMap((g) => [
+              <Row key={g.key} s={g} level="exam" />,
+              ...g.domains.flatMap((d) => [
+                <Row key={d.key} s={{ ...d, label: d.shortLabel }} level="domain" />,
+                ...d.sections.map((s) => (
+                  <Row key={`${d.key}/${s.key}`} s={s} level="sub" onPractice={() => onPractice(d.key, s.key)} />
+                )),
+              ]),
             ])}
           </tbody>
         </table>
