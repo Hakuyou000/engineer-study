@@ -1,4 +1,5 @@
 import type { Attempt, Card, Question } from './types'
+import { isWeak, recordsByQuestion } from './weak'
 
 export interface SectionStat {
   key: string
@@ -10,6 +11,8 @@ export interface SectionStat {
   correct: number
   /** 復習期限が来ている問題数 */
   due: number
+  /** 直近で間違えた、または正答率の低い問題数 */
+  weak: number
 }
 
 export interface DomainStat extends SectionStat {
@@ -24,6 +27,7 @@ const empty = (key: string, label: string): SectionStat => ({
   attempts: 0,
   correct: 0,
   due: 0,
+  weak: 0,
 })
 
 export function computeStats(
@@ -32,13 +36,7 @@ export function computeStats(
   cards: ReadonlyMap<string, Card>,
   now: number,
 ): DomainStat[] {
-  const byQ = new Map<string, { n: number; ok: number }>()
-  for (const a of attempts) {
-    const s = byQ.get(a.questionId) ?? { n: 0, ok: 0 }
-    s.n += 1
-    if (a.correct) s.ok += 1
-    byQ.set(a.questionId, s)
-  }
+  const byQ = recordsByQuestion(attempts)
 
   const domains = new Map<string, DomainStat>()
   for (const q of questions) {
@@ -63,6 +61,7 @@ export function computeStats(
         t.correct += a.ok
       }
       if (c && c.due <= now) t.due += 1
+      if (isWeak(a)) t.weak += 1
     }
   }
   return [...domains.values()]

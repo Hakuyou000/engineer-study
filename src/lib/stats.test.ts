@@ -32,7 +32,7 @@ describe('computeStats', () => {
       ['c', { questionId: 'c', ease: 2.5, intervalDays: 1, reps: 1, lapses: 0, due: 500, last: 0 }],
     ])
     const [d1, d2] = computeStats(questions, attempts, cards, 100)
-    expect(d1).toMatchObject({ total: 3, seen: 2, attempts: 3, correct: 2, due: 1 })
+    expect(d1).toMatchObject({ total: 3, seen: 2, attempts: 3, correct: 2, due: 1, weak: 1 })
     expect(d1.sections.map((s) => [s.key, s.total, s.seen, s.due])).toEqual([
       ['s1', 2, 1, 1],
       ['s2', 1, 1, 0],

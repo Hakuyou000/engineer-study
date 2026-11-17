@@ -6,6 +6,7 @@ import type { DrillAttempt } from '../lib/types'
 interface Props {
   stats: DomainStat[]
   drills: DrillAttempt[]
+  onPractice: (domainKey: string, section: string) => void
   onExport: () => void
   onImport: (file: File) => void
   onReset: () => void
@@ -13,7 +14,7 @@ interface Props {
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v * 100)}%`)
 
-function Row({ s, sub }: { s: SectionStat; sub?: boolean }) {
+function Row({ s, sub, onPractice }: { s: SectionStat; sub?: boolean; onPractice?: () => void }) {
   const acc = accuracy(s)
   return (
     <tr className={sub ? 'sub' : 'domain'}>
@@ -29,11 +30,19 @@ function Row({ s, sub }: { s: SectionStat; sub?: boolean }) {
       </td>
       <td>{s.attempts}</td>
       <td>{s.due}</td>
+      <td>
+        {s.weak}
+        {onPractice && s.weak > 0 && (
+          <button className="link" onClick={onPractice}>
+            解く
+          </button>
+        )}
+      </td>
     </tr>
   )
 }
 
-export function StatsView({ stats, drills, onExport, onImport, onReset }: Props) {
+export function StatsView({ stats, drills, onPractice, onExport, onImport, onReset }: Props) {
   const [confirming, setConfirming] = useState(false)
   const file = useRef<HTMLInputElement>(null)
 
@@ -49,12 +58,15 @@ export function StatsView({ stats, drills, onExport, onImport, onReset }: Props)
               <th>正答率</th>
               <th>解答数</th>
               <th>復習待ち</th>
+              <th>要復習</th>
             </tr>
           </thead>
           <tbody>
             {stats.flatMap((d) => [
               <Row key={d.key} s={d} />,
-              ...d.sections.map((s) => <Row key={`${d.key}/${s.key}`} s={s} sub />),
+              ...d.sections.map((s) => (
+                <Row key={`${d.key}/${s.key}`} s={s} sub onPractice={() => onPractice(d.key, s.key)} />
+              )),
             ])}
           </tbody>
         </table>
