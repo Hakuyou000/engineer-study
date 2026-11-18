@@ -48,7 +48,12 @@ aaa authentication login default group tacacs+ local
 - C. ログインは拒否される
 - D. 認証なしでログインできる
 
-**問6** 問5 と同じ設定で、TACACS+ サーバがダウンして応答しない場合はどうなるか。
+**問6** 次の設定のルータに、ユーザ `ops` がログインを試みた。TACACS+ サーバはダウンしていて応答しない。ルータのローカルには `ops` が正しいパスワードで登録されている。結果はどれか。
+
+```
+aaa new-model
+aaa authentication login default group tacacs+ local
+```
 
 - A. すべてのログインが拒否される
 - B. RADIUS サーバに自動で切り替わる
@@ -248,7 +253,13 @@ ip access-list extended FILTER
 - C. 拒否される。暗黙の deny に一致する
 - D. 許可される。行 10 に先に一致する
 
-**問30** 問29 の ACL で、192.168.1.50 だけを拒否するように直す。最も適切な方法はどれか。
+**問30** 次の ACL をインターフェースのインバウンドに適用している。192.168.1.50 だけを拒否し、192.168.1.0/24 の他のホストは許可するように直す。最も適切な方法はどれか。
+
+```
+ip access-list extended FILTER
+ 10 permit ip 192.168.1.0 0.0.0.255 any
+ 20 deny ip host 192.168.1.50 any
+```
 
 - A. 末尾に `30 deny ip host 192.168.1.50 any` を追加する
 - B. `no 20` で行を削除し、`5 deny ip host 192.168.1.50 any` を追加する

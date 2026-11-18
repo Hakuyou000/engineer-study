@@ -75,7 +75,72 @@ describe('parseQuestions', () => {
   })
 })
 
+describe('小項目の前置き', () => {
+  const md = `# CCNA 問題 8.0 前置き
+
+## 問題
+
+### 8.1 表を使う
+
+問1〜問2 は次の表を使う。
+
+| a | b |
+|---|---|
+| 1 | 2 |
+
+**問1** 一つ目。
+
+- A. x
+- B. y
+
+**問2** 二つ目。
+
+- A. x
+- B. y
+
+**問3** 三つ目。
+
+- A. x
+- B. y
+
+### 8.2 範囲なし
+
+共通の出力。
+
+**問4** 四つ目。
+
+- A. x
+- B. y
+
+## 解答・解説
+
+| 問 | 正解 | 解説 |
+|---|---|---|
+| 1 | A | . |
+| 2 | A | . |
+| 3 | A | . |
+| 4 | A | . |
+`
+  const qs = parseQuestions(md)
+
+  it('範囲の問題にだけ前置きを付ける', () => {
+    expect(qs[0].stem).toContain('| 1 | 2 |')
+    expect(qs[0].stem.startsWith('次の表を使う。')).toBe(true)
+    expect(qs[0].stem.endsWith('一つ目。')).toBe(true)
+    expect(qs[1].stem).toContain('| 1 | 2 |')
+    expect(qs[2].stem).toBe('三つ目。')
+  })
+
+  it('範囲がなければ小項目の全問題に付ける', () => {
+    expect(qs[3].stem).toBe('共通の出力。\n\n四つ目。')
+  })
+})
+
 describe('生成済みの問題データ', () => {
+  it('他の問題を参照しない(出題順が変わるため)', () => {
+    expect(questions.filter((q) => /問\d+/.test(q.stem)).map((q) => q.id)).toEqual([])
+  })
+
   it('全問に選択肢、正解、解説がある', () => {
     expect(questions.length).toBeGreaterThan(0)
     for (const q of questions) {

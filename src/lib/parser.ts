@@ -38,6 +38,10 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
   let cur: Question | null = null
   let stem: string[] = []
   let inFence = false
+  // 小項目の見出しと最初の問題の間に書かれた共通の前置き(表や出力)。
+  // 「問1〜問4 は…」と範囲があればその問題だけ、なければその小項目の全問題の問題文の先頭に付ける。
+  let preface: string[] = []
+  let shared: { text: string; from: number; to: number } | null = null
 
   const flush = () => {
     if (!cur) return
@@ -54,11 +58,21 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
       if (sm) {
         flush()
         section = sm[1].trim()
+        preface = []
+        shared = null
         continue
       }
       const qm = l.match(/^\*\*問(\d+)\*\*\s*(.*)$/)
       if (qm) {
         flush()
+        if (preface.some((x) => x.trim())) {
+          const text = preface.join('\n').trim()
+          const range = text.match(/問(\d+)\s*[〜~-]\s*問(\d+)/)
+          // 出題順は入れ替わるので、「問1〜問4 は、」の部分は問題文に残さない
+          const body = text.replace(/^問\d+\s*[〜~-]\s*問\d+\s*は、?\s*/, '')
+          shared = range ? { text: body, from: Number(range[1]), to: Number(range[2]) } : { text, from: 0, to: Infinity }
+        }
+        preface = []
         const number = Number(qm[1])
         cur = {
           id: `${exam.toLowerCase()}-${domain}-q${number}`,
@@ -72,7 +86,7 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
           answer: [],
           explanation: '',
         }
-        stem = [qm[2]]
+        stem = shared && number >= shared.from && number <= shared.to ? [shared.text, '', qm[2]] : [qm[2]]
         continue
       }
       const cm = l.match(/^- ([A-Z])\. (.+)$/)
@@ -82,6 +96,7 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
       }
     }
     if (cur && cur.choices.length === 0) stem.push(l)
+    else if (!cur && section) preface.push(l)
   }
   flush()
 
