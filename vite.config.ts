@@ -36,5 +36,7 @@ export default defineConfig({
   // GitHub Pages のサブパス配信でも動くよう相対パスにする
   base: './',
   plugins: [react(), shutdownPlugin()],
+  // 問題データ(JSON)を本体に同梱しているため。ローカルで使う前提なので分割はしない
+  build: { chunkSizeWarningLimit: 1000 },
   test: { include: ['src/**/*.test.ts'] },
 })

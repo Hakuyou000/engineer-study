@@ -1,6 +1,6 @@
 # CCNA 問題 2.0 スイッチングとネットワークアクセス
 
-対象: 200-301 CCNA v2.0 / 全36問 / すべてオリジナル問題
+対象: 200-301 CCNA v2.0 / 全37問 / すべてオリジナル問題
 対応テキスト: `CCNA_2.0_スイッチングとネットワークアクセス.md`
 解答・解説は末尾。
 
@@ -176,6 +176,13 @@ Group  Port-channel  Protocol    Ports
 - B. `switchport mode access` / `spanning-tree portfast`
 - C. `switchport mode trunk` / `spanning-tree guard root`
 - D. `no switchport` / `spanning-tree bpduguard enable`
+
+**問37** 複数の VLAN を扱うファイアウォールを、冗長化のため2本のリンクでスイッチに接続する。一般的な構成はどれか。
+
+- A. 2本をそれぞれ別 VLAN のアクセスポートにする
+- B. 2本を LACP のポートチャネルにしてトランクにし、VLAN ID とネイティブ VLAN をファイアウォール側と合わせる
+- C. PortFast と BPDU ガードだけを設定する
+- D. CAPWAP でトンネルを作る
 
 ### 2.3 CDP / LLDP
 
@@ -375,3 +382,4 @@ Gi0/24           Root FWD 4         128.24   P2p
 | 34 | B | BPDU ガードは BPDU を受信するとポートを err-disabled にする。 |
 | 35 | B | ルートガードは優位な BPDU を受けたポートを root-inconsistent にする。 |
 | 36 | B | 4106 = 4096 + VLAN 10。Root ID と Bridge ID が異なるので SW2 はルートではない。Altn は代替ポート。Edge は PortFast(端末)。rstp は Rapid PVST+。 |
+| 37 | B | 複数 VLAN を扱うアプライアンスはトランクで接続し、冗長化には LACP を使うことが多い。LACP モードも相手と合わせる。 |

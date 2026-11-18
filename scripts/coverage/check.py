@@ -9,7 +9,7 @@ LINUC = {
    ('. / source', r'source|`\. '), ('lists ; && ||', r'&&|\|\|'), ('コマンド置換', r'コマンド置換|\$\(|`date'), ('alias', r'alias'), ('コマンドサーチパス', r'PATH|which|type ')]),
  '1.06.2': (6, [('function', r'関数|function'), ('#!(シバン)', r'#!|シバン'), ('配置・所有者・実行権', r'/usr/local/bin|chown|実行権'), ('chmod', r'chmod|755|711'),
    ('for', r'\bfor\b'), ('while', r'while|until'), ('戻り値 $? exit', r'\$\?|exit|終了ステータス'), ('if', r'\bif\b'), ('case', r'case|esac'),
-   ('$# $* $@ $0 $1..', r'\$#|\$@|\$\*|\$0|\$1|\$2'), ('shift', r'shift'), ('PATH(環境に依存しない)', r'LANG=C|PATH=/'), ('bash -v / -x', r'bash -[vx]')]),
+   ('$# $* $@ $0 $1..', r'\$#|\$@|\$\*|\$0|\$1|\$2'), ('shift', r'shift'), ('PATH(環境に依存しない)', r'LANG=C|PATH=/|PATH を設定'), ('bash -v / -x', r'bash -[vx]')]),
  '1.07.1': (4, [('ネットマスク・CIDR', r'/2[0-9]|CIDR|マスク'), ('サブネット化', r'/2[5-9]|ブロードキャスト'), ('プライベート/パブリック', r'プライベート|グローバル'),
    ('22/SSH', r'SSH'), ('25/SMTP', r'SMTP'), ('53/DNS', r'DNS'), ('80/HTTP', r'HTTP'), ('123/NTP', r'NTP'), ('443/HTTPS', r'HTTPS'),
    ('TCP/UDP/ICMP の違い', r'ICMP'), ('IPv4 と IPv6 の違い', r'IPv6'), ('IPv6 の基本機能', r'::|ブロードキャスト|リンクローカル')]),
@@ -46,7 +46,7 @@ LINUC = {
    ('ed25519', r'ed25519'), ('SSH ポート転送', r'ssh -L|ポート転送|-L '), ('gpg', r'gpg'), ('gpg-agent', r'gpg-agent'), ('~/.gnupg/', r'\.gnupg'),
    ('authorized_keys / known_hosts', r'authorized_keys|known_hosts'), ('sshd_config', r'sshd_config')]),
  '1.10.4': (3, [('管理コンソール', r'管理コンソール'), ('ファイアウォール(クラウド側)', r'セキュリティグループ|ファイアウォール'), ('ルーティング(クラウド側)', r'ルート|経路'),
-   ('リージョン選択と国内外の制約', r'リージョン'), ('揮発性ストレージ', r'揮発'), ('事業者の制約', r'事業者.*制約|制約|25 番'), ('メンテナンス・再起動', r'メンテナンス|再起動'),
+   ('リージョン選択と国内外の制約', r'リージョン'), ('揮発性ストレージ', r'揮発'), ('事業者の制約', r'事業者.*制約|制約|25 番|事業者のメンテナンス'), ('メンテナンス・再起動', r'メンテナンス|再起動'),
    ('コンソールへの経路と認証', r'コンソール.*(認証|経路)|インターネット経由'), ('多段階・多要素認証', r'多要素|多段階'), ('ワンタイムパスワード', r'ワンタイム|OTP|TOTP'),
    ('責任共有', r'責任|IaaS')]),
  '1.11.1': (2, [('自由', r'自由'), ('ソースコード', r'ソースコード'), ('著作物', r'著作'), ('無保証', r'保証'), ('継続した開発', r'継続|開発が'), ('多くのライセンス', r'ライセンス'),
@@ -103,7 +103,7 @@ CCNA = {
  '5.6': (None, [('メッセージの書式', r'%LINK|%SYS'), ('重大度', r'重大度|errors'), ('ファシリティ', r'ファシリティ|%LINK'), ('logging trap / host', r'logging')]),
 }
 
-def corpus(q): return '\n'.join([q['stem']] + [c['text'] for c in q['choices']] + [q['explanation']])
+def corpus(q): return '\n'.join([q['stem']] + [c['text'] for c in q['choices']] + (q['answer'] if q.get('kind') == 'input' else []) + [q['explanation']])
 
 def objective(q):
     s = q['section'].split()[0]

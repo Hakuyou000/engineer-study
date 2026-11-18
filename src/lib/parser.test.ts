@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import questions from '../data/questions.json'
 import { parseQuestions } from './parser'
+import type { Question } from './types'
 
 const sample = `# CCNA 問題 9.0 テスト分野
 
@@ -75,6 +76,43 @@ describe('parseQuestions', () => {
   })
 })
 
+describe('入力問題', () => {
+  const md = `# LinuC102 問題 9.9 入力
+
+## 問題
+
+### 9.9.1 小項目
+
+**問1** 鍵ペアを作るコマンド名を答えよ。
+
+**問2** 選択。
+
+- A. x
+- B. y
+
+## 解答・解説
+
+| 問 | 正解 | 解説 |
+|---|---|---|
+| 1 | \`ssh-keygen\` | 解説1。 |
+| 2 | B | 解説2。 |
+`
+  it('選択肢がなく、正解の欄がコードなら入力問題', () => {
+    const [a, b] = parseQuestions(md)
+    expect(a).toMatchObject({ kind: 'input', answer: ['ssh-keygen'], choices: [], stem: '鍵ペアを作るコマンド名を答えよ。' })
+    expect(b.kind).toBeUndefined()
+  })
+
+  it('複数の正解を読む', () => {
+    const q = parseQuestions(md.replace('`ssh-keygen`', '`atq`、`at -l`'))[0]
+    expect(q.answer).toEqual(['atq', 'at -l'])
+  })
+
+  it('入力問題に選択肢があれば失敗する', () => {
+    expect(() => parseQuestions(md.replace('| 2 | B |', '| 2 | `x` |'))).toThrow(/入力問題なのに選択肢/)
+  })
+})
+
 describe('小項目の前置き', () => {
   const md = `# CCNA 問題 8.0 前置き
 
@@ -143,9 +181,10 @@ describe('生成済みの問題データ', () => {
 
   it('全問に選択肢、正解、解説がある', () => {
     expect(questions.length).toBeGreaterThan(0)
-    for (const q of questions) {
+    for (const q of questions as Question[]) {
       expect(q.stem.length, q.id).toBeGreaterThan(0)
-      expect(q.choices.length, q.id).toBeGreaterThanOrEqual(2)
+      if (q.kind === 'input') expect(q.choices.length, q.id).toBe(0)
+      else expect(q.choices.length, q.id).toBeGreaterThanOrEqual(2)
       expect(q.answer.length, q.id).toBeGreaterThanOrEqual(1)
       expect(q.explanation.length, q.id).toBeGreaterThan(0)
       expect(q.section.length, q.id).toBeGreaterThan(0)

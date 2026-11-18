@@ -12,6 +12,7 @@ import * as db from './lib/db'
 import { buildStudySession, isCorrect, review, shuffle } from './lib/srs'
 import { loadShufflePref, originalKeys, shuffleChoices } from './lib/shuffle'
 import { examList, loadGroup, saveGroup } from './lib/groups'
+import { canInput, toInput } from './lib/input'
 import { computeStats, examLabel, groupByExam } from './lib/stats'
 import { TEXTS } from './lib/texts'
 import { weakQuestions } from './lib/weak'
@@ -118,7 +119,9 @@ export function App() {
         ? buildStudySession(pool, store.cards, Date.now(), size)
         : kind === 'weak'
           ? weakQuestions(pool, store.attempts).slice(0, size)
-          : shuffle(pool).slice(0, size)
+          : kind === 'input'
+            ? buildStudySession(pool.filter(canInput), store.cards, Date.now(), size).map(toInput)
+            : shuffle(pool).slice(0, size)
     if (questions.length === 0) return
     setView({ name: kind === 'exam' ? 'exam' : 'study', questions: prepare(questions) })
   }
@@ -185,7 +188,15 @@ export function App() {
         />
       )}
 
-      {view.name === 'home' && <Home key={group ?? '*'} scopeKey={group ?? '*'} stats={stats} onStart={start} />}
+      {view.name === 'home' && (
+        <Home
+          key={group ?? '*'}
+          scopeKey={group ?? '*'}
+          stats={stats}
+          inputCount={(domains) => QUESTIONS.filter((q) => domains.includes(`${q.exam} ${q.domain}`) && canInput(q)).length}
+          onStart={start}
+        />
+      )}
 
       {session?.name === 'study' && (
         <Study

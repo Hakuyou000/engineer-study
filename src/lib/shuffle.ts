@@ -8,6 +8,7 @@ const KEYS = 'ABCDEFGH'
  * keyMap は表示上の記号 → 元の記号。履歴には元の記号で保存する。
  */
 export function shuffleChoices(q: Question, rng: () => number = Math.random): Question {
+  if (q.kind === 'input') return q
   const order = shuffle(q.choices, rng)
   const toNew = new Map(order.map((c, i) => [c.key, KEYS[i]]))
   const keyMap: Record<string, string> = {}
@@ -22,6 +23,7 @@ export function shuffleChoices(q: Question, rng: () => number = Math.random): Qu
 
 /** 表示上の記号を、元の記号に戻す。 */
 export function originalKeys(q: Question, chosen: readonly string[]): string[] {
+  if (q.kind === 'input') return [...chosen]
   return chosen.map((k) => q.keyMap?.[k] ?? k).sort()
 }
 

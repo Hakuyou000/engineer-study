@@ -18,6 +18,8 @@ export interface Question {
   /** 正解の選択肢キー。複数選択問題は 2 つ以上 */
   answer: string[]
   explanation: string
+  /** 入力問題。answer に入力として認める答えが入る */
+  kind?: 'input'
   /** 選択肢を並べ替えたときの、表示上の記号 → 元の記号 */
   keyMap?: Record<string, string>
 }

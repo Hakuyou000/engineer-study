@@ -1,3 +1,4 @@
+import { inputMatches } from './input'
 import type { Card, Question } from './types'
 
 export type Grade = 'again' | 'hard' | 'good'
@@ -63,5 +64,6 @@ export function buildStudySession(
 }
 
 export function isCorrect(q: Question, chosen: readonly string[]): boolean {
+  if (q.kind === 'input') return inputMatches(q.answer, chosen[0] ?? '')
   return chosen.length === q.answer.length && q.answer.every((k) => chosen.includes(k))
 }
