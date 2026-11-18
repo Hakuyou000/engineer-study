@@ -48,9 +48,11 @@ export function Md({ text }: { text: string }) {
 }
 
 export function inline(s: string): ReactNode[] {
-  return s.split(/(`[^`]+`|\*\*[^*]+\*\*)/g).map((part, i) => {
+  // 解説は表の 1 セルに書くため、改行は <br> で表す
+  return s.split(/(`[^`]+`|\*\*[^*]+\*\*|<br\s*\/?>)/g).map((part, i) => {
     if (part.startsWith('`') && part.length > 1) return <code key={i}>{part.slice(1, -1)}</code>
     if (part.startsWith('**') && part.length > 3) return <strong key={i}>{part.slice(2, -2)}</strong>
+    if (/^<br\s*\/?>$/.test(part)) return <br key={i} />
     return part
   })
 }
