@@ -153,3 +153,12 @@ input[type='checkbox'] { width: 18px; height: 18px; margin-right: 6px; vertical-
 .meter { display: inline-block; width: 64px; height: 8px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; margin-right: 8px; overflow: hidden; vertical-align: middle; }
 .meter > span { display: block; height: 100%; background: var(--ok); }
 .meter > span.low { background: var(--ng); }
+.roadmap-bar { width: 100%; height: 10px; accent-color: var(--accent); }
+.stage h3 { margin: 0 0 6px; }
+.stage.done { border-color: var(--ok); }
+.stage h4 { font-size: 0.9rem; margin: 14px 0 4px; }
+.roadmap-items li { margin: 6px 0; }
+.roadmap-items .meta { margin-left: 30px; }
+.roadmap-list { margin: 4px 0; padding-left: 20px; }
+.roadmap-list li { margin: 4px 0; }
+.roadmap-app { margin-top: 4px; }
