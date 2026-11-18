@@ -77,7 +77,7 @@ export function genCompress(rng: Rng): Drill {
     // 最短表記そのものを問うので、正規化は大文字小文字と空白だけ
     fields: [{ label: '省略表記', answer, normalize: (s) => s.trim().toLowerCase() }],
     explain:
-      '各グループの先頭の 0 を省略する。`::` は 1 か所だけ。0 の連続が最も長い箇所に使い、同じ長さなら左側。',
+      'それぞれのグループの先頭の 0 は省略できます。0 だけのグループが続く部分は `::` にまとめられますが、使えるのは 1 か所だけです。0 が最も長く続く部分に使い、同じ長さなら左側に使います。0 のグループが 1 つだけなら `::` にせず 0 と書きます。',
   }
 }
 
@@ -90,6 +90,6 @@ export function genEui64(rng: Rng): Drill {
     type: 'ipv6-eui64',
     prompt: `MAC アドレス \`${mac}\` のインターフェースに \`ipv6 address ${prefix}::/64 eui-64\` を設定した。生成されるアドレスを答えよ。`,
     fields: [{ label: 'IPv6 アドレス', answer, normalize: normCanonical }],
-    explain: `MAC の中央に fffe を挿入し、先頭バイトの 7 ビット目(U/L ビット)を反転する。インターフェース ID は ${iid}。`,
+    explain: `EUI-64 では、48 ビットの MAC アドレスの真ん中に fffe を入れて 64 ビットにし、先頭のバイトの 7 ビット目(U/L ビット)を反転させます。インターフェース ID は ${iid} で、これをプレフィックスの後ろに付けます。`,
   }
 }

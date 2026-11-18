@@ -111,7 +111,7 @@ export function StatsView({ exam, stats, drills, onPractice, onExport, onImport,
       </table>
 
       <h3>履歴データ</h3>
-      <p className="meta">履歴はこのブラウザの IndexedDB にだけ保存される。別の PC やブラウザへ移すにはエクスポートを使う。</p>
+      <p className="meta">解答の履歴は、このブラウザの中(IndexedDB)にだけ保存されます。別の PC やブラウザに移すときは、エクスポートしたファイルをインポートしてください。</p>
       <div className="actions">
         <button onClick={onExport}>エクスポート(JSON)</button>
         <button onClick={() => file.current?.click()}>インポート(置き換え)</button>

@@ -18,7 +18,7 @@ export function SectionText({ q }: { q: Question }) {
     loadText(text.id)
       .then((md) => {
         const found = splitSections(md).filter((s) => numbers.includes(s.number))
-        setBody(found.map((s) => s.body).join('\n\n') || '該当する節が見つからない。')
+        setBody(found.map((s) => s.body).join('\n\n') || '対応する節が見つかりませんでした。')
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
   }

@@ -74,8 +74,8 @@ export function App() {
     return (
       <main>
         <section className="card">
-          <h2>終了した</h2>
-          <p>このタブは閉じてよい。履歴は保存済み。</p>
+          <h2>終了しました</h2>
+          <p>このタブは閉じて大丈夫です。解答の履歴は保存されています。</p>
         </section>
       </main>
     )
