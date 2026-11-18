@@ -14,6 +14,16 @@ if ! command -v npm >/dev/null 2>&1; then
   fail
 fi
 
+# Vite などが Node.js 22.12 以降を必要とする
+NODE_VERSION="$(node -v 2>/dev/null | sed 's/^v//')"
+NODE_MAJOR="${NODE_VERSION%%.*}"
+NODE_MINOR="$(echo "$NODE_VERSION" | cut -d. -f2)"
+if [ -z "$NODE_MAJOR" ] || [ "$NODE_MAJOR" -lt 22 ] || { [ "$NODE_MAJOR" -eq 22 ] && [ "$NODE_MINOR" -lt 12 ]; }; then
+  echo "Node.js のバージョンが古いです(今のバージョン: ${NODE_VERSION:-不明})。"
+  echo "22.12 以降が必要です。https://nodejs.org/ から LTS 版を入れてから、もう一度実行してください。"
+  fail
+fi
+
 echo "[1/2] 依存パッケージを確認します"
 npm install --no-audit --no-fund || fail
 

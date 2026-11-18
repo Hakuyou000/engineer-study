@@ -1,11 +1,13 @@
 // content/**/*.md を解析し、src/data/questions.json を生成する。
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { dirname, join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { compareExam } from '../src/lib/order'
 import { parseQuestions } from '../src/lib/parser'
 import type { Question } from '../src/lib/types'
 
-const root = join(import.meta.dirname, '..')
+// import.meta.dirname は Node.js 20.11 以降にしかないので、古い Node.js でも動く書き方にする
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const contentDir = join(root, 'content')
 const outFile = join(root, 'src', 'data', 'questions.json')
 
