@@ -57,5 +57,6 @@ describe('groupByExam', () => {
   it('試験名の表示', () => {
     expect(examLabel('LinuC102')).toBe('LinuC 102')
     expect(examLabel('CCNA')).toBe('CCNA')
+    expect(examLabel('SAA')).toBe('AWS SAA')
   })
 })

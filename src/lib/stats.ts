@@ -27,7 +27,10 @@ export interface ExamStat extends SectionStat {
 }
 
 /** 表示用の試験名。LinuC102 → LinuC 102 */
-export const examLabel = (exam: string) => exam.replace(/^([A-Za-z]+)(\d+)$/, '$1 $2')
+/** 表示名が試験コードから作れない試験 */
+const LABELS: Record<string, string> = { SAA: 'AWS SAA' }
+
+export const examLabel = (exam: string) => LABELS[exam] ?? exam.replace(/^([A-Za-z]+)(\d+)$/, '$1 $2')
 
 /** 分野の集計を試験ごとにまとめる。順番は元の並び(LinuC → CCNA)を保つ。 */
 export function groupByExam(domains: readonly DomainStat[]): ExamStat[] {

@@ -85,3 +85,40 @@ export function genPrefixForHosts(rng: Rng): Drill {
     explain: `/${p} は ${blockSize(p) - 2} 台。/${p + 1} は ${blockSize(p + 1) - 2} 台で不足。`,
   }
 }
+
+/** AWS の VPC はサブネットごとに 5 個(先頭 4 個と最後の 1 個)を予約する */
+export const AWS_RESERVED = 5
+
+/** VPC のサブネットで使える IP の数。AWS のサブネットは /16〜/28 */
+export const awsUsable = (prefix: number): number => blockSize(prefix) - AWS_RESERVED
+
+/** VPC で n 個の IP を使える最小のサブネットのプレフィックス長。/28 より小さくはできない */
+export function awsPrefixForHosts(n: number): number {
+  let p = 28
+  while (awsUsable(p) < n) p--
+  return p
+}
+
+export function genAwsUsable(rng: Rng): Drill {
+  const prefix = int(rng, 16, 28)
+  const cidr = `10.${int(rng, 0, 255)}.0.0/${prefix}`
+  const total = blockSize(prefix)
+  return {
+    type: 'aws-usable',
+    prompt: `VPC にサブネット \`${cidr}\` を作る。EC2 などに割り当てられる IP アドレスの数を答えよ。`,
+    fields: [{ label: '使える IP の数', answer: String(awsUsable(prefix)), normalize: (s) => s.trim().replace(/[,個]/g, '') }],
+    explain: `/${prefix} は ${total} 個。AWS が 5 個(ネットワーク、VPC ルーター、DNS、将来用、ブロードキャスト)を予約するので ${total} − 5 = ${awsUsable(prefix)} 個。`,
+  }
+}
+
+export function genAwsPrefixForHosts(rng: Rng): Drill {
+  const n = int(rng, 2, 4000)
+  const p = awsPrefixForHosts(n)
+  const tooSmall = p < 28 ? ` /${p + 1} は ${awsUsable(p + 1)} 個で不足。` : ' /28 が VPC のサブネットの最小。'
+  return {
+    type: 'aws-prefix',
+    prompt: `VPC のサブネットで ${n} 個の IP アドレスが必要である。最小のサブネットのプレフィックス長を答えよ。`,
+    fields: [{ label: 'プレフィックス長', answer: String(p), normalize: normPrefix }],
+    explain: `/${p} は ${blockSize(p)} − 5 = ${awsUsable(p)} 個。${tooSmall}`,
+  }
+}
