@@ -5,6 +5,7 @@ import type { Card, Question } from './types'
 const DAY = 86_400_000
 const q = (id: string, answer = ['A']): Question => ({
   id,
+  code: id,
   exam: 'X',
   domain: '1.0',
   domainTitle: '',

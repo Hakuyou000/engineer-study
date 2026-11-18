@@ -173,3 +173,6 @@ button.link.accent { color: var(--accent); padding: 0; font-weight: 600; text-al
 .cert-weight { font-variant-numeric: tabular-nums; font-weight: 600; }
 .cert-bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--accent); }
 a { color: var(--accent); }
+.qcode { font-family: ui-monospace, Consolas, monospace; font-weight: 600; color: var(--text); }
+.code-form { margin-top: 16px; }
+.code-form input { width: min(100%, 220px); font-family: ui-monospace, Consolas, monospace; }
