@@ -113,6 +113,9 @@ fieldset { border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px 
 fieldset label { display: block; }
 legend { color: var(--muted); font-size: 0.85rem; padding: 0 4px; }
 input[type='checkbox'] { width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px; accent-color: var(--accent); }
+.answer-input { width: min(100%, 460px); font-family: ui-monospace, Consolas, monospace; margin: 4px 0 8px; }
+.answer-input.right { border-color: var(--ok); background: var(--ok-bg); }
+.answer-input.wrong { border-color: var(--ng); background: var(--ng-bg); }
 .field { display: block; margin: 12px 0; }
 .field > span:first-child { display: block; font-size: 0.85rem; color: var(--muted); }
 .field input { width: min(100%, 420px); font-family: ui-monospace, Consolas, monospace; }

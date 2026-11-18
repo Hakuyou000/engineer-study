@@ -33,7 +33,7 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
   }
 
   const q = questions[idx]
-  const ready = chosen.length === q.answer.length
+  const ready = q.kind === 'input' ? (chosen[0] ?? '').trim() !== '' : chosen.length === q.answer.length
   const correct = revealed && isCorrect(q, chosen)
 
   const select = (c: string[]) => {
@@ -63,7 +63,17 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
           中断
         </button>
       </div>
-      <QuestionView q={q} chosen={chosen} onChange={select} revealed={revealed} />
+      <QuestionView
+        key={q.id}
+        q={q}
+        chosen={chosen}
+        onChange={select}
+        revealed={revealed}
+        onEnter={() => {
+          if (!revealed && ready) submit()
+          else if (revealed) next()
+        }}
+      />
       <div className="actions">
         {!revealed && (
           <button className="primary" disabled={!ready} onClick={submit}>

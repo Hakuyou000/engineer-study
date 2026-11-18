@@ -11,6 +11,9 @@ import type { Question } from './types'
  *   - A. 選択肢
  *   ## 解答・解説
  *   | N | A | 解説 |      複数選択は「A、C」
+ *
+ * 入力問題は選択肢を書かず、正解の欄に入力として認める答えをコードで書く。
+ *   | N | `ssh-keygen` | 解説 |      複数あれば「`atq`、`at -l`」
  */
 export function parseQuestions(md: string, source = '(input)'): Question[] {
   const lines = md.replace(/\r\n/g, '\n').split('\n')
@@ -23,14 +26,16 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
   const answerStart = lines.findIndex((l) => /^## 解答/.test(l))
   if (answerStart < 0) throw new Error(`${source}: 「## 解答」節がない`)
 
-  const answers = new Map<number, { answer: string[]; explanation: string }>()
+  const answers = new Map<number, { answer: string[]; accept: string[] | null; explanation: string }>()
   for (const l of lines.slice(answerStart)) {
-    const m = l.match(/^\|\s*(\d+)\s*\|\s*([A-Z](?:\s*[、,]\s*[A-Z])*)\s*\|\s*(.*?)\s*\|\s*$/)
+    const m = l.match(/^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*(.*?)\s*\|\s*$/)
     if (!m) continue
-    answers.set(Number(m[1]), {
-      answer: m[2].split(/[、,]/).map((s) => s.trim()),
-      explanation: m[3],
-    })
+    if (/^[A-Z](?:\s*[、,]\s*[A-Z])*$/.test(m[2])) {
+      answers.set(Number(m[1]), { answer: m[2].split(/[、,]/).map((s) => s.trim()), accept: null, explanation: m[3] })
+    } else if (m[2].startsWith('`')) {
+      const accept = [...m[2].matchAll(/`([^`]+)`/g)].map((x) => x[1].trim())
+      answers.set(Number(m[1]), { answer: accept, accept, explanation: m[3] })
+    }
   }
 
   const questions: Question[] = []
@@ -103,6 +108,14 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
   for (const q of questions) {
     const a = answers.get(q.number)
     if (!a) throw new Error(`${source}: 問${q.number} の解答がない`)
+    if (a.accept) {
+      if (q.choices.length > 0) throw new Error(`${source}: 問${q.number} は入力問題なのに選択肢がある`)
+      if (a.accept.length === 0) throw new Error(`${source}: 問${q.number} の正解が空`)
+      q.kind = 'input'
+      q.answer = a.accept
+      q.explanation = a.explanation
+      continue
+    }
     if (q.choices.length < 2) throw new Error(`${source}: 問${q.number} の選択肢が不足`)
     const keys = new Set(q.choices.map((c) => c.key))
     for (const k of a.answer) {

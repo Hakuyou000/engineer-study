@@ -87,6 +87,7 @@ export function Exam({ questions, seconds, onFinish, onExit }: Props) {
         </button>
       </div>
       <QuestionView
+        key={q.id}
         q={q}
         chosen={answers.get(q.id) ?? []}
         onChange={(c) => setAnswers((m) => new Map(m).set(q.id, c))}

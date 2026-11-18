@@ -1,6 +1,6 @@
 # CCNA 問題 1.0 ネットワークインフラストラクチャと接続
 
-対象: 200-301 CCNA v2.0 / 全32問 / すべてオリジナル問題
+対象: 200-301 CCNA v2.0 / 全41問 / すべてオリジナル問題
 対応テキスト: `CCNA_1.0_ネットワークインフラストラクチャと接続.md`
 解答・解説は末尾。
 
@@ -242,6 +242,27 @@ GigabitEthernet0/2 is up, line protocol is up
 - C. DNS の MX レコード
 - D. クライアントの無線規格(802.11ax 対応か)
 
+**問33** Linux のクライアントで、IP アドレスとデフォルトゲートウェイを確認するコマンドの組み合わせはどれか。
+
+- A. `ipconfig /all` と `route print`
+- B. `scutil --dns` と `netstat -rn`
+- C. `ip addr` と `ip route`
+- D. `netsh wlan show interfaces` と `tracert`
+
+**問34** macOS のクライアントで、DNS の設定を表示するコマンドはどれか。
+
+- A. `ipconfig /all`
+- B. `scutil --dns`
+- C. `resolvectl status`
+- D. `netsh wlan show interfaces`
+
+**問35** クライアントからデフォルトゲートウェイへの ping は成功するが、8.8.8.8 への ping は失敗する。疑う箇所として最も適切なものはどれか。
+
+- A. クライアントの NIC
+- B. DNS サーバの設定
+- C. クライアントの TCP/IP スタック
+- D. ルータ側の経路、NAT、ACL
+
 ### 1.7 DHCP
 
 **問32** クライアントは R1 の G0/1 側(192.168.20.0/24)にいる。DHCP サーバ 10.1.1.5 は R1 の G0/0 の先にある。クライアントがアドレスを取得できるようにする設定はどれか。
@@ -250,6 +271,38 @@ GigabitEthernet0/2 is up, line protocol is up
 - B. G0/1 に `ip helper-address 10.1.1.5`
 - C. G0/1 に `ip helper-address 192.168.20.1`
 - D. グローバルで `ip dhcp excluded-address 10.1.1.5`
+
+**問36** DHCPv4 でアドレスを取得するときのメッセージの順序はどれか。
+
+- A. Discover → Request → Offer → Ack
+- B. Discover → Offer → Request → Ack
+- C. Request → Offer → Discover → Ack
+- D. Offer → Discover → Ack → Request
+
+**問37** DHCP サーバのルータで、192.168.10.1〜192.168.10.10 を配布しないようにする。正しい設定はどれか。
+
+- A. プールの中で `excluded-address 192.168.10.1 192.168.10.10`
+- B. プールの `network` を 192.168.10.11 からに変える
+- C. グローバルコンフィグで `ip dhcp excluded-address 192.168.10.1 192.168.10.10`
+- D. インターフェースで `ip dhcp excluded-address 192.168.10.1 192.168.10.10`
+
+**問38** ルータの G0/1 を DHCP クライアントにする。インターフェースコンフィグモードで入力するコマンドを答えよ。
+
+**問39** 一部のクライアントだけアドレスを取得できない。`show ip dhcp pool` で、貸し出し中のアドレス数が範囲の上限に達している。原因はどれか。
+
+- A. `ip helper-address` が設定されていない
+- B. `default-router` が誤っている
+- C. `dns-server` が設定されていない
+- D. プールが枯渇している
+
+**問40** リレーエージェント経由の要求を受けた DHCP サーバは、何をもとにプールを選ぶか。
+
+- A. クライアントの MAC アドレス
+- B. giaddr(リレーが要求を受けたインターフェースのアドレス)
+- C. DHCP サーバ自身のアドレス
+- D. Discover の送信元 IP アドレス(0.0.0.0)
+
+**問41** DHCP サーバが待ち受ける UDP のポート番号を答えよ。
 
 ## 解答・解説
 
@@ -287,3 +340,12 @@ GigabitEthernet0/2 is up, line protocol is up
 | 30 | A | `ipconfig /all` は DHCP とリース、DNS、MAC アドレスまで表示する。 |
 | 31 | B | 認証は成功している。169.254.x.x は DHCP の取得失敗。 |
 | 32 | B | リレーはクライアント側のインターフェースに設定し、サーバのアドレスを指定する。 |
+| 33 | C | Windows は `ipconfig /all` と `route print`、macOS は `ifconfig` と `netstat -rn`。`scutil --dns` は macOS の DNS 設定。 |
+| 34 | B | Windows は `ipconfig /all`、Linux は `resolvectl status` や `/etc/resolv.conf`。 |
+| 35 | D | 近くから順に確かめる。ゲートウェイまでは届いているので、ゲートウェイより先を疑う。名前で失敗するなら DNS。 |
+| 36 | B | DORA。Discover と Request はブロードキャスト。サーバは UDP 67、クライアントは UDP 68。 |
+| 37 | C | `ip dhcp excluded-address` はプールの中ではなく、グローバルコンフィグで設定する。 |
+| 38 | `ip address dhcp` | 受け取ったデフォルトゲートウェイは AD 254 のデフォルトルートとして入る。確認は `show dhcp lease`。 |
+| 39 | D | リース期間の短縮、範囲の拡大、不要なバインディングの消去で対処する。リレーがなければ別サブネットのクライアントは誰も取得できない。 |
+| 40 | B | リレーは Discover をユニキャストに変え、giaddr に受信インターフェースのアドレスを入れて転送する。サーバは giaddr あてに返信するので、戻りの経路が要る。 |
+| 41 | `67` | クライアントは UDP 68。ACL が UDP 67 / 68 を遮断すると取得できない。 |

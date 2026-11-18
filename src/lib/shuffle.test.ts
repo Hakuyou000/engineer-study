@@ -10,7 +10,7 @@ const all = questions as Question[]
 describe('shuffleChoices', () => {
   it('正解の選択肢の本文は入れ替え後も正解のまま', () => {
     const rng = mulberry32(3)
-    for (const q of all) {
+    for (const q of all.filter((x) => x.kind !== 'input')) {
       const s = shuffleChoices(q, rng)
       expect(s.choices.map((c) => c.key)).toEqual(q.choices.map((_, i) => 'ABCDEFGH'[i]))
       const text = (x: Question, keys: string[]) => keys.map((k) => x.choices.find((c) => c.key === k)!.text).sort()
@@ -22,8 +22,9 @@ describe('shuffleChoices', () => {
 
   it('並びが変わる', () => {
     const rng = mulberry32(1)
-    const moved = all.filter((q) => shuffleChoices(q, rng).answer.join() !== q.answer.join()).length
-    expect(moved).toBeGreaterThan(all.length / 2)
+    const choice = all.filter((x) => x.kind !== 'input')
+    const moved = choice.filter((q) => shuffleChoices(q, rng).answer.join() !== q.answer.join()).length
+    expect(moved).toBeGreaterThan(choice.length / 2)
   })
 
   it('2回入れ替えても元の記号に戻せる', () => {

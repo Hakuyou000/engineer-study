@@ -1,6 +1,6 @@
 # CCNA 問題 5.0 AI、ネットワーク運用と管理
 
-対象: 200-301 CCNA v2.0 / 全22問 / すべてオリジナル問題
+対象: 200-301 CCNA v2.0 / 全26問 / すべてオリジナル問題
 対応テキスト: `CCNA_5.0_AIとネットワーク運用管理.md`
 解答・解説は末尾。
 
@@ -193,6 +193,29 @@ R1    : ok=2    changed=0    unreachable=0    failed=0
 - C. syslog サーバには重大度 4 のメッセージだけが送られる
 - D. メッセージは TCP 514 で送られ、SSH セッションにも自動で表示される
 
+**問23** syslog メッセージ `%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to down` のファシリティを答えよ。
+
+**問24** SSH で機器に接続しているが、ログメッセージが端末に表示されない。`logging monitor` は既定のままである。必要な操作はどれか。
+
+- A. `logging console 7` を設定する
+- B. `logging trap debugging` を設定する
+- C. セッションで `terminal monitor` を実行する
+- D. `service timestamps log datetime` を設定する
+
+**問25** syslog の重大度を、重大なもの(数値が小さいもの)から順に並べたものはどれか。
+
+- A. critical、alerts、emergencies、errors
+- B. emergencies、alerts、critical、errors
+- C. alerts、emergencies、errors、critical
+- D. errors、critical、alerts、emergencies
+
+**問26** Cisco 機器が syslog サーバへログを送るときの、既定のプロトコルとレベルの組み合わせはどれか。
+
+- A. TCP 514、debugging
+- B. UDP 162、warnings
+- C. TCP 601、errors
+- D. UDP 514、informational
+
 ## 解答・解説
 
 | 問 | 正解 | 解説 |
@@ -219,3 +242,7 @@ R1    : ok=2    changed=0    unreachable=0    failed=0
 | 20 | B | `hosts` がインベントリのホスト・グループを指定する。 |
 | 21 | A | `%ファシリティ-重大度-ニーモニック`。3 は errors。critical は 2。 |
 | 22 | B | 指定したレベルと、それより数値の小さい(重大な)レベルが対象。UDP 514。SSH で見るには `terminal monitor`。 |
+| 23 | `LINEPROTO` | `%ファシリティ-重大度-ニーモニック`。重大度は 5(notifications)、ニーモニックは UPDOWN。 |
+| 24 | C | モニタ(VTY)への出力は、セッションで `terminal monitor` を実行しないと表示されない。止めるときは `terminal no monitor`。 |
+| 25 | B | 0 emergencies、1 alerts、2 critical、3 errors、4 warnings、5 notifications、6 informational、7 debugging。 |
+| 26 | D | `logging host` で送り先、`logging trap` でレベルを変える。UDP 162 は SNMP トラップ。 |

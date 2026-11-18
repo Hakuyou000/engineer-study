@@ -1,6 +1,6 @@
 # LinuC102 問題 1.09 重要なシステムサービス
 
-対象: LinuC レベル1 102試験 / 全26問 / すべてオリジナル問題
+対象: LinuC レベル1 102試験 / 全32問 / すべてオリジナル問題
 対応テキスト: `LinuC102_1.09_重要なシステムサービス.md`
 解答・解説は末尾。
 
@@ -63,6 +63,17 @@
 - B. `chronyd -l`
 - C. `chronyc sources`
 - D. `timedatectl sources`
+
+**問27** Red Hat 系で、chronyd の設定ファイルのパスを答えよ。
+
+**問28** `pool.ntp.org` の説明として正しいものはどれか。
+
+- A. 原子時計に直結した stratum 0 のサーバー
+- B. 公開 NTP サーバーの集まり。問い合わせるたびに別のサーバーが割り当てられる
+- C. chrony の設定ファイル
+- D. 時刻同期のプロトコルの名前
+
+**問29** ntpd の同期先を `server` 行で指定する設定ファイルのパスを答えよ。
 
 ### 1.09.2 システムのログ
 
@@ -168,6 +179,8 @@
 - C. `-s`
 - D. `-r`
 
+**問30** サービスごとの logrotate の設定ファイルを置くディレクトリのパスを答えよ。
+
 ### 1.09.3 メール配送エージェント(MTA)の基本
 
 **問23** MTA の役割として正しいものはどれか。
@@ -197,6 +210,20 @@
 - B. `mail -q`
 - C. `newaliases`
 - D. `sendmail -q`
+
+**問31** Debian 系のディストリビューションで標準の MTA として使われてきたものはどれか。
+
+- A. sendmail
+- B. postfix
+- C. exim
+- D. qmail
+
+**問32** postfix の説明として正しいものはどれか。
+
+- A. 最も古くからある MTA で、設定が複雑
+- B. メールを書いたり読んだりする MUA
+- C. 届いたメールをメールボックスに配る MDA だけの機能を持つ
+- D. sendmail と互換性があり、高速で安全。設定が分かりやすい
 
 ## 解答・解説
 
@@ -228,3 +255,9 @@
 | 24 | A | MTA は変換後のデータベース(`/etc/aliases.db`)を使う。newaliases で作り直す。 |
 | 25 | D | `\` を付けたユーザー名は、それ以上転送せず自分のメールボックスに配送する。 |
 | 26 | A | mailq でキューを表示する。`sendmail -q` はキューの再送。 |
+| 27 | `/etc/chrony.conf` | Debian 系では `/etc/chrony/chrony.conf`。状態の確認は `chronyc sources`。 |
+| 28 | B | `0.pool.ntp.org` 〜 `3.pool.ntp.org` や `jp.pool.ntp.org` がある。 |
+| 29 | `/etc/ntp.conf` | ntpd の状態は `ntpq -p` で確認する。chrony の設定ファイルは `chrony.conf`。 |
+| 30 | `/etc/logrotate.d` | 全体の設定は `/etc/logrotate.conf`。 |
+| 31 | C | exim は柔軟な設定ができる MTA。多くのディストリビューションの標準は postfix。sendmail は最も古い。 |
+| 32 | D | postfix は多くのディストリビューションで標準の MTA。sendmail 互換のコマンド(sendmail、mailq、newaliases)も備える。 |

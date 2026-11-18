@@ -9,10 +9,13 @@ interface Props {
   onChange: (chosen: string[]) => void
   /** true で正誤と解説を表示し、選択を固定する */
   revealed: boolean
+  /** 入力問題で Enter を押したとき */
+  onEnter?: () => void
 }
 
-export function QuestionView({ q, chosen, onChange, revealed }: Props) {
-  const multi = q.answer.length > 1
+export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) {
+  const input = q.kind === 'input'
+  const multi = !input && q.answer.length > 1
   const toggle = (key: string) => {
     if (revealed) return
     if (!multi) onChange([key])
@@ -24,8 +27,27 @@ export function QuestionView({ q, chosen, onChange, revealed }: Props) {
       <div className="meta">
         {q.exam} {q.section} ・ 問{q.number}
         {multi && ` ・ ${q.answer.length} つ選択`}
+        {input && ' ・ 入力'}
       </div>
       <Md text={q.stem} />
+      {input && (
+        <input
+          type="text"
+          className={['answer-input', revealed && (isCorrect(q, chosen) ? 'right' : 'wrong')].filter(Boolean).join(' ')}
+          aria-label="答え"
+          placeholder="答えを入力"
+          autoFocus={!revealed}
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          readOnly={revealed}
+          value={chosen[0] ?? ''}
+          onChange={(e) => onChange(e.target.value === '' ? [] : [e.target.value])}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing) onEnter?.()
+          }}
+        />
+      )}
       <ul className="choices">
         {q.choices.map((c) => {
           const picked = chosen.includes(c.key)
@@ -48,8 +70,9 @@ export function QuestionView({ q, chosen, onChange, revealed }: Props) {
       {revealed && (
         <div className={`verdict ${isCorrect(q, chosen) ? 'ok' : 'ng'}`}>
           <strong>
-            {isCorrect(q, chosen) ? '正解' : '不正解'}(正解: {q.answer.join('、')})
+            {isCorrect(q, chosen) ? '正解' : '不正解'}(正解: {input ? q.answer.join(' / ') : q.answer.join('、')})
           </strong>
+          {input && !isCorrect(q, chosen) && <p>入力: {chosen[0] ? <code>{chosen[0]}</code> : '(未入力)'}</p>}
           <p>{inline(q.explanation)}</p>
         </div>
       )}

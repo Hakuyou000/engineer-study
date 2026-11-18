@@ -3,7 +3,7 @@ import { loadShufflePref, saveShufflePref } from '../lib/shuffle'
 import { groupByExam, type DomainStat } from '../lib/stats'
 
 export interface StartOptions {
-  kind: 'study' | 'random' | 'exam' | 'weak'
+  kind: 'study' | 'random' | 'exam' | 'weak' | 'input'
   domains: string[]
   size: number
 }
@@ -12,6 +12,8 @@ interface Props {
   /** 出題範囲の保存先を試験ごとに分けるための名前 */
   scopeKey: string
   stats: DomainStat[]
+  /** 選択中の分野で、入力で解ける問題の数 */
+  inputCount: (domains: string[]) => number
   onStart: (o: StartOptions) => void
 }
 
@@ -30,7 +32,7 @@ function loadScope(key: string, all: string[]): string[] {
   return all
 }
 
-export function Home({ scopeKey, stats, onStart }: Props) {
+export function Home({ scopeKey, stats, inputCount, onStart }: Props) {
   const key = `${KEY}:${scopeKey}`
   const all = stats.map((d) => d.key)
   const [domains, setDomains] = useState<string[]>(() => loadScope(key, all))
@@ -136,6 +138,9 @@ export function Home({ scopeKey, stats, onStart }: Props) {
         <button disabled={none || weak === 0} onClick={() => onStart({ kind: 'weak', domains, size })}>
           間違えた問題({weak})
         </button>
+        <button disabled={none || inputCount(domains) === 0} onClick={() => onStart({ kind: 'input', domains, size })}>
+          入力で解く({inputCount(domains)})
+        </button>
         <button disabled={none} onClick={() => onStart({ kind: 'random', domains, size })}>
           ランダム
         </button>
@@ -144,6 +149,7 @@ export function Home({ scopeKey, stats, onStart }: Props) {
         </button>
       </div>
       <p className="meta">要復習: 直近で間違えた問題と、2 回以上解いて正答率が 70% 未満の問題。</p>
+      <p className="meta">入力で解く: 答えがコマンド名やファイル名など1語の問題を、選択肢なしで答える。</p>
       {!none && due + unseen === 0 && (
         <p className="meta">復習待ちも未出題もない。次の復習期限まで待つか、ランダムで解く。</p>
       )}
