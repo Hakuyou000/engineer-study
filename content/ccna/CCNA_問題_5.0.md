@@ -238,9 +238,9 @@ R1    : ok=2    changed=0    unreachable=0    failed=0
 | 16 | A | 値の取得(Get)はできるので、通信やコミュニティ文字列自体は合っています。値の変更(Set)には、書き込みができる RW のコミュニティが必要です。RO(読み取り専用)のコミュニティでは変更できません。UDP 162 は Trap を受け取るためのポートです。 |
 | 17 | B | Ansible は、管理対象にエージェントを入れずに(エージェントレス)、コントロールノードから SSH などで接続して設定を送る(プッシュ型)ツールです。プレイブックは YAML で書きます。管理対象にエージェントを入れて設定を取りに行かせる(プル型)のは、Puppet や Chef です。 |
 | 18 | B | `cisco.ios.ios_command` は、`show` などの EXEC のコマンドを実行して出力を取得するモジュールです。`ios_config` は設定を投入するモジュールで、`debug` は変数などの表示、`copy` はファイルのコピーに使います。 |
-| 19 | C | `changed=0` は、変更が1つも行われなかったことを表します。1回目の実行で R1 はすでに望む状態になっていたので、冪等性によって2回目は何も変えなかったのです。接続できなければ `unreachable`、失敗すれば `failed` が増えます。 |
-| 20 | B | `hosts:` には、タスクの対象にするインベントリのホストやグループの名前を書きます。ここではインベントリの routers グループの機器が対象になります。`name` は説明のための名前、`gather_facts` は機器の情報を集めるかどうか、`lines` は投入する設定です。 |
-| 21 | A | メッセージは `%ファシリティ-重大度-ニーモニック` の形です。真ん中の 3 が重大度で、名前は errors です。critical は 2、notifications は 5 です。LINK はファシリティ(メッセージを出した機能)です。 |
+| 19 | C | PLAY RECAP の項目を順に読みます。<br>① `ok=2`:2 つのタスクが正常に終わりました。<br>② `changed=0`:変更を行ったタスクは 0 個です。<br>③ `unreachable=0`:接続できなかったホストはありません。<br>④ `failed=0`:失敗したタスクはありません。<br>⑤ 1 回目の実行で R1 はすでに望む状態になっていたので、2 回目は何も変えませんでした。同じ結果になるまで何度実行しても安全という性質を冪等性と呼びます。<br>接続できなければ unreachable、タスクが失敗すれば failed が増えます。構文エラーなら、PLAY RECAP が出る前にエラーで止まります。 |
+| 20 | B | プレイブックを上から順に読みます。<br>① `- name: Set logging host`:プレイの説明のための名前です。対象には影響しません。<br>② `hosts: routers`:プレイの対象です。インベントリの routers グループに属する機器が対象になります。<br>③ `gather_facts: false`:機器の情報(facts)を最初に集めないという指定です。<br>④ `tasks:` の下:実行するタスクです。`cisco.ios.ios_config` モジュールで、`lines:` に書いた `logging host 10.1.1.100` を設定します。<br>`lines` は投入する設定の内容で、どの機器に投入するかは `hosts` で決まります。 |
+| 21 | A | メッセージの形 `%ファシリティ-重大度-ニーモニック` に当てはめます。<br>① `LINK`:ファシリティ(メッセージを出した機能)です。重大度ではありません。<br>② `3`:重大度です。<br>③ `UPDOWN`:ニーモニック(メッセージの種類)です。<br>④ 重大度は 0〜7 で、0 emergencies、1 alerts、2 critical、3 errors、4 warnings、5 notifications、6 informational、7 debugging です。<br>⑤ 3 は errors です。<br>critical は 2 で 1 つずれています。notifications は 5 で、インターフェースの line protocol の状態変化(`%LINEPROTO-5-UPDOWN`)と混同しやすい値です。 |
 | 22 | B | `logging trap 4` は、重大度 4(warnings)と、それより数値の小さい、より重大なメッセージ(0〜4)を送るという意味です。`%SYS-5-CONFIG_I` は重大度 5 なので送られません。syslog の送信は UDP の 514 番で、SSH のセッションに表示するには別に `terminal monitor` が必要です。 |
 | 23 | `LINEPROTO` | メッセージは `%ファシリティ-重大度-ニーモニック` の形なので、ファシリティは LINEPROTO です。重大度は 5(notifications)、ニーモニック(メッセージの種類)は UPDOWN です。 |
 | 24 | C | SSH や Telnet のセッション(VTY)にログを表示するには、そのセッションで `terminal monitor` を実行する必要があります。表示をやめるときは `terminal no monitor` です。`logging console` はコンソールポートへの出力の設定で、SSH の画面には関係しません。 |
