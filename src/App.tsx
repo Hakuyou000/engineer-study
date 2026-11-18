@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DrillView } from './components/DrillView'
+import { CertView } from './components/CertView'
 import { Exam } from './components/Exam'
 import { Home, type StartOptions } from './components/Home'
 import { Quit } from './components/Quit'
@@ -16,13 +17,18 @@ import { examList, loadGroup, saveGroup } from './lib/groups'
 import { canInput, toInput } from './lib/input'
 import { computeStats, examLabel, groupByExam } from './lib/stats'
 import { TEXTS } from './lib/texts'
+import { certById } from './lib/certs'
 import { weakQuestions } from './lib/weak'
 import type { Attempt, Card, DrillAttempt, Question } from './lib/types'
 
 const ALL_QUESTIONS = data as Question[]
 const EXAMS = examList([...ALL_QUESTIONS.map((q) => q.exam), ...TEXTS.map((t) => t.exam)])
 
-type View = { name: 'toc' | 'roadmap' | Section } | { name: 'study' | 'exam'; questions: Question[] }
+type View =
+  | { name: 'toc' | Section }
+  | { name: 'roadmap'; focus?: string | null }
+  | { name: 'cert'; id: string }
+  | { name: 'study' | 'exam'; questions: Question[] }
 
 interface Store {
   attempts: Attempt[]
@@ -156,7 +162,9 @@ export function App() {
   }
 
   const tab = (name: 'toc' | 'roadmap' | Section, label: string) => (
-    <button className={view.name === name ? 'tab on' : 'tab'} onClick={name === 'home' ? home : () => setView({ name })}>
+    <button
+      className={view.name === name || (name === 'roadmap' && view.name === 'cert') ? 'tab on' : 'tab'}
+      onClick={name === 'home' ? home : () => setView({ name } as View)}>
       {label}
     </button>
   )
@@ -187,10 +195,27 @@ export function App() {
           textCount={(exam) => TEXTS.filter((t) => t.exam === exam).length}
           current={group}
           onOpen={openGroup}
+          onCert={(id) => setView({ name: 'cert', id })}
         />
       )}
 
-      {view.name === 'roadmap' && <RoadmapView groups={allGroups} onOpen={(exam) => openGroup(exam, 'home')} />}
+      {view.name === 'roadmap' && (
+        <RoadmapView
+          groups={allGroups}
+          focus={view.focus}
+          onOpen={(exam) => openGroup(exam, 'home')}
+          onCert={(id) => setView({ name: 'cert', id })}
+        />
+      )}
+
+      {view.name === 'cert' && certById(view.id) && (
+        <CertView
+          cert={certById(view.id)!}
+          stat={allGroups.find((g) => g.key === certById(view.id)!.exam)}
+          onOpen={openGroup}
+          onRoadmap={(focus) => setView({ name: 'roadmap', focus })}
+        />
+      )}
 
       {view.name === 'home' && (
         <Home

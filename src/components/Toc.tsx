@@ -1,3 +1,4 @@
+import { CERTS } from '../lib/certs'
 import { accuracy, examLabel, type ExamStat } from '../lib/stats'
 
 export type Section = 'home' | 'drill' | 'text' | 'stats'
@@ -7,12 +8,13 @@ interface Props {
   textCount: (exam: string) => number
   current: string | null
   onOpen: (exam: string | null, section: Section) => void
+  onCert: (id: string) => void
 }
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v * 100)}%`)
 
 /** 目次。試験を選び、問題演習・計算ドリル・テキスト・成績のどれを開くかを決める。 */
-export function Toc({ groups, textCount, current, onOpen }: Props) {
+export function Toc({ groups, textCount, current, onOpen, onCert }: Props) {
   const links = (exam: string | null) => (
     <div className="actions">
       <button className="primary" onClick={() => onOpen(exam, 'home')}>
@@ -21,6 +23,9 @@ export function Toc({ groups, textCount, current, onOpen }: Props) {
       <button onClick={() => onOpen(exam, 'drill')}>計算ドリル</button>
       <button onClick={() => onOpen(exam, 'text')}>テキスト</button>
       <button onClick={() => onOpen(exam, 'stats')}>成績</button>
+      {exam && CERTS.some((c) => c.exam === exam) && (
+        <button onClick={() => onCert(CERTS.find((c) => c.exam === exam)!.id)}>資格の表紙</button>
+      )}
     </div>
   )
 

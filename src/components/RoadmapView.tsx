@@ -1,17 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { certById } from '../lib/certs'
 import { INTRO, NON_TECH, NOTE, OPTIONAL_CERTS, STAGES, loadChecked, saveChecked } from '../lib/roadmap'
 import { accuracy, type ExamStat } from '../lib/stats'
 
 interface Props {
   groups: ExamStat[]
   onOpen: (exam: string) => void
+  onCert: (id: string) => void
+  /** 開いたときに表示する段階 */
+  focus?: string | null
 }
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v * 100)}%`)
 
 /** SRE を目指す学習の段階と、やることのチェックリスト。 */
-export function RoadmapView({ groups, onOpen }: Props) {
+export function RoadmapView({ groups, onOpen, onCert, focus }: Props) {
   const [checked, setChecked] = useState(loadChecked)
+
+  useEffect(() => {
+    if (focus) document.getElementById(`stage-${focus}`)?.scrollIntoView()
+    else window.scrollTo(0, 0)
+  }, [focus])
 
   const toggle = (id: string) => {
     const next = new Set(checked)
@@ -38,7 +47,7 @@ export function RoadmapView({ groups, onOpen }: Props) {
       {STAGES.map((s) => {
         const n = s.items.filter((i) => checked.has(i.id)).length
         return (
-          <div key={s.id} className={n === s.items.length ? 'toc-item stage done' : 'toc-item stage'}>
+          <div key={s.id} id={`stage-${s.id}`} className={n === s.items.length ? 'toc-item stage done' : 'toc-item stage'}>
             <h3>
               {s.title}
               <span className="meta"> {n} / {s.items.length}</span>
@@ -56,13 +65,17 @@ export function RoadmapView({ groups, onOpen }: Props) {
               ))}
             </ul>
 
-            <h4>資格</h4>
+            <h4>資格(名前を押すと表紙を開きます)</h4>
             <ul className="roadmap-list">
               {s.certs.map((c) => {
-                const g = c.exam ? groups.find((x) => x.key === c.exam) : undefined
+                const cert = certById(c.cert)!
+                const g = cert.exam ? groups.find((x) => x.key === cert.exam) : undefined
                 return (
-                  <li key={c.name}>
-                    <strong>{c.name}</strong>: {c.note}
+                  <li key={c.cert}>
+                    <button className="link accent cert-link" onClick={() => onCert(c.cert)}>
+                      {cert.name}
+                    </button>
+                    : {c.note}
                     {g && (
                       <div className="inline roadmap-app">
                         <span className="meta">
@@ -91,8 +104,11 @@ export function RoadmapView({ groups, onOpen }: Props) {
       <h3>必要に応じて取る資格</h3>
       <ul className="roadmap-list">
         {OPTIONAL_CERTS.map((c) => (
-          <li key={c.name}>
-            <strong>{c.name}</strong>: {c.note}
+          <li key={c.cert}>
+            <button className="link accent cert-link" onClick={() => onCert(c.cert)}>
+              {certById(c.cert)!.name}
+            </button>
+            : {c.note}
           </li>
         ))}
       </ul>
