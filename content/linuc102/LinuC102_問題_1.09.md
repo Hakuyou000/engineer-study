@@ -8,42 +8,42 @@
 
 ### 1.09.1 システム時刻の管理
 
-**問1** システムクロックの時刻をハードウェアクロックに書き込むコマンドはどれか。
+**問1** システムクロック(OS が管理する時刻)を、ハードウェアクロック(マザーボードの時計)に書き込むコマンドはどれか。
 
 - A. `hwclock -s`
 - B. `date -w`
 - C. `hwclock -r`
 - D. `hwclock -w`
 
-**問2** `date 111714302026` を実行した。引数の並びとして正しいものはどれか。
+**問2** `date 111714302026` を実行して時刻を設定した。この引数の数字の並び方として正しいものはどれか。
 
 - A. MMDDhhmmYYYY
 - B. YYYYMMDDhhmm
 - C. DDMMhhmmYYYY
 - D. hhmmMMDDYYYY
 
-**問3** システム全体のタイムゾーンを表すファイルはどれか。
+**問3** システム全体のタイムゾーンを決めているファイルはどれか。
 
 - A. `/etc/timezone.conf`
 - B. `/usr/share/zoneinfo/localtime`
 - C. `/var/lib/timezone`
 - D. `/etc/localtime`
 
-**問4** tzselect の説明として正しいものはどれか。
+**問4** tzselect コマンドの説明として正しいものはどれか。
 
 - A. システムのタイムゾーンを変更する
 - B. NTP サーバーを選択する
 - C. 対話形式でタイムゾーン名を調べる。システムの設定は変えない
 - D. 環境変数 TZ を全ユーザーに恒久的に設定する
 
-**問5** NTP が使うポートはどれか。
+**問5** NTP(時刻同期のプロトコル)が使うポートはどれか。
 
 - A. UDP 123
 - B. TCP 123
 - C. UDP 53
 - D. TCP 25
 
-**問6** 時刻を1回だけ同期するコマンドはどれか。
+**問6** NTP サーバーと時刻を1回だけ同期して終了するコマンドはどれか。
 
 - A. `ntpd`
 - B. `ntpq`
@@ -57,19 +57,19 @@
 - C. 到達できないサーバー
 - D. 設定から除外されたサーバー
 
-**問8** chrony で同期先の一覧を表示するコマンドはどれか。
+**問8** chrony を使っているときに、時刻の同期先の一覧を表示するコマンドはどれか。
 
 - A. `ntpq -p`
 - B. `chronyd -l`
 - C. `chronyc sources`
 - D. `timedatectl sources`
 
-**問27** Red Hat 系で、chronyd の設定ファイルのパスを答えよ。
+**問27** Red Hat 系のディストリビューションで、chronyd の設定ファイルのパスを答えよ。
 
 **問28** `pool.ntp.org` の説明として正しいものはどれか。
 
 - A. 原子時計に直結した stratum 0 のサーバー
-- B. 公開 NTP サーバーの集まり。問い合わせるたびに別のサーバーが割り当てられる
+- B. 公開されている NTP サーバーの集まり。問い合わせるたびに別のサーバーが割り当てられる
 - C. chrony の設定ファイル
 - D. 時刻同期のプロトコルの名前
 
@@ -77,35 +77,35 @@
 
 ### 1.09.2 システムのログ
 
-**問9** rsyslog に `mail.err /var/log/mail-err` と書いた。記録されるプライオリティはどれか。
+**問9** rsyslog の設定に `mail.err /var/log/mail-err` と書いた。このファイルに記録されるログのプライオリティ(重要度)はどれか。
 
 - A. err だけ
 - B. err、crit、alert、emerg
 - C. err より低いもの
 - D. すべて
 
-**問10** mail ファシリティの err だけを記録するセレクタはどれか。
+**問10** mail ファシリティのログのうち、プライオリティが err のものだけを記録するセレクタの書き方はどれか。
 
 - A. `mail.!err`
 - B. `mail.err`
 - C. `mail.=err`
 - D. `mail.none`
 
-**問11** プライオリティを高い順に並べたものはどれか。
+**問11** ログのプライオリティを、重要度の高い順に並べたものはどれか。
 
 - A. emerg、alert、crit、err
 - B. crit、emerg、alert、err
 - C. err、crit、alert、emerg
 - D. alert、emerg、err、crit
 
-**問12** すべてのログを 192.168.1.100 のログサーバーへ TCP で送る rsyslog の設定はどれか。
+**問12** すべてのログを、192.168.1.100 のログサーバーへ TCP で送る rsyslog の設定はどれか。
 
 - A. `*.* @192.168.1.100`
 - B. `*.* >>192.168.1.100`
 - C. `*.* tcp://192.168.1.100`
 - D. `*.* @@192.168.1.100`
 
-**問13** 次の rsyslog の設定で、`/var/log/messages` に記録されるものはどれか。
+**問13** rsyslog に次の設定がある。`/var/log/messages` に記録されるログはどれか。
 
 ```
 *.info;mail.none;authpriv.none    /var/log/messages
@@ -116,63 +116,63 @@
 - C. mail と authpriv の info 以上だけ
 - D. info 未満のすべて
 
-**問14** ログサーバー側で、UDP でログを受信するために読み込む rsyslog のモジュールはどれか。
+**問14** ログを集めるサーバー側で、UDP でログを受信するために読み込む rsyslog のモジュールはどれか。
 
 - A. `imtcp`
 - B. `omudp`
 - C. `imudp`
 - D. `imjournal`
 
-**問15** ファシリティ local0、プライオリティ info でログを書き込むコマンドはどれか。
+**問15** ファシリティを local0、プライオリティを info にして、ログにメッセージを書き込むコマンドはどれか。
 
 - A. `logger -p local0.info "test"`
 - B. `logger -t local0.info "test"`
 - C. `logger -f local0 info "test"`
 - D. `systemd-cat local0.info "test"`
 
-**問16** sshd ユニットのログを、今回の起動以降の分だけ表示するコマンドはどれか。
+**問16** sshd ユニットのログのうち、今回システムを起動してからの分だけを表示するコマンドはどれか。
 
 - A. `journalctl -k sshd`
 - B. `journalctl -f sshd`
 - C. `journalctl -p sshd`
 - D. `journalctl -u sshd -b`
 
-**問17** journald の設定で、ジャーナルを再起動後も残るようにディスクへ保存する `Storage=` の値はどれか。
+**問17** journald の設定ファイルで、ジャーナル(systemd のログ)を再起動後も残るようにディスクへ保存する `Storage=` の値はどれか。
 
 - A. `volatile`
 - B. `persistent`
 - C. `none`
 - D. `memory`
 
-**問18** 2 週間より古いジャーナルを削除するコマンドはどれか。
+**問18** 2 週間より古いジャーナルのログを削除するコマンドはどれか。
 
 - A. `journalctl --vacuum-time=2weeks`
 - B. `journalctl --vacuum-size=2weeks`
 - C. `journalctl --since 2weeks --delete`
 - D. `logrotate -f 2weeks`
 
-**問19** ログインに失敗した履歴を表示するコマンドはどれか。
+**問19** ログインに失敗した記録の一覧を表示するコマンドはどれか。
 
 - A. `last`
 - B. `lastlog`
 - C. `lastb`
 - D. `who`
 
-**問20** logrotate の設定 `rotate 4` の意味はどれか。
+**問20** logrotate の設定に書いた `rotate 4` の意味はどれか。
 
 - A. 4 日ごとに切り替える
 - B. 4 回まで再試行する
 - C. 4MB を超えたら切り替える
 - D. 古いログを 4 世代残す
 
-**問21** logrotate で、ログファイルが空なら切り替えない設定はどれか。
+**問21** logrotate で、ログファイルが空のときはローテーション(切り替え)をしない設定はどれか。
 
 - A. `missingok`
 - B. `nocreate`
 - C. `delaycompress`
 - D. `notifempty`
 
-**問22** logrotate の設定を確認するため、実際には切り替えずに動作を表示するオプションはどれか。
+**問22** logrotate の設定を確認するために、実際にはログを切り替えず、何をするかだけを表示するオプションはどれか。
 
 - A. `-f`
 - B. `-d`
@@ -183,26 +183,26 @@
 
 ### 1.09.3 メール配送エージェント(MTA)の基本
 
-**問23** MTA の役割として正しいものはどれか。
+**問23** MTA(メール転送エージェント)の役割として正しいものはどれか。
 
 - A. メールを書いたり読んだりする
 - B. 届いたメールを各ユーザーのメールボックスに配る
 - C. メールの本文を暗号化する
 - D. SMTP でメールを転送する
 
-**問24** `/etc/aliases` を編集した。変更を反映するために実行するコマンドはどれか。
+**問24** メールの別名を設定する `/etc/aliases` を編集した。変更を反映するために実行するコマンドはどれか。
 
 - A. `newaliases`
 - B. `mailq`
 - C. `source /etc/aliases`
 - D. `mail -s reload root`
 
-**問25** 自分あてのメールを kuro@example.com に転送しつつ、自分のメールボックスにも残したい。ユーザー kuro の `~/.forward` に書く内容はどれか。
+**問25** ユーザー sato は、自分あてのメールを sato@example.com に転送しつつ、自分のメールボックスにも残したい。sato の `~/.forward` に書く内容はどれか。
 
-- A. `kuro@example.com`
-- B. `"|kuro@example.com"`
-- C. `kuro: kuro@example.com`
-- D. `\kuro, kuro@example.com`
+- A. `sato@example.com`
+- B. `"|sato@example.com"`
+- C. `sato: sato@example.com`
+- D. `\sato, sato@example.com`
 
 **問26** 送信待ちのメール(メールキュー)を表示するコマンドはどれか。
 
@@ -211,7 +211,7 @@
 - C. `newaliases`
 - D. `sendmail -q`
 
-**問31** Debian 系のディストリビューションで標準の MTA として使われてきたものはどれか。
+**問31** Debian 系のディストリビューションで、標準の MTA として使われてきたものはどれか。
 
 - A. sendmail
 - B. postfix
@@ -220,44 +220,44 @@
 
 **問32** postfix の説明として正しいものはどれか。
 
-- A. 最も古くからある MTA で、設定が複雑
-- B. メールを書いたり読んだりする MUA
-- C. 届いたメールをメールボックスに配る MDA だけの機能を持つ
-- D. sendmail と互換性があり、高速で安全。設定が分かりやすい
+- A. 最も古くからある MTA で、設定が複雑である
+- B. メールを書いたり読んだりするための MUA である
+- C. 届いたメールをメールボックスに配る MDA の機能だけを持つ
+- D. sendmail と互換性があり、高速で安全性が高く、設定が分かりやすい
 
 ## 解答・解説
 
 | 問 | 正解 | 解説 |
 |---|---|---|
-| 1 | D | `-w`(`--systohc`)はシステムからハードウェアへ書き込む。`-s` は逆、`-r` は表示。 |
-| 2 | A | 月日時分の後に年を書く。年が最後に来る。 |
-| 3 | D | `/etc/localtime` は zoneinfo のファイルのコピーかシンボリックリンク。 |
-| 4 | C | tzselect は TZ に設定すべき値を表示するだけで、システムの設定は変えない。 |
-| 5 | A | NTP は UDP 123。 |
-| 6 | C | ntpdate は1回だけ同期する。ntpd と chronyd は常駐するデーモン、ntpq は ntpd の状態確認。 |
-| 7 | A | `*` は同期中、`+` は候補。 |
-| 8 | C | chrony の確認は chronyc。同期中のサーバーには `^*` が付く。 |
-| 9 | B | プライオリティを指定すると、その値以上が対象になる。 |
-| 10 | C | `=` はそのプライオリティだけ、`!` はそれ未満、`none` は記録しない。 |
-| 11 | A | 高い順に emerg、alert、crit、err、warning、notice、info、debug。 |
-| 12 | D | `@` 1つは UDP、`@@` 2つは TCP。ポートは 514。 |
-| 13 | A | `;` で条件を並べる。`mail.none` と `authpriv.none` で、その2つを除外する。 |
-| 14 | C | 受信は im(input module)。UDP は imudp、TCP は imtcp。 |
-| 15 | A | `-p ファシリティ.プライオリティ` で指定する。`-t` はタグ。 |
-| 16 | D | `-u` でユニット、`-b` で今回の起動分。`-k` はカーネル、`-f` は追従、`-p` はプライオリティ。 |
-| 17 | B | persistent は `/var/log/journal/` に保存する。volatile は `/run/log/journal/`(メモリ)。 |
-| 18 | A | `--vacuum-time` は期間、`--vacuum-size` はサイズで古い分を削除する。 |
-| 19 | C | lastb は `/var/log/btmp` を読む。last はログイン履歴、lastlog は最終ログイン、who は現在のログイン。 |
-| 20 | D | rotate は残す世代数。間隔は daily や weekly、サイズは size で指定する。 |
-| 21 | D | notifempty は空なら切り替えない。missingok はファイルがなくてもエラーにしない。 |
-| 22 | B | `-d` はデバッグモードで、実際には切り替えない。`-f` は強制的に切り替える。 |
-| 23 | D | MTA はメールを転送する。書く・読むのは MUA、メールボックスに配るのは MDA。 |
-| 24 | A | MTA は変換後のデータベース(`/etc/aliases.db`)を使う。newaliases で作り直す。 |
-| 25 | D | `\` を付けたユーザー名は、それ以上転送せず自分のメールボックスに配送する。 |
-| 26 | A | mailq でキューを表示する。`sendmail -q` はキューの再送。 |
-| 27 | `/etc/chrony.conf` | Debian 系では `/etc/chrony/chrony.conf`。状態の確認は `chronyc sources`。 |
-| 28 | B | `0.pool.ntp.org` 〜 `3.pool.ntp.org` や `jp.pool.ntp.org` がある。 |
-| 29 | `/etc/ntp.conf` | ntpd の状態は `ntpq -p` で確認する。chrony の設定ファイルは `chrony.conf`。 |
-| 30 | `/etc/logrotate.d` | 全体の設定は `/etc/logrotate.conf`。 |
-| 31 | C | exim は柔軟な設定ができる MTA。多くのディストリビューションの標準は postfix。sendmail は最も古い。 |
-| 32 | D | postfix は多くのディストリビューションで標準の MTA。sendmail 互換のコマンド(sendmail、mailq、newaliases)も備える。 |
+| 1 | D | `hwclock -w`(`--systohc`)は、システムクロックの時刻をハードウェアクロックに書き込みます。`-s`(`--hctosys`)は逆に、ハードウェアクロックからシステムクロックへ設定し、`-r` はハードウェアクロックの時刻を表示します。`date -w` というオプションはありません。 |
+| 2 | A | date で時刻を設定するときは「月 日 時 分 年」の順(MMDDhhmmYYYY)に書きます。この例は 11 月 17 日 14 時 30 分、2026 年です。年が最後に来る点に注意します。 |
+| 3 | D | `/etc/localtime` は、`/usr/share/zoneinfo/` にあるタイムゾーンのファイル(例: `Asia/Tokyo`)のコピーか、そこへのシンボリックリンクです。このファイルでシステム全体のタイムゾーンが決まります。 |
+| 4 | C | tzselect は、質問に答えていくと、そのタイムゾーンの名前(TZ に設定する値)を表示してくれるコマンドです。システムの設定そのものは変更しません。変更するには `timedatectl set-timezone` などを使います。 |
+| 5 | A | NTP は UDP の 123 番ポートを使います。UDP の 53 番は DNS、TCP の 25 番は SMTP です。 |
+| 6 | C | ntpdate は、NTP サーバーと1回だけ時刻を合わせて終了します。ntpd と chronyd は、常に動き続けて時刻を合わせ続けるデーモンです。ntpq は ntpd の状態を確認するコマンドです。 |
+| 7 | A | `ntpq -p` の出力で、行頭の `*` は現在同期しているサーバー、`+` は同期先の候補を表します。 |
+| 8 | C | chrony の状態を確認するには chronyc を使い、`chronyc sources` で同期先の一覧を表示します。同期しているサーバーには `^*` が付きます。`ntpq -p` は ntpd 用です。 |
+| 9 | B | セレクタでプライオリティを指定すると、そのプライオリティ「以上」のログがすべて対象になります。そのため err に加えて、より重要な crit、alert、emerg も記録されます。 |
+| 10 | C | `mail.=err` のように `=` を付けると、そのプライオリティだけが対象になります。`mail.err` は err 以上すべて、`!` は指定したもの「未満」、`none` はそのファシリティを記録しない、という意味です。 |
+| 11 | A | プライオリティは、重要度の高い順に emerg、alert、crit、err、warning、notice、info、debug です。emerg はシステムが使えない状態、debug はデバッグ用の情報です。 |
+| 12 | D | ログの転送先の前に `@` を1つ付けると UDP、`@@` と2つ付けると TCP で送ります(ポートは標準で 514 番)。`>>` や `tcp://` という書き方はありません。 |
+| 13 | A | `;` で区切って複数の条件を並べます。`*.info` で全ファシリティの info 以上を対象にし、`mail.none` と `authpriv.none` で mail と authpriv を除きます。メールと認証のログは、別のファイルに記録するのが一般的です。 |
+| 14 | C | ログを受信するモジュールは、input module の略で im で始まります。UDP で受信するのは imudp、TCP は imtcp です。omudp の om は output module で送信用、imjournal は journald からログを読むモジュールです。 |
+| 15 | A | logger は、`-p ファシリティ.プライオリティ` でログの種類を指定して書き込みます。`-t` はログに付けるタグ(名前)の指定です。systemd-cat はコマンドの出力をジャーナルに送るコマンドで、この書き方はできません。 |
+| 16 | D | journalctl の `-u` でユニット、`-b` で今回の起動以降を指定します。`-k` はカーネルのメッセージ、`-f` は新しいログを追いかけて表示、`-p` はプライオリティで絞り込むオプションです。 |
+| 17 | B | `Storage=persistent` にすると、ジャーナルを `/var/log/journal/` に保存し、再起動しても残ります。`volatile` はメモリ上(`/run/log/journal/`)にだけ保存するので、再起動すると消えます。 |
+| 18 | A | `--vacuum-time` は期間を指定して、それより古いジャーナルを削除します。`--vacuum-size` はサイズを指定して、合計がその大きさになるまで古いものから削除します。 |
+| 19 | C | lastb は、ログインに失敗した記録(`/var/log/btmp`)を表示します。last はログインした履歴、lastlog は各ユーザーが最後にログインした日時、who は現在ログインしているユーザーを表示します。 |
+| 20 | D | `rotate 4` は、古いログファイルを 4 世代まで残すという意味です。それより古いものは削除されます。切り替える間隔は daily や weekly、サイズは size で指定します。 |
+| 21 | D | `notifempty` を書くと、ログファイルが空のときは切り替えません。missingok はログファイルがなくてもエラーにしない設定、nocreate は切り替え後に新しいファイルを作らない設定、delaycompress は圧縮を次の回まで遅らせる設定です。 |
+| 22 | B | `-d`(デバッグモード)は、何をするかを表示するだけで、実際にはログを切り替えません。設定の確認に使います。`-f` は条件に関係なく強制的に切り替えます。 |
+| 23 | D | MTA は、SMTP でメールを他のサーバーへ転送する役割を持ちます。メールを書いたり読んだりするのは MUA(メールソフト)、届いたメールを各ユーザーのメールボックスに配るのは MDA です。 |
+| 24 | A | MTA は、`/etc/aliases` そのものではなく、変換したデータベース(`/etc/aliases.db`)を読みます。そのため、編集した後は `newaliases` でデータベースを作り直します。mailq は送信待ちのメールの表示です。 |
+| 25 | D | `~/.forward` に `\sato` のように `\` を付けた自分のユーザー名を書くと、それ以上転送せずに自分のメールボックスに配送されます。カンマで区切って転送先も書くと、両方に届きます。転送先だけを書くと、自分のメールボックスには残りません。 |
+| 26 | A | mailq は、送信を待っているメール(メールキュー)を表示します。`sendmail -q` はキューのメールを再送するコマンドで、newaliases は別名のデータベースを作り直すコマンドです。 |
+| 27 | `/etc/chrony.conf` | Red Hat 系では `/etc/chrony.conf` が chronyd の設定ファイルです(Debian 系では `/etc/chrony/chrony.conf`)。同期の状態は `chronyc sources` で確認します。 |
+| 28 | B | `pool.ntp.org` は、世界中のボランティアが公開している NTP サーバーの集まりで、問い合わせるたびに別のサーバーが割り当てられます。`0.pool.ntp.org` 〜 `3.pool.ntp.org` や、国別の `jp.pool.ntp.org` などがあります。 |
+| 29 | `/etc/ntp.conf` | ntpd の設定ファイルは `/etc/ntp.conf` で、`server` 行に同期先を書きます。同期の状態は `ntpq -p` で確認します。chrony を使う場合の設定ファイルは `chrony.conf` です。 |
+| 30 | `/etc/logrotate.d` | サービスごとの logrotate の設定は、`/etc/logrotate.d/` の下にファイルとして置きます。全体の共通の設定は `/etc/logrotate.conf` に書きます。 |
+| 31 | C | Debian では、柔軟な設定ができる exim が標準の MTA として使われてきました。現在、多くのディストリビューションで標準になっているのは postfix で、sendmail は最も古くからある MTA です。qmail は安全性を重視した MTA ですが、標準として採用されることは少なくなっています。 |
+| 32 | D | postfix は sendmail と互換性のあるコマンド(sendmail、mailq、newaliases)を備え、高速で安全性が高く、設定も分かりやすい MTA です。多くのディストリビューションで標準になっています。最も古く設定が複雑なのは sendmail です。 |
