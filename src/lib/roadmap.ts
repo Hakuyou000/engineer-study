@@ -8,10 +8,9 @@ export interface RoadmapItem {
 }
 
 export interface RoadmapCert {
-  name: string
+  /** certs.ts の資格の ID。表紙へのリンクに使う */
+  cert: string
   note: string
-  /** このアプリで学べる試験なら、その試験名(questions.json の exam) */
-  exam?: string
 }
 
 export interface RoadmapStage {
@@ -44,7 +43,7 @@ export const STAGES: RoadmapStage[] = [
       { id: 's1-sh', label: '簡単なシェルスクリプトを書ける', detail: '変数、if、for、引数、終了ステータス' },
       { id: 's1-user', label: 'ユーザー、cron、時刻同期を設定できる' },
     ],
-    certs: [{ name: 'LinuC レベル1(101 / 102)', note: 'Linux の基礎。このアプリでは 102 の範囲を学べます', exam: 'LinuC102' }],
+    certs: [{ cert: 'linuc1', note: 'Linux の基礎。このアプリでは 102 の範囲を学べます' }],
     books: ['[試して理解]Linuxのしくみ 増補改訂版'],
     output: '自分で Linux の環境(仮想マシンや WSL)を作り、毎日触る',
   },
@@ -60,7 +59,7 @@ export const STAGES: RoadmapStage[] = [
       { id: 's2-sw', label: 'VLAN、STP、ACL、NAT の役割を説明できる' },
       { id: 's2-trouble', label: 'ping、traceroute、ss などで通信の問題を切り分けられる' },
     ],
-    certs: [{ name: 'CCNA', note: 'ネットワークの基礎。スイッチ、ルーティング、セキュリティ', exam: 'CCNA' }],
+    certs: [{ cert: 'ccna', note: 'ネットワークの基礎。スイッチ、ルーティング、セキュリティ' }],
     books: ['マスタリングTCP/IP 入門編 第6版', 'Webを支える技術'],
     output: 'Packet Tracer などで小さなネットワークを組み、設定と確認のコマンドを試す',
   },
@@ -76,8 +75,8 @@ export const STAGES: RoadmapStage[] = [
       { id: 's3-github', label: '書いたスクリプトを GitHub に公開する' },
     ],
     certs: [
-      { name: 'AWS Certified Solutions Architect – Associate(SAA)', note: 'クラウドの設計の基礎', exam: 'SAA' },
-      { name: 'AWS Certified Cloud Practitioner', note: '任意。SAA が難しく感じるときの前段' },
+      { cert: 'saa', note: 'クラウドの設計の基礎' },
+      { cert: 'clf', note: '任意。SAA が難しく感じるときの前段' },
     ],
     books: ['入門 Python 3 第2版'],
     output: 'AWS の無料枠で、Web サーバーを1台動かしてみる。スクリプトを GitHub に置く',
@@ -93,7 +92,7 @@ export const STAGES: RoadmapStage[] = [
       { id: 's4-ci', label: 'GitHub Actions でテストとデプロイを自動化できる' },
       { id: 's4-deploy', label: 'Blue/Green、Canary などのデプロイの方法を説明できる' },
     ],
-    certs: [{ name: 'HashiCorp Certified: Terraform Associate(004)', note: 'IaC の基礎' }],
+    certs: [{ cert: 'terraform', note: 'IaC の基礎' }],
     books: ['仕組みと使い方がわかる Docker&Kubernetesのきほんのきほん', '詳解 Terraform 第3版'],
     output: 'Terraform で AWS 上に環境を作り、GitHub Actions から反映するリポジトリ',
   },
@@ -108,7 +107,7 @@ export const STAGES: RoadmapStage[] = [
       { id: 's5-o11y', label: 'メトリクス、ログ、トレースの違いを説明できる' },
       { id: 's5-alert', label: '意味のあるアラートを設計できる', detail: '鳴りすぎるアラートは無視されるようになります' },
     ],
-    certs: [{ name: 'CKA(Certified Kubernetes Administrator)', note: 'Kubernetes の運用。実技の試験で、SRE の求人で評価されやすい' }],
+    certs: [{ cert: 'cka', note: 'Kubernetes の運用。実技の試験で、SRE の求人で評価されやすい' }],
     books: ['入門 監視', 'Kubernetes完全ガイド 第2版', 'オブザーバビリティ・エンジニアリング'],
     output: '監視の付いた Kubernetes クラスタを作り、構成をリポジトリに置く',
   },
@@ -124,18 +123,18 @@ export const STAGES: RoadmapStage[] = [
       { id: 's6-capacity', label: '負荷試験とキャパシティの計画ができる' },
       { id: 's6-go', label: 'Go で簡単なツールを書ける' },
     ],
-    certs: [{ name: 'AWS Certified DevOps Engineer – Professional', note: '自動化、CI/CD、運用。実務の経験がある人向け' }],
+    certs: [{ cert: 'devops-pro', note: '自動化、CI/CD、運用。実務の経験がある人向け' }],
     books: ['SREをはじめよう', 'サイトリライアビリティワークブック', 'システム障害対応の教科書', 'SLO サービスレベル目標'],
     output: '自分で作ったサービスに SLO を決め、ダッシュボードとポストモーテムの例を作る',
   },
 ]
 
 export const OPTIONAL_CERTS: RoadmapCert[] = [
-  { name: 'AWS Certified CloudOps Engineer – Associate', note: '旧 SysOps Administrator。AWS の運用に寄った資格' },
-  { name: 'LinuC レベル2', note: 'Linux をさらに深く学ぶとき' },
-  { name: '基本情報技術者 / 応用情報技術者', note: 'コンピューターサイエンスの基礎をまとめて学ぶとき' },
-  { name: 'Google Cloud Professional Cloud DevOps Engineer', note: 'SRE の考え方が出題範囲。Google Cloud を使う職場向け' },
-  { name: 'CKAD / CKS', note: 'CKA の後に。CKS は CKA を持っていることが受験の条件' },
+  { cert: 'cloudops', note: '旧 SysOps Administrator。AWS の運用に寄った資格' },
+  { cert: 'linuc2', note: 'Linux をさらに深く学ぶとき' },
+  { cert: 'ipa', note: 'コンピューターサイエンスの基礎をまとめて学ぶとき' },
+  { cert: 'gcp-devops', note: 'SRE の考え方が出題範囲。Google Cloud を使う職場向け' },
+  { cert: 'ckad-cks', note: 'CKA の後に。CKS は CKA を持っていることが受験の条件' },
 ]
 
 export const NON_TECH = [
@@ -145,6 +144,9 @@ export const NON_TECH = [
 ]
 
 export const NOTE = '試験の内容や受験料は改定されることがあります。申し込む前に、それぞれの公式サイトで確認してください。'
+
+/** その資格が載っている段階。必要に応じて取る資格なら null */
+export const stageOfCert = (cert: string) => STAGES.find((s) => s.certs.some((c) => c.cert === cert)) ?? null
 
 const KEY = 'sre-drill:roadmap'
 
