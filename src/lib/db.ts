@@ -55,7 +55,7 @@ export async function exportAll(): Promise<Backup> {
 /** 既存の履歴をすべて置き換える。 */
 export async function importAll(b: Backup) {
   if (b.version !== 1 || !Array.isArray(b.attempts) || !Array.isArray(b.cards) || !Array.isArray(b.drills)) {
-    throw new Error('バックアップの形式が違う')
+    throw new Error('このファイルは、このアプリのバックアップの形式ではありません')
   }
   const d = await db()
   const tx = d.transaction(['attempts', 'cards', 'drills'], 'readwrite')

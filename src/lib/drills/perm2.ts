@@ -39,7 +39,7 @@ export function genUmask(rng: Rng): Drill {
       { label: 'ファイル', answer: r.file, normalize: stripZero },
       { label: 'ディレクトリ', answer: r.dir, normalize: stripZero },
     ],
-    explain: `ファイルは 666、ディレクトリは 777 から、umask のビットを落とす(論理積の否定)。ファイルは ${r.file}、ディレクトリは ${r.dir}。ファイルには実行権が最初から付かない。`,
+    explain: `新しいファイルは 666、ディレクトリは 777 をもとに、umask で 1 になっているビットを取り除きます(引き算ではなく、ビットを落とします)。ファイルは ${r.file}、ディレクトリは ${r.dir} です。ファイルには、もともと実行権が付きません。`,
   }
 }
 
@@ -64,6 +64,6 @@ export function genSymbolic(rng: Rng): Drill {
     type: 'chmod-symbolic',
     prompt: `パーミッションが \`${mode}\` のファイルに \`chmod ${spec} file\` を実行した。実行後のパーミッションを 8 進数で答えよ。`,
     fields: [{ label: '8 進数', answer, normalize: stripZero }],
-    explain: `u は所有者、g はグループ、o はその他、a は全員。+ は追加、- は削除、= はその値に置き換え。左から順に適用して ${answer}。`,
+    explain: `u は所有者、g はグループ、o はその他、a は全員です。+ は権限を足す、- は取り除く、= はその値に置き換えるという意味です。カンマで区切られた指定を左から順に適用すると ${answer} になります。`,
   }
 }

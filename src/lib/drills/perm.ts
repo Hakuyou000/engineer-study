@@ -37,7 +37,7 @@ export function genOctalToSymbolic(rng: Rng): Drill {
     prompt: `\`chmod ${mode} file\` を実行した。\`ls -l\` に表示されるパーミッション(先頭の種別 1 文字を除く 9 文字)を答えよ。`,
     fields: [{ label: '記号表記', answer: octalToSymbolic(mode) }],
     explain:
-      'r=4、w=2、x=1 を所有者・グループ・その他の順に足す。4 桁目は SUID=4、SGID=2、スティッキービット=1。実行権があれば s / t、なければ S / T。',
+      'r(読み取り)=4、w(書き込み)=2、x(実行)=1 で、3 桁の数字はそれぞれ所有者・グループ・その他の合計です。4 桁のときの先頭は特殊なビットで、SUID=4、SGID=2、スティッキービット=1 です。特殊なビットは x の位置に表示され、実行権があれば小文字の s / t、なければ大文字の S / T になります。',
   }
 }
 
@@ -47,6 +47,6 @@ export function genSymbolicToOctal(rng: Rng): Drill {
     type: 'perm-to-octal',
     prompt: `パーミッションが \`${octalToSymbolic(mode)}\` のファイルがある。同じ設定にする \`chmod\` の 8 進数を答えよ。`,
     fields: [{ label: '8 進数', answer: mode, normalize: stripZero }],
-    explain: 'r=4、w=2、x=1。s / t は実行権に加えて特殊ビット(SUID=4、SGID=2、スティッキービット=1)が立っている。',
+    explain: 'r(読み取り)=4、w(書き込み)=2、x(実行)=1 を、所有者・グループ・その他ごとに足します。s / t は実行権と特殊なビットの両方が立っていること、S / T は特殊なビットだけが立っていることを表します。特殊なビットは先頭の桁にまとめ、SUID=4、SGID=2、スティッキービット=1 です。',
   }
 }

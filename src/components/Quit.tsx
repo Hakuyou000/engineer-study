@@ -7,7 +7,7 @@ export function Quit({ onQuit, onError }: { onQuit: () => void; onError: (messag
   const quit = () => {
     fetch('/__shutdown', { method: 'POST' })
       .then((r) => {
-        if (!r.ok) throw new Error(`終了できなかった(${r.status})`)
+        if (!r.ok) throw new Error(`終了できませんでした(${r.status})`)
         onQuit()
         // スクリプトから開いたタブでなければ閉じられない。閉じられないときは案内を表示したままにする
         window.close()

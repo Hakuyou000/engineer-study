@@ -45,7 +45,7 @@ export function Toc({ groups, textCount, current, onOpen }: Props) {
         ))}
         <li className={current === null ? 'toc-item cur' : 'toc-item'}>
           <h3>すべての試験</h3>
-          <p className="meta">試験をまたいで出題する。成績も全体で表示する。</p>
+          <p className="meta">すべての試験から出題します。成績もまとめて表示します。</p>
           {links(null)}
         </li>
       </ul>

@@ -148,10 +148,10 @@ export function Home({ scopeKey, stats, inputCount, onStart }: Props) {
           模擬試験(1 問 90 秒)
         </button>
       </div>
-      <p className="meta">要復習: 直近で間違えた問題と、2 回以上解いて正答率が 70% 未満の問題。</p>
-      <p className="meta">入力で解く: 答えがコマンド名やファイル名など1語の問題を、選択肢なしで答える。</p>
+      <p className="meta">要復習: 最後に間違えた問題と、2 回以上解いて正答率が 70% 未満の問題です。</p>
+      <p className="meta">入力で解く: 答えがコマンド名やファイル名など1語になる問題を、選択肢を見ずに入力して答えます。</p>
       {!none && due + unseen === 0 && (
-        <p className="meta">復習待ちも未出題もない。次の復習期限まで待つか、ランダムで解く。</p>
+        <p className="meta">いま解くべき問題はありません。次の復習日まで待つか、「ランダム」で解いてください。</p>
       )}
     </section>
   )

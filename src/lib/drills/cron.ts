@@ -138,7 +138,7 @@ export function genCronNext(rng: Rng): Drill {
     prompt: `現在は ${formatMinute(now)}(${WEEKDAYS[now.getUTCDay()]})。crontab の \`${expr} /usr/local/bin/job.sh\` が次に実行される日時を答えよ。`,
     fields: [{ label: '日時(YYYY-MM-DD hh:mm)', answer: formatMinute(next), normalize: normalizeDateTime }],
     explain:
-      `次は ${formatMinute(next)}(${WEEKDAYS[next.getUTCDay()]})。書式は「分 時 日 月 曜日」。曜日は 0 と 7 が日曜。` +
-      (both ? '日と曜日の両方を指定しているので、どちらかに一致した日に実行する。' : ''),
+      `次に実行されるのは ${formatMinute(next)}(${WEEKDAYS[next.getUTCDay()]})です。crontab の時刻の欄は、左から「分 時 日 月 曜日」の順です。\`*\` はすべて、\`*/n\` は n ごと、\`a-b\` は範囲、\`a,b\` は列挙を表します。曜日は 0 と 7 がどちらも日曜です。` +
+      (both ? '日と曜日の両方を指定しているので、どちらか一方に当てはまる日に実行されます(両方に当てはまる日ではありません)。' : ''),
   }
 }

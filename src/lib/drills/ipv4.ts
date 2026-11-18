@@ -57,7 +57,7 @@ export function genNetworkBroadcast(rng: Rng): Drill {
       { label: 'ネットワークアドレス', answer: s.network, normalize: normIp },
       { label: 'ブロードキャストアドレス', answer: s.broadcast, normalize: normIp },
     ],
-    explain: `/${prefix} のブロックサイズは ${blockSize(prefix)}。範囲は ${s.network} 〜 ${s.broadcast}。`,
+    explain: `/${prefix} のサブネットは、アドレス ${blockSize(prefix)} 個ずつの区切り(ブロック)になります。ホストのアドレスを含むブロックの先頭がネットワークアドレス、最後がブロードキャストアドレスなので、範囲は ${s.network} 〜 ${s.broadcast} です。`,
   }
 }
 
@@ -71,7 +71,7 @@ export function genHostRange(rng: Rng): Drill {
       { label: '最初のホスト', answer: s.firstHost, normalize: normIp },
       { label: '最後のホスト', answer: s.lastHost, normalize: normIp },
     ],
-    explain: `ネットワーク ${s.network}、ブロードキャスト ${s.broadcast}。その間の ${s.hosts} 個がホスト。`,
+    explain: `ネットワークアドレスは ${s.network}、ブロードキャストアドレスは ${s.broadcast} です。この2つはホストに割り当てられないので、その間の ${s.hosts} 個がホスト用です。最初はネットワークアドレス + 1、最後はブロードキャストアドレス − 1 になります。`,
   }
 }
 
@@ -82,7 +82,7 @@ export function genPrefixForHosts(rng: Rng): Drill {
     type: 'ipv4-prefix',
     prompt: `${n} 台のホストを収容できる最小のサブネットのプレフィックス長を答えよ。`,
     fields: [{ label: 'プレフィックス長', answer: String(p), normalize: normPrefix }],
-    explain: `/${p} は ${blockSize(p) - 2} 台。/${p + 1} は ${blockSize(p + 1) - 2} 台で不足。`,
+    explain: `ホストに使えるのは「2 の(32 − プレフィックス長)乗 − 2」個です(ネットワークアドレスとブロードキャストアドレスの2つを除く)。/${p} は ${blockSize(p) - 2} 台まで入ります。1つ小さい /${p + 1} は ${blockSize(p + 1) - 2} 台なので足りません。`,
   }
 }
 
@@ -107,18 +107,18 @@ export function genAwsUsable(rng: Rng): Drill {
     type: 'aws-usable',
     prompt: `VPC にサブネット \`${cidr}\` を作る。EC2 などに割り当てられる IP アドレスの数を答えよ。`,
     fields: [{ label: '使える IP の数', answer: String(awsUsable(prefix)), normalize: (s) => s.trim().replace(/[,個]/g, '') }],
-    explain: `/${prefix} は ${total} 個。AWS が 5 個(ネットワーク、VPC ルーター、DNS、将来用、ブロードキャスト)を予約するので ${total} − 5 = ${awsUsable(prefix)} 個。`,
+    explain: `/${prefix} のアドレスは全部で ${total} 個です。AWS はサブネットごとに 5 個(ネットワークアドレス、VPC ルーター、DNS、将来の予備、ブロードキャストアドレス)を予約するので、使えるのは ${total} − 5 = ${awsUsable(prefix)} 個です。`,
   }
 }
 
 export function genAwsPrefixForHosts(rng: Rng): Drill {
   const n = int(rng, 2, 4000)
   const p = awsPrefixForHosts(n)
-  const tooSmall = p < 28 ? ` /${p + 1} は ${awsUsable(p + 1)} 個で不足。` : ' /28 が VPC のサブネットの最小。'
+  const tooSmall = p < 28 ? ` 1つ小さい /${p + 1} は ${awsUsable(p + 1)} 個なので足りません。` : ' VPC のサブネットは /28 より小さくできないので、/28 になります。'
   return {
     type: 'aws-prefix',
     prompt: `VPC のサブネットで ${n} 個の IP アドレスが必要である。最小のサブネットのプレフィックス長を答えよ。`,
     fields: [{ label: 'プレフィックス長', answer: String(p), normalize: normPrefix }],
-    explain: `/${p} は ${blockSize(p)} − 5 = ${awsUsable(p)} 個。${tooSmall}`,
+    explain: `AWS はサブネットごとに 5 個のアドレスを予約します。/${p} で使えるのは ${blockSize(p)} − 5 = ${awsUsable(p)} 個です。${tooSmall}`,
   }
 }

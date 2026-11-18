@@ -47,7 +47,7 @@ export function TextView({ exam }: { exam: string | null }) {
     }
   }
 
-  if (TEXTS.length === 0) return <section className="card">テキストがない。`texts/` に Markdown を置く。</section>
+  if (TEXTS.length === 0) return <section className="card">テキストがありません。`texts/` に Markdown のファイルを置いてください。</section>
 
   const exams = [...new Set(TEXTS.map((t) => t.exam))]
 
