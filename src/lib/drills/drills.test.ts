@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DRILLS, checkField } from './index'
-import { prefixForHosts, subnetOf } from './ipv4'
+import { awsPrefixForHosts, awsUsable, prefixForHosts, subnetOf } from './ipv4'
 import { compress, eui64InterfaceId, expand } from './ipv6'
 import { octalToSymbolic } from './perm'
 import { mulberry32 } from './types'
@@ -19,6 +19,22 @@ describe('IPv4', () => {
     expect(prefixForHosts(63)).toBe(25)
     expect(prefixForHosts(2)).toBe(30)
     expect(prefixForHosts(100)).toBe(25)
+  })
+})
+
+describe('VPC(AWS は 5 個を予約)', () => {
+  it('サブネットで使える IP の数', () => {
+    expect(awsUsable(24)).toBe(251)
+    expect(awsUsable(28)).toBe(11)
+    expect(awsUsable(16)).toBe(65531)
+  })
+
+  it('必要な数からプレフィックス長を求める', () => {
+    expect(awsPrefixForHosts(11)).toBe(28)
+    expect(awsPrefixForHosts(12)).toBe(27)
+    expect(awsPrefixForHosts(251)).toBe(24)
+    expect(awsPrefixForHosts(252)).toBe(23)
+    expect(awsPrefixForHosts(2)).toBe(28)
   })
 })
 

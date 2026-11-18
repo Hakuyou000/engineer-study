@@ -103,6 +103,65 @@ CCNA = {
  '5.6': (None, [('メッセージの書式', r'%LINK|%SYS'), ('重大度', r'重大度|errors'), ('ファシリティ', r'ファシリティ|%LINK'), ('logging trap / host', r'logging')]),
 }
 
+# AWS SAA-C03 公式の試験ガイド(docs.aws.amazon.com)のタスクの「Knowledge of / Skills in」。(配点 %, 用語)
+SAA = {
+ '1.1': (None, [('複数アカウントのアクセス管理', r'Organizations|複数のアカウント|複数アカウント'), ('IAM / Identity Center', r'Identity Center'), ('グローバルインフラ(AZ・リージョン)', r'リージョン|AZ'),
+   ('最小権限', r'最小権限|上限|境界'), ('責任共有モデル', r'責任共有'), ('ルートユーザーと MFA', r'MFA'), ('ユーザー・グループ・ロール・ポリシー', r'グループ'),
+   ('STS・ロールの切り替え・クロスアカウント', r'STS|AssumeRole|クロスアカウント'), ('Control Tower・SCP', r'Control Tower'), ('SCP', r'SCP'), ('リソースベースのポリシー', r'リソースベース|バケットポリシー|信頼ポリシー'),
+   ('ディレクトリのフェデレーション', r'AD Connector|Active Directory|SAML')]),
+ '1.2': (None, [('認証情報の保護', r'Secrets Manager'), ('サービスエンドポイント', r'エンドポイント'), ('ポート・プロトコル・通信の制御', r'ポート'), ('Cognito', r'Cognito'),
+   ('GuardDuty', r'GuardDuty'), ('Macie', r'Macie'), ('DDoS', r'DDoS'), ('SQL インジェクション', r'SQL インジェクション'), ('セキュリティグループ', r'セキュリティグループ|SG'),
+   ('ルートテーブル', r'ルートテーブル'), ('ネットワーク ACL', r'ネットワーク ACL|NACL'), ('NAT ゲートウェイ', r'NAT ゲートウェイ'), ('パブリック/プライベートサブネット', r'プライベートサブネット'),
+   ('Shield', r'Shield'), ('WAF', r'WAF'), ('VPN / Direct Connect', r'Direct Connect')]),
+ '1.3': (None, [('データアクセスとガバナンス', r'キーポリシー|アクセス'), ('データの復旧', r'復元|バックアップ'), ('データの保持と分類', r'保持|保存する必要'), ('暗号化とキー管理', r'KMS'),
+   ('コンプライアンス', r'規制|法令|コンプライアンス'), ('保存時の暗号化', r'暗号化'), ('ACM と TLS', r'ACM|HTTPS'), ('キーのアクセスポリシー', r'キーポリシー'),
+   ('バックアップとレプリケーション', r'AWS Backup|コピー'), ('ライフサイクルと保護のポリシー', r'Object Lock|Vault Lock'), ('キーのローテーション・証明書の更新', r'自動で更新|更新')]),
+ '2.1': (None, [('API Gateway', r'API Gateway'), ('Transfer Family / SQS / Secrets Manager', r'SQS'), ('キャッシュ戦略', r'キャッシュ'), ('ステートレス', r'ステートレス'),
+   ('イベント駆動', r'イベント'), ('水平・垂直スケーリング', r'Auto Scaling|台数'), ('CDN', r'CloudFront'), ('コンテナへの移行', r'コンテナ'), ('ALB', r'ALB|Application Load Balancer'),
+   ('多層アーキテクチャ', r'Web 層|バックエンド'), ('Pub/Sub', r'SNS'), ('Lambda / Fargate', r'Fargate'), ('ストレージの種類', r'EFS|EBS'), ('ECS / EKS', r'EKS'),
+   ('リードレプリカ', r'リードレプリカ'), ('Step Functions', r'Step Functions')]),
+ '2.2': (None, [('AZ・リージョン・Route 53', r'Route 53'), ('Comprehend / Polly', r'Comprehend'), ('ルートテーブル', r'ルートテーブル'), ('DR 戦略・RPO・RTO', r'RPO'),
+   ('パイロットライト', r'パイロットライト'), ('ウォームスタンバイ', r'ウォームスタンバイ'), ('フェイルオーバー', r'フェイルオーバー'), ('イミュータブル', r'イミュータブル|入れ替え'),
+   ('ロードバランサー', r'ALB'), ('RDS Proxy', r'RDS Proxy'), ('サービスクォータ', r'クォータ'), ('耐久性・レプリケーション', r'複製'), ('X-Ray', r'X-Ray'),
+   ('自動化', r'CloudFormation'), ('単一障害点', r'AZ の障害|AZ 障害')]),
+ '3.1': (None, [('ハイブリッドストレージ', r'Storage Gateway|File Gateway'), ('S3', r'S3'), ('EFS', r'EFS'), ('EBS', r'EBS|io2|gp3|st1'), ('オブジェクト/ファイル/ブロック', r'ファイル'),
+   ('性能を満たす構成', r'IOPS|スループット'), ('将来の拡張', r'自動スケーリング|自動で')]),
+ '3.2': (None, [('Batch', r'Batch'), ('EMR', r'EMR'), ('Fargate', r'Fargate|コンテナ'), ('エッジ・分散コンピューティング', r'Wavelength|エッジ'), ('キューとメッセージ', r'SQS|キュー'),
+   ('EC2 Auto Scaling', r'Auto Scaling'), ('Lambda', r'Lambda'), ('デカップリング', r'キュー'), ('スケーリングの指標', r'メッセージ数|バックログ'), ('インスタンスタイプ', r'ファミリー'),
+   ('Lambda のメモリ', r'メモリを増やす'), ('プレイスメントグループ', r'プレイスメント')]),
+ '3.3': (None, [('ElastiCache', r'ElastiCache'), ('読み取り中心/書き込み中心', r'読み取り'), ('容量の計画', r'キャパシティ|オンデマンド|プロビジョンド'), ('接続とプロキシ', r'エンドポイント|Proxy'),
+   ('同種/異種の移行', r'異種|SCT|DMS'), ('リードレプリカ', r'レプリカ'), ('リレーショナル/非リレーショナル/インメモリ', r'DynamoDB'), ('グラフ', r'Neptune'), ('Aurora', r'Aurora'),
+   ('DAX', r'DAX'), ('キャッシュの組み込み', r'キャッシュアサイド|遅延読み込み')]),
+ '3.4': (None, [('CloudFront', r'CloudFront'), ('Global Accelerator', r'Global Accelerator'), ('サブネット・ルーティング・IP 設計', r'/24|CIDR'), ('ロードバランサー', r'NLB'),
+   ('VPN / Direct Connect / PrivateLink', r'PrivateLink'), ('Direct Connect', r'Direct Connect'), ('グローバル/ハイブリッドのトポロジー', r'Transit Gateway'), ('VPC ピアリング', r'ピアリング')]),
+ '3.5': (None, [('Athena', r'Athena'), ('Lake Formation', r'Lake Formation'), ('可視化(Quick)', r'ダッシュボード|Quick'), ('取り込みの頻度', r'毎晩|毎日|リアルタイム'),
+   ('DataSync', r'DataSync'), ('Glue', r'Glue'), ('Kinesis', r'Kinesis'), ('ストリーミング', r'ストリーミング'), ('データレイク', r'データレイク'), ('CSV → Parquet', r'Parquet'),
+   ('サイズと速度', r'Gbps|TB'), ('SaaS 連携', r'AppFlow')]),
+ '4.1': (None, [('リクエスタ支払い', r'リクエスタ支払い'), ('コスト配分タグ', r'コスト配分タグ'), ('Cost Explorer / Budgets / CUR', r'Budgets'), ('ストレージクラス', r'Glacier'),
+   ('ライフサイクル', r'ライフサイクル'), ('Intelligent-Tiering', r'Intelligent-Tiering'), ('One Zone-IA', r'One Zone'), ('Instant Retrieval', r'Instant Retrieval'),
+   ('非現行バージョン', r'非現行')]),
+ '4.2': (None, [('Savings Plans', r'Savings Plans'), ('リザーブドインスタンス', r'リザーブド'), ('スポット', r'スポット'), ('Dedicated Hosts', r'Dedicated Hosts'),
+   ('ライトサイジング', r'Compute Optimizer|小さいサイズ'), ('Lambda / EC2 / Fargate', r'Lambda'), ('本番/非本番の可用性', r'開発環境|開発・テスト'), ('スケジュールでの停止', r'停止')]),
+ '4.3': (None, [('サーバーレス DB', r'Serverless'), ('キャパシティモード', r'プロビジョンドモード'), ('TTL・データ保持', r'TTL'), ('異種移行', r'SCT|DMS'), ('時系列', r'Timestream'),
+   ('バックアップ保持期間', r'保持期間')]),
+ '4.4': (None, [('NAT ゲートウェイの費用', r'NAT ゲートウェイ'), ('VPC エンドポイント', r'ゲートウェイエンドポイント'), ('Direct Connect / VPN', r'Direct Connect'),
+   ('ピアリング / Transit Gateway', r'ピアリング'), ('CDN・エッジキャッシュ', r'CloudFront'), ('価格クラス', r'価格クラス'), ('スロットリング', r'スロットリング|使用量プラン')]),
+}
+
+# 試験ガイドの In-Scope AWS Services(テキストと問題での出現を数える)
+SAA_SERVICES = ['Athena', 'Data Exchange', 'Data Pipeline', 'EMR', 'Glue', 'Kinesis', 'Lake Formation', 'MSK', 'OpenSearch', 'Quick', 'Redshift',
+  'AppFlow', 'EventBridge', 'Amazon MQ', 'SNS', 'SQS', 'Step Functions', 'Budgets', 'Cost and Usage Report', 'Cost Explorer', 'Savings Plans',
+  'Batch', 'EC2', 'Auto Scaling', 'Elastic Beanstalk', 'Outposts', 'Serverless Application Repository', 'VMware Cloud on AWS', 'Wavelength',
+  'ECR', 'ECS', 'ECS Anywhere', 'EKS', 'EKS Anywhere', 'EKS Distro', 'Aurora', 'Aurora Serverless', 'DocumentDB', 'DynamoDB', 'ElastiCache', 'Keyspaces', 'Neptune', 'RDS',
+  'X-Ray', 'Amplify', 'API Gateway', 'Device Farm', 'Comprehend', 'Lex', 'Polly', 'Rekognition', 'SageMaker', 'Textract', 'Transcribe', 'Translate',
+  'AWS Auto Scaling', 'CLI', 'CloudFormation', 'CloudTrail', 'CloudWatch', 'Compute Optimizer', 'Config', 'Control Tower', 'Health Dashboard', 'License Manager',
+  'Managed Grafana', 'Managed Service for Prometheus', 'Management Console', 'Organizations', 'Proton', 'Service Catalog', 'Systems Manager', 'Well-Architected Tool',
+  'Kinesis Video Streams', 'Application Discovery Service', 'Application Migration Service', 'DataSync', 'DMS', 'Snow', 'Transfer Family',
+  'Client VPN', 'CloudFront', 'Direct Connect', 'Load Balanc', 'Global Accelerator', 'PrivateLink', 'Route 53', 'Site-to-Site VPN', 'Transit Gateway', 'VPC',
+  'Artifact', 'Certificate Manager', 'CloudHSM', 'Cognito', 'Detective', 'Directory Service', 'Firewall Manager', 'GuardDuty', 'Identity Center', 'Inspector', 'KMS', 'Macie',
+  'Network Firewall', 'Resource Access Manager', 'Secrets Manager', 'Security Hub', 'Shield', 'WAF', 'IAM', 'Fargate', 'Lambda',
+  'AWS Backup', 'EBS', 'EFS', 'FSx', 'S3', 'Glacier', 'Storage Gateway']
+
 def corpus(q): return '\n'.join([q['stem']] + [c['text'] for c in q['choices']] + (q['answer'] if q.get('kind') == 'input' else []) + [q['explanation']])
 
 def objective(q):
@@ -124,7 +183,7 @@ def analyze(exam, table):
     return qs, rows
 
 out = {}
-for exam, table in [('LinuC102', LINUC), ('CCNA', CCNA)]:
+for exam, table in [('LinuC102', LINUC), ('CCNA', CCNA), ('SAA', SAA)]:
     qs, rows = analyze(exam, table)
     out[exam] = rows
     tot_items = sum(r['items'] for r in rows); tot_cov = sum(r['covered'] for r in rows)
@@ -135,3 +194,12 @@ for exam, table in [('LinuC102', LINUC), ('CCNA', CCNA)]:
         ws = f"{(r['weight'] or 0)/wsum:5.1%}" if wsum else ''
         print(f"{r['obj']:7} w={r['weight']} n={r['n']:2} share={share} wshare={ws} terms={r['covered']}/{r['items']} out={r['output']} ts={r['trouble']} multi={r['multi']} missing={r['missing']}")
 
+
+import glob
+qtext = '\n'.join(corpus(q) for q in Q if q['exam'] == 'SAA')
+ttext = '\n'.join(open(f).read() for f in glob.glob('texts/aws-saa/*.md'))
+miss_t = [x for x in SAA_SERVICES if x not in ttext]
+miss_q = [x for x in SAA_SERVICES if x not in qtext]
+print(f'== SAA 対象サービス {len(SAA_SERVICES)}: テキスト {len(SAA_SERVICES)-len(miss_t)} / 問題 {len(SAA_SERVICES)-len(miss_q)}')
+print('テキストにない:', miss_t)
+print('問題にない:', miss_q)
