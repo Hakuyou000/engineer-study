@@ -36,11 +36,24 @@ const sample = `# CCNA 問題 9.0 テスト分野
 
 ## 解答・解説
 
-| 問 | 正解 | 解説 |
-|---|---|---|
-| 1 | B | 解説1。 |
-| 2 | A、C | 解説2。 |
-| 3 | A | 解説3。 |
+### 問1
+
+**正解**: B
+
+解説1。
+
+### 問2
+
+**正解**: A、C
+
+解説2。
+
+### 問3
+
+**正解**: A
+
+解説3。
+
 `
 
 describe('parseQuestions', () => {
@@ -68,11 +81,11 @@ describe('parseQuestions', () => {
   })
 
   it('解答が欠けていれば失敗する', () => {
-    expect(() => parseQuestions(sample.replace('| 3 | A | 解説3。 |\n', ''))).toThrow(/問3/)
+    expect(() => parseQuestions(sample.replace(/### 問3[\s\S]*$/, ''))).toThrow(/問3/)
   })
 
   it('正解が選択肢にないと失敗する', () => {
-    expect(() => parseQuestions(sample.replace('| 3 | A |', '| 3 | D |'))).toThrow(/D/)
+    expect(() => parseQuestions(sample.replace('**正解**: A\n\n解説3。', '**正解**: D\n\n解説3。'))).toThrow(/D/)
   })
 })
 
@@ -92,10 +105,18 @@ describe('入力問題', () => {
 
 ## 解答・解説
 
-| 問 | 正解 | 解説 |
-|---|---|---|
-| 1 | \`ssh-keygen\` | 解説1。 |
-| 2 | B | 解説2。 |
+### 問1
+
+**正解**: \`ssh-keygen\`
+
+解説1。
+
+### 問2
+
+**正解**: B
+
+解説2。
+
 `
   it('選択肢がなく、正解の欄がコードなら入力問題', () => {
     const [a, b] = parseQuestions(md)
@@ -109,7 +130,7 @@ describe('入力問題', () => {
   })
 
   it('入力問題に選択肢があれば失敗する', () => {
-    expect(() => parseQuestions(md.replace('| 2 | B |', '| 2 | `x` |'))).toThrow(/入力問題なのに選択肢/)
+    expect(() => parseQuestions(md.replace('**正解**: B', '**正解**: `x`'))).toThrow(/入力問題なのに選択肢/)
   })
 })
 
@@ -152,12 +173,30 @@ describe('小項目の前置き', () => {
 
 ## 解答・解説
 
-| 問 | 正解 | 解説 |
-|---|---|---|
-| 1 | A | . |
-| 2 | A | . |
-| 3 | A | . |
-| 4 | A | . |
+### 問1
+
+**正解**: A
+
+.
+
+### 問2
+
+**正解**: A
+
+.
+
+### 問3
+
+**正解**: A
+
+.
+
+### 問4
+
+**正解**: A
+
+.
+
 `
   const qs = parseQuestions(md)
 
@@ -200,7 +239,7 @@ describe('問題 ID', () => {
 
   it('Markdown の問題 ID が合わなければエラーにする', async () => {
     const { parseQuestions } = await import('./parser')
-    const md = '# CCNA 問題 1.0 x\n\n## 問題\n\n### 1.1 a\n\n**問1** `CCNA-1.0-002` 問題文\n\n- A. a\n- B. b\n\n## 解答・解説\n\n| 問 | 正解 | 解説 |\n|---|---|---|\n| 1 | A | x |\n'
+    const md = '# CCNA 問題 1.0 x\n\n## 問題\n\n### 1.1 a\n\n**問1** `CCNA-1.0-002` 問題文\n\n- A. a\n- B. b\n\n## 解答・解説\n\n### 問1\n\n**正解**: A\n\nx\n'
     expect(() => parseQuestions(md)).toThrow('CCNA-1.0-001')
     const [q] = parseQuestions(md.replace('002', '001'))
     expect(q.code).toBe('CCNA-1.0-001')
@@ -216,5 +255,23 @@ describe('問題 ID', () => {
       const lines = readFileSync(`content/${f}`, 'utf8').split('\n').filter((l) => l.startsWith('**問'))
       for (const l of lines) expect(l).toMatch(/^\*\*問\d+\*\* `[A-Za-z0-9]+-[\d.]+-\d{3}`/)
     }
+  })
+})
+
+describe('解答の書式', () => {
+  const md = '# CCNA 問題 1.0 x\n\n## 問題\n\n### 1.1 a\n\n**問1** `CCNA-1.0-001` 問題文\n\n- A. a\n- B. b\n\n## 解答・解説\n\n### 問1 `CCNA-1.0-001`\n\n**正解**: B\n\n手順です。\n① 一つ目\n② 二つ目\n\n誤りの説明です。\n'
+
+  it('解説の改行と段落をそのまま残す', () => {
+    const [q] = parseQuestions(md)
+    expect(q.answer).toEqual(['B'])
+    expect(q.explanation).toBe('手順です。\n① 一つ目\n② 二つ目\n\n誤りの説明です。')
+  })
+
+  it('解答の見出しの問題 ID が合わなければエラーにする', () => {
+    expect(() => parseQuestions(md.replace('### 問1 `CCNA-1.0-001`', '### 問1 `CCNA-1.0-009`'))).toThrow('CCNA-1.0-009')
+  })
+
+  it('正解の行がなければエラーにする', () => {
+    expect(() => parseQuestions(md.replace('**正解**: B', 'B'))).toThrow(/正解/)
   })
 })

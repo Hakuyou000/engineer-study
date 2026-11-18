@@ -73,7 +73,7 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
             {isCorrect(q, chosen) ? '正解' : '不正解'}(正解: {input ? q.answer.join(' / ') : q.answer.join('、')})
           </strong>
           {input && !isCorrect(q, chosen) && <p>入力: {chosen[0] ? <code>{chosen[0]}</code> : '(未入力)'}</p>}
-          <p>{inline(q.explanation)}</p>
+          <Md text={q.explanation} />
         </div>
       )}
       {revealed && <SectionText key={q.id} q={q} />}

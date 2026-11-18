@@ -10,10 +10,12 @@ import type { Question } from './types'
  *   **問N** `問題ID` 問題文(複数行、コードブロック可)。問題 ID は省略できるが、書くなら questionCode と一致させる
  *   - A. 選択肢
  *   ## 解答・解説
- *   | N | A | 解説 |      複数選択は「A、C」
+ *   ### 問N `問題ID`
+ *   **正解**: A                 複数選択は「A、C」
+ *   解説(複数行、段落、コードブロック可。次の「### 問」まで)
  *
- * 入力問題は選択肢を書かず、正解の欄に入力として認める答えをコードで書く。
- *   | N | `ssh-keygen` | 解説 |      複数あれば「`atq`、`at -l`」
+ * 入力問題は選択肢を書かず、正解に入力として認める答えをコードで書く。
+ *   **正解**: `ssh-keygen`      複数あれば「`atq`、`at -l`」
  */
 /** 画面と Markdown に表示する問題 ID。試験名-分野番号-問番号(3 桁)。例: LinuC102-1.06-019 */
 export function questionCode(exam: string, domain: string, number: number): string {
@@ -32,15 +34,40 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
   if (answerStart < 0) throw new Error(`${source}: 「## 解答」節がない`)
 
   const answers = new Map<number, { answer: string[]; accept: string[] | null; explanation: string }>()
-  for (const l of lines.slice(answerStart)) {
-    const m = l.match(/^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*(.*?)\s*\|\s*$/)
-    if (!m) continue
-    if (/^[A-Z](?:\s*[、,]\s*[A-Z])*$/.test(m[2])) {
-      answers.set(Number(m[1]), { answer: m[2].split(/[、,]/).map((s) => s.trim()), accept: null, explanation: m[3] })
-    } else if (m[2].startsWith('`')) {
-      const accept = [...m[2].matchAll(/`([^`]+)`/g)].map((x) => x[1].trim())
-      answers.set(Number(m[1]), { answer: accept, accept, explanation: m[3] })
+  const parseAnswer = (number: number, body: string[]) => {
+    const i = body.findIndex((l) => /^\*\*正解\*\*[:：]/.test(l))
+    if (i < 0) throw new Error(`${source}: 問${number} の解答に「**正解**:」の行がない`)
+    const value = body[i].replace(/^\*\*正解\*\*[:：]\s*/, '').trim()
+    const explanation = body.slice(i + 1).join('\n').trim()
+    if (answers.has(number)) throw new Error(`${source}: 問${number} の解答が重複`)
+    if (/^[A-Z](?:\s*[、,]\s*[A-Z])*$/.test(value)) {
+      answers.set(number, { answer: value.split(/[、,]/).map((x) => x.trim()), accept: null, explanation })
+    } else if (value.startsWith('`')) {
+      const accept = [...value.matchAll(/`([^`]+)`/g)].map((x) => x[1].trim())
+      answers.set(number, { answer: accept, accept, explanation })
+    } else {
+      throw new Error(`${source}: 問${number} の正解「${value}」の書き方が誤り`)
     }
+  }
+  {
+    let num = 0
+    let body: string[] = []
+    let fence = false
+    for (const l of lines.slice(answerStart + 1)) {
+      if (l.startsWith('```')) fence = !fence
+      const hm = fence ? null : l.match(/^### 問(\d+)(?:\s+`([^`]+)`)?\s*$/)
+      if (hm) {
+        if (num) parseAnswer(num, body)
+        num = Number(hm[1])
+        body = []
+        if (hm[2] && hm[2] !== questionCode(exam, domain, num)) {
+          throw new Error(`${source}: 解答の問${num} の問題 ID ${hm[2]} は ${questionCode(exam, domain, num)} であるべき`)
+        }
+        continue
+      }
+      if (num) body.push(l)
+    }
+    if (num) parseAnswer(num, body)
   }
 
   const questions: Question[] = []
