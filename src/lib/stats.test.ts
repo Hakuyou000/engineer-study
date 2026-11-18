@@ -4,6 +4,7 @@ import type { Attempt, Card, Question } from './types'
 
 const q = (id: string, domain: string, section: string): Question => ({
   id,
+  code: id,
   exam: 'CCNA',
   domain,
   domainTitle: 'T',

@@ -4,8 +4,10 @@ export interface Choice {
 }
 
 export interface Question {
-  /** 例: ccna-1.0-q12 */
+  /** 履歴のキー。例: ccna-1.0-q12 */
   id: string
+  /** 画面と Markdown に表示する問題 ID。例: CCNA-1.0-012 */
+  code: string
   exam: string
   /** 例: 1.0 */
   domain: string

@@ -7,7 +7,7 @@ import type { Question } from './types'
  *   # <試験名> 問題 <分野番号> <分野名>
  *   ## 問題
  *   ### <小項目>
- *   **問N** 問題文(複数行、コードブロック可)
+ *   **問N** `問題ID` 問題文(複数行、コードブロック可)。問題 ID は省略できるが、書くなら questionCode と一致させる
  *   - A. 選択肢
  *   ## 解答・解説
  *   | N | A | 解説 |      複数選択は「A、C」
@@ -15,6 +15,11 @@ import type { Question } from './types'
  * 入力問題は選択肢を書かず、正解の欄に入力として認める答えをコードで書く。
  *   | N | `ssh-keygen` | 解説 |      複数あれば「`atq`、`at -l`」
  */
+/** 画面と Markdown に表示する問題 ID。試験名-分野番号-問番号(3 桁)。例: LinuC102-1.06-019 */
+export function questionCode(exam: string, domain: string, number: number): string {
+  return `${exam}-${domain}-${String(number).padStart(3, '0')}`
+}
+
 export function parseQuestions(md: string, source = '(input)'): Question[] {
   const lines = md.replace(/\r\n/g, '\n').split('\n')
 
@@ -79,8 +84,16 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
         }
         preface = []
         const number = Number(qm[1])
+        const code = questionCode(exam, domain, number)
+        let rest = qm[2]
+        const idm = rest.match(/^`([A-Za-z0-9]+-[\d.]+-\d{3})`\s*(.*)$/)
+        if (idm) {
+          if (idm[1] !== code) throw new Error(`${source}: 問${number} の問題 ID ${idm[1]} は ${code} であるべき`)
+          rest = idm[2]
+        }
         cur = {
           id: `${exam.toLowerCase()}-${domain}-q${number}`,
+          code,
           exam,
           domain,
           domainTitle,
@@ -91,7 +104,7 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
           answer: [],
           explanation: '',
         }
-        stem = shared && number >= shared.from && number <= shared.to ? [shared.text, '', qm[2]] : [qm[2]]
+        stem = shared && number >= shared.from && number <= shared.to ? [shared.text, '', rest] : [rest]
         continue
       }
       const cm = l.match(/^- ([A-Z])\. (.+)$/)

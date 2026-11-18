@@ -25,7 +25,7 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
   return (
     <div>
       <div className="meta">
-        {q.exam} {q.section} ・ 問{q.number}
+        <span className="qcode">{q.code}</span> ・ {q.section}
         {multi && ` ・ ${q.answer.length} つ選択`}
         {input && ' ・ 入力'}
       </div>

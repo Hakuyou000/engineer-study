@@ -4,6 +4,7 @@ import { weakQuestions } from './weak'
 
 const q = (id: string): Question => ({
   id,
+  code: id,
   exam: 'X',
   domain: '1',
   domainTitle: '',

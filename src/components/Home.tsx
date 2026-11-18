@@ -15,6 +15,8 @@ interface Props {
   /** 選択中の分野で、入力で解ける問題の数 */
   inputCount: (domains: string[]) => number
   onStart: (o: StartOptions) => void
+  /** 問題 ID を指定して 1 問だけ解く。見つからなければ false */
+  onOpenCode: (code: string) => boolean
 }
 
 const KEY = 'sre-drill:scope'
@@ -32,12 +34,14 @@ function loadScope(key: string, all: string[]): string[] {
   return all
 }
 
-export function Home({ scopeKey, stats, inputCount, onStart }: Props) {
+export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props) {
   const key = `${KEY}:${scopeKey}`
   const all = stats.map((d) => d.key)
   const [domains, setDomains] = useState<string[]>(() => loadScope(key, all))
   const [size, setSize] = useState(10)
   const [shuffleOn, setShuffleOn] = useState(loadShufflePref)
+  const [code, setCode] = useState('')
+  const [notFound, setNotFound] = useState(false)
 
   const update = (next: string[]) => {
     setDomains(next)
@@ -150,6 +154,30 @@ export function Home({ scopeKey, stats, inputCount, onStart }: Props) {
       </div>
       <p className="meta">要復習: 最後に間違えた問題と、2 回以上解いて正答率が 70% 未満の問題です。</p>
       <p className="meta">入力で解く: 答えがコマンド名やファイル名など1語になる問題を、選択肢を見ずに入力して答えます。</p>
+      <form
+        className="inline code-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          setNotFound(!onOpenCode(code))
+        }}
+      >
+        <label className="inline">
+          問題 ID で開く
+          <input
+            type="text"
+            value={code}
+            placeholder="例: LinuC102-1.06-019"
+            autoComplete="off"
+            spellCheck={false}
+            onChange={(e) => {
+              setCode(e.target.value)
+              setNotFound(false)
+            }}
+          />
+        </label>
+        <button disabled={code.trim() === ''}>開く</button>
+        {notFound && <span className="meta">その ID の問題は見つかりませんでした。</span>}
+      </form>
       {!none && due + unseen === 0 && (
         <p className="meta">いま解くべき問題はありません。次の復習日まで待つか、「ランダム」で解いてください。</p>
       )}

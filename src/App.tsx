@@ -224,6 +224,11 @@ export function App() {
           stats={stats}
           inputCount={(domains) => QUESTIONS.filter((q) => domains.includes(`${q.exam} ${q.domain}`) && canInput(q)).length}
           onStart={start}
+          onOpenCode={(code) => {
+            const q = ALL_QUESTIONS.find((x) => x.code.toLowerCase() === code.trim().toLowerCase())
+            if (q) setView({ name: 'study', questions: prepare([q]) })
+            return q !== undefined
+          }}
         />
       )}
 

@@ -191,3 +191,30 @@ describe('生成済みの問題データ', () => {
     }
   })
 })
+
+describe('問題 ID', () => {
+  it('試験名-分野番号-問番号(3 桁)にする', async () => {
+    const { questionCode } = await import('./parser')
+    expect(questionCode('LinuC102', '1.06', 19)).toBe('LinuC102-1.06-019')
+  })
+
+  it('Markdown の問題 ID が合わなければエラーにする', async () => {
+    const { parseQuestions } = await import('./parser')
+    const md = '# CCNA 問題 1.0 x\n\n## 問題\n\n### 1.1 a\n\n**問1** `CCNA-1.0-002` 問題文\n\n- A. a\n- B. b\n\n## 解答・解説\n\n| 問 | 正解 | 解説 |\n|---|---|---|\n| 1 | A | x |\n'
+    expect(() => parseQuestions(md)).toThrow('CCNA-1.0-001')
+    const [q] = parseQuestions(md.replace('002', '001'))
+    expect(q.code).toBe('CCNA-1.0-001')
+    expect(q.stem).toBe('問題文')
+  })
+
+  it('すべての問題ファイルに問題 ID が書かれ、重複しない', async () => {
+    const { readdirSync, readFileSync } = await import('node:fs')
+    const data = (await import('../data/questions.json')).default as { code: string }[]
+    expect(new Set(data.map((q) => q.code)).size).toBe(data.length)
+    const files = readdirSync('content', { recursive: true }).map(String).filter((p) => p.endsWith('.md'))
+    for (const f of files) {
+      const lines = readFileSync(`content/${f}`, 'utf8').split('\n').filter((l) => l.startsWith('**問'))
+      for (const l of lines) expect(l).toMatch(/^\*\*問\d+\*\* `[A-Za-z0-9]+-[\d.]+-\d{3}`/)
+    }
+  })
+})
