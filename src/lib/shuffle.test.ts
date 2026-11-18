@@ -36,7 +36,7 @@ describe('shuffleChoices', () => {
 
 describe('解説', () => {
   it('選択肢の記号を参照しない(並べ替えると記号が変わるため)', () => {
-    const ref = /(^|。)\s*[A-D](、[A-D])*\s?(は|が|も)/
+    const ref = /(^|。|<br>)\s*[A-D](、[A-D])*\s?(は|が|も)/
     expect(all.filter((q) => ref.test(q.explanation)).map((q) => q.id)).toEqual([])
   })
 })

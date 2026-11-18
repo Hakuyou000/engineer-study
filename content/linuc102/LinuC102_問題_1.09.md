@@ -241,7 +241,7 @@
 | 10 | C | `mail.=err` のように `=` を付けると、そのプライオリティだけが対象になります。`mail.err` は err 以上すべて、`!` は指定したもの「未満」、`none` はそのファシリティを記録しない、という意味です。 |
 | 11 | A | プライオリティは、重要度の高い順に emerg、alert、crit、err、warning、notice、info、debug です。emerg はシステムが使えない状態、debug はデバッグ用の情報です。 |
 | 12 | D | ログの転送先の前に `@` を1つ付けると UDP、`@@` と2つ付けると TCP で送ります(ポートは標準で 514 番)。`>>` や `tcp://` という書き方はありません。 |
-| 13 | A | `;` で区切って複数の条件を並べます。`*.info` で全ファシリティの info 以上を対象にし、`mail.none` と `authpriv.none` で mail と authpriv を除きます。メールと認証のログは、別のファイルに記録するのが一般的です。 |
+| 13 | A | 設定の左側(セレクタ)を `;` で区切って、前から順に読みます。<br>① `*.info` … すべてのファシリティ(`*`)の、info 以上の重大度を対象にする。「以上」なので info、notice、warning、err、crit、alert、emerg が含まれます。debug は含まれません。<br>② `mail.none` … mail ファシリティは記録しない(除外)。<br>③ `authpriv.none` … authpriv ファシリティも記録しない。<br>④ 右側の `/var/log/messages` … 対象のログを書き込むファイル。<br>まとめると「info 以上のすべて。ただし mail と authpriv は除く」です。info だけを指定する書き方は `*.=info`、info 未満は `*.!info` です。mail と authpriv は除外されているので、それらだけが記録されることはありません。メールと認証のログは、`/var/log/maillog` や `/var/log/secure` に分けて記録するのが一般的です。 |
 | 14 | C | ログを受信するモジュールは、input module の略で im で始まります。UDP で受信するのは imudp、TCP は imtcp です。omudp の om は output module で送信用、imjournal は journald からログを読むモジュールです。 |
 | 15 | A | logger は、`-p ファシリティ.プライオリティ` でログの種類を指定して書き込みます。`-t` はログに付けるタグ(名前)の指定です。systemd-cat はコマンドの出力をジャーナルに送るコマンドで、この書き方はできません。 |
 | 16 | D | journalctl の `-u` でユニット、`-b` で今回の起動以降を指定します。`-k` はカーネルのメッセージ、`-f` は新しいログを追いかけて表示、`-p` はプライオリティで絞り込むオプションです。 |
