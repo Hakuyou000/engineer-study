@@ -127,24 +127,14 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
                 </button>
               </div>
               <div className="text-end-pager">
-                {prev ? (
-                  <button className="pager prev" onClick={() => select(prev.id, true)}>
-                    <span className="meta">前のテキスト</span>
-                    <span>
-                      {prev.number} {prev.title}
-                    </span>
-                  </button>
-                ) : (
-                  <span />
-                )}
-                {next && (
-                  <button className="pager next" onClick={() => select(next.id, true)}>
-                    <span className="meta">次のテキスト</span>
-                    <span>
-                      {next.number} {next.title}
-                    </span>
-                  </button>
-                )}
+                <button className="pager prev" disabled={!prev} onClick={() => prev && select(prev.id, true)}>
+                  <span className="pager-label">‹ 前のページ</span>
+                  <span className="pager-title">{prev ? `${prev.number} ${prev.title}` : 'なし'}</span>
+                </button>
+                <button className="pager next" disabled={!next} onClick={() => next && select(next.id, true)}>
+                  <span className="pager-label">次のページ ›</span>
+                  <span className="pager-title">{next ? `${next.number} ${next.title}` : 'なし'}</span>
+                </button>
               </div>
             </nav>
           )}
