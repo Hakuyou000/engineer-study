@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { openGlossary, termByName } from '../lib/glossaryData'
 import { Md } from './Md'
+import { TermDetail } from './TermDetail'
 
 /** 本文の中の用語。押すと説明を下に出す */
 export function TermLink({ name, text }: { name: string; text: string }) {
@@ -22,7 +23,10 @@ export function TermLink({ name, text }: { name: string; text: string }) {
               </button>
             </div>
             {t.aliases.length > 0 && <p className="meta">{t.aliases.join('、')}</p>}
-            <Md text={t.body} />
+            <div className="term-summary">
+              <Md text={t.summary} />
+            </div>
+            <TermDetail term={t} />
             <button
               type="button"
               className="link"
