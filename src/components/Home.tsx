@@ -122,7 +122,7 @@ export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props
         <div className="setting">
           <span id="size-label">1 回の問題数</span>
           <div className="segmented" role="radiogroup" aria-labelledby="size-label">
-            {[5, 10, 20, 40].map((n) => (
+            {[5, 10, 20, 40, 60].map((n) => (
               <button key={n} role="radio" aria-checked={size === n} className={size === n ? 'on' : ''} onClick={() => setSize(n)}>
                 {n}
               </button>
