@@ -143,6 +143,14 @@ export function App() {
     setView({ name: kind === 'exam' ? 'exam' : 'study', questions: prepare(questions) })
   }
 
+  /** テキストの最後から、その章(分野)の問題を解く。解くべき問題がなければ、範囲から無作為に出す */
+  const practiceDomain = (exam: string, domain: string) => {
+    const pool = QUESTIONS.filter((q) => q.exam === exam && q.domain === domain)
+    const due = buildStudySession(pool, store.cards, Date.now(), 10)
+    const questions = due.length > 0 ? due : shuffle(pool).slice(0, 10)
+    if (questions.length > 0) setView({ name: 'study', questions: prepare(questions) })
+  }
+
   /** 成績画面から、小項目の弱点だけを解く */
   const practiceSection = (domainKey: string, section: string) => {
     const pool = QUESTIONS.filter((q) => `${q.exam} ${q.domain}` === domainKey && q.section === section)
@@ -295,7 +303,14 @@ export function App() {
         />
       )}
 
-      {view.name === 'text' && <TextView key={group ?? '*'} exam={group} />}
+      {view.name === 'text' && (
+        <TextView
+          key={group ?? '*'}
+          exam={group}
+          onPractice={practiceDomain}
+          onOpenHome={(exam) => openGroup(group === null ? null : exam, 'home')}
+        />
+      )}
 
       {view.name === 'glossary' && <GlossaryView key={`${group ?? '*'}:${view.focus ?? ''}`} exam={group} focus={view.focus} />}
 
