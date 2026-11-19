@@ -52,6 +52,53 @@ describe('用語集の解析', () => {
   })
 })
 
+describe('小分類、要約、例、注意', () => {
+  const src = `# 用語集 テスト
+
+## 層
+
+### TCP
+要約: 信頼性のあるプロトコルです。
+接続を作ります。
+例: \`ss -tan\`
+例: HTTP、SSH
+注意: UDP と混同しないことです。
+
+### UDP
+軽いプロトコルです。2 文目です。
+`
+  const [tcp, udp] = parseGlossary(src)
+
+  it('## を小分類として、続く用語に付ける', () => {
+    expect(tcp.group).toBe('層')
+    expect(udp.group).toBe('層')
+  })
+
+  it('要約、例(複数行、読点で分けない)、注意を取り出し、説明から外す', () => {
+    expect(tcp).toMatchObject({
+      summary: '信頼性のあるプロトコルです。',
+      body: '接続を作ります。',
+      examples: ['`ss -tan`', 'HTTP、SSH'],
+      note: 'UDP と混同しないことです。',
+    })
+  })
+
+  it('要約がなければ、説明の最初の文を使う', () => {
+    expect(udp.summary).toBe('軽いプロトコルです。')
+  })
+})
+
+describe('同梱の用語集の書き方', () => {
+  it('すべての用語に小分類、要約、例、注意がある', () => {
+    for (const t of TERMS) {
+      expect(t.group, t.name).not.toBe('')
+      expect(t.summary, t.name).toMatch(/。$/)
+      expect(t.examples.length, t.name).toBeGreaterThan(0)
+      expect(t.note, t.name).toMatch(/。$/)
+    }
+  })
+})
+
 describe('本文の用語の検出', () => {
   const linker = createLinker(parseGlossary(md))
   const names = (s: string, exam?: string | null) =>

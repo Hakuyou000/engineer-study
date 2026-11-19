@@ -10,8 +10,16 @@ export interface Term {
   exams: string[]
   /** 分類(ファイルのタイトル) */
   category: string
-  /** 説明(インラインコード、太字、改行を使える) */
+  /** 小分類(ファイルの中の ## 見出し)。なければ空 */
+  group: string
+  /** 一覧に出す 1 文の要約 */
+  summary: string
+  /** 詳しい説明(インラインコード、太字、改行を使える) */
   body: string
+  /** 例(コマンド、設定、出力など)。1 行に 1 つ */
+  examples: string[]
+  /** 試験や実務で間違えやすい点 */
+  note: string
   /** 関連する用語の名前 */
   related: string[]
 }
@@ -19,10 +27,14 @@ export interface Term {
 /**
  * 用語集のファイルの書式:
  *   # 用語集 <分類>
+ *   ## 小分類                                              (省略可。次の ## まで続く)
  *   ### 用語の名前
  *   別名: Transmission Control Protocol、TCP/IP の TCP   (省略可)
  *   試験: LinuC102、CCNA                                  (省略可)
+ *   要約: 1 文の要約                                       (省略可。なければ説明の最初の文)
  *   説明(1 行以上)
+ *   例: `ss -tln`                                          (省略可。何行でも)
+ *   注意: 間違えやすい点                                   (省略可)
  *   関連: UDP、ポート番号                                  (省略可)
  */
 export function parseGlossary(md: string, source = '(input)'): Term[] {
@@ -33,32 +45,52 @@ export function parseGlossary(md: string, source = '(input)'): Term[] {
   const category = tm[1].trim()
 
   const terms: Term[] = []
-  let cur: { name: string; lines: string[] } | null = null
+  let group = ''
+  let cur: { name: string; group: string; lines: string[] } | null = null
   const flush = () => {
     if (!cur) return
-    const t: Term = { name: cur.name, aliases: [], exams: [], category, body: '', related: [] }
+    const t: Term = {
+      name: cur.name,
+      aliases: [],
+      exams: [],
+      category,
+      group: cur.group,
+      summary: '',
+      body: '',
+      examples: [],
+      note: '',
+      related: [],
+    }
     const body: string[] = []
     for (const l of cur.lines) {
-      const m = l.match(/^(別名|試験|関連)[:：]\s*(.*)$/)
-      if (m) {
-        const items = m[2].split('、').map((x) => x.trim()).filter(Boolean)
-        if (m[1] === '別名') t.aliases = items
-        else if (m[1] === '試験') t.exams = items
-        else t.related = items
-      } else {
+      const m = l.match(/^(別名|試験|関連|要約|例|注意)[:：]\s*(.*)$/)
+      if (!m) {
         body.push(l)
+        continue
       }
+      const items = m[2].split('、').map((x) => x.trim()).filter(Boolean)
+      if (m[1] === '別名') t.aliases = items
+      else if (m[1] === '試験') t.exams = items
+      else if (m[1] === '関連') t.related = items
+      else if (m[1] === '要約') t.summary = m[2].trim()
+      else if (m[1] === '例') t.examples.push(m[2].trim())
+      else t.note = m[2].trim()
     }
     t.body = body.join('\n').trim()
     if (!t.body) throw new Error(`${source}: 「${t.name}」の説明がない`)
+    if (!t.summary) t.summary = (t.body.match(/^[^\n]*?。/) ?? [t.body.split('\n')[0]])[0]
     terms.push(t)
     cur = null
   }
   for (const l of lines) {
+    const g = l.match(/^## (.+)$/)
     const h = l.match(/^### (.+)$/)
-    if (h) {
+    if (g) {
       flush()
-      cur = { name: h[1].trim(), lines: [] }
+      group = g[1].trim()
+    } else if (h) {
+      flush()
+      cur = { name: h[1].trim(), group, lines: [] }
     } else if (cur) {
       cur.lines.push(l)
     }
