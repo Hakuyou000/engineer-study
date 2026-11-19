@@ -111,7 +111,36 @@ COPY . .                          # ソースコード(よく変わる)
 
 キャッシュを使わずにビルドするには `docker build --no-cache` を使います。
 
-### 3. .dockerignore
+### 3. キャッシュのマウントと CI のキャッシュ
+
+依存関係の一覧が変わると、`pip install` や `npm ci` の層は作り直しになり、すべてのパッケージをまたダウンロードします。BuildKit の**キャッシュのマウント**を使うと、パッケージのダウンロードのキャッシュを、層とは別の場所にビルドをまたいで残せます。
+
+```dockerfile
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
+```
+
+- `target` のディレクトリは、その `RUN` の間だけマウントされ、**イメージの層には入りません**。イメージは大きくなりません。
+- 同じホストでのビルドでしか効きません。
+
+CI のように毎回まっさらなマシンでビルドすると、ホストにビルドキャッシュがありません。キャッシュをレジストリなどに置いて、次のビルドで使います。
+
+```bash
+docker buildx build \
+  --cache-from type=registry,ref=registry.example.com/app:buildcache \
+  --cache-to   type=registry,ref=registry.example.com/app:buildcache,mode=max \
+  -t registry.example.com/app:1.4 --push .
+```
+
+| 置き場所 | 書き方 | 使う場面 |
+|---|---|---|
+| レジストリ | `type=registry,ref=…` | どの CI でも使える |
+| GitHub Actions のキャッシュ | `type=gha` | GitHub Actions |
+| ローカルのディレクトリ | `type=local,src=…` / `dest=…` | CI のキャッシュの仕組みでディレクトリを保存する |
+
+`mode=max` にすると、マルチステージビルドの途中のステージの層もキャッシュに入れます(既定の `min` は最後のイメージの層だけ)。
+
+### 4. .dockerignore
 
 ビルドコンテキストから除くファイルを書きます(`.gitignore` と似た書き方)。
 

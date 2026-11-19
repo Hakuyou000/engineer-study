@@ -1,6 +1,6 @@
 # Docker 問題 6.0 Docker Compose
 
-対象: 実務の Docker / 全20問 / すべてオリジナル問題
+対象: 実務の Docker / 全24問 / すべてオリジナル問題
 対応テキスト: `Docker_6.0_DockerCompose.md`
 解答・解説は末尾。
 
@@ -175,6 +175,53 @@ services:
 - C. `adminer` の `ports` を書かない
 - D. `adminer` に `profiles: ["debug"]` を付け、必要なときに `docker compose --profile debug up` を実行する
 
+### 6.5 開発中の自動反映: develop と watch
+
+**問21** `Docker-6.0-021` `docker compose watch` で開発している。`requirements.txt` を変えたときは、イメージを作り直してコンテナを入れ替えたい。`develop.watch` の `action` に設定する値はどれか。
+
+- A. `sync`
+- B. `sync+restart`
+- C. `restart`
+- D. `rebuild`
+
+**問22** `Docker-6.0-022` `compose.yaml` のサービスに `develop.watch` を書いた。ファイルの変更を見張りながらサービスを起動するコマンドはどれか。
+
+- A. `docker compose watch`
+- B. `docker compose up --build`
+- C. `docker compose logs -f`
+- D. `docker compose run --watch web`
+
+### 6.6 secrets と資源の上限
+
+**問23** `Docker-6.0-023` 次の `compose.yaml` で起動した `db` のコンテナの中で、パスワードが書かれたファイルはどれか。
+
+```yaml
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+```
+
+- A. `/secrets/db_password.txt`
+- B. `/etc/secrets/db_password`
+- C. `/run/secrets/db_password`
+- D. `/var/lib/postgresql/data/db_password`
+
+**問24** `Docker-6.0-024` `compose.yaml` で、サービス `web` に `deploy.resources.limits.memory: 512M` を書いて `docker compose up -d` で起動した。`web` のアプリが 512 MB を超えてメモリを使おうとしたときの動きとして、正しいものはどれか。
+
+- A. 上限は Docker Swarm でだけ使われるので、何も起きない
+- B. コンテナはカーネルの OOM killer で強制終了され、`docker ps -a` では `Exited (137)` になる
+- C. 自動で `web` のコンテナの数が増える
+- D. 上限を超えた分は、ホストのディスクに自動で書き出され、遅くなるだけで止まらない
+
+
 ## 解答・解説
 
 ### 問1 `Docker-6.0-001`
@@ -301,3 +348,43 @@ Compose は、プロジェクトの既定のネットワークを作り、全サ
 **正解**: D
 
 `profiles` を付けたサービスは、普段の `up` では起動しません。`--profile` でそのプロファイルを指定したときだけ起動します。`restart: no` は終了したときに再起動しないだけで、`up` では起動します。
+
+### 問21 `Docker-6.0-021`
+
+**正解**: D
+
+`rebuild` は、見張っているファイルが変わると、イメージをビルドし直し、コンテナを作り直します。依存関係の一覧はイメージをビルドするときに使うので、コンテナにコピーするだけでは反映されません。
+
+- A. `sync` は、ファイルをコンテナの中にコピーするだけです。自動で読み込み直すアプリのソースコードに使います。
+- B. `sync+restart` は、コピーしてからコンテナを再起動します。起動のときに読む設定ファイルに使います。パッケージは入りません。
+- C. `restart` という action はありません。
+
+### 問22 `Docker-6.0-022`
+
+**正解**: A
+
+`docker compose watch` は、サービスを起動し、`develop.watch` に書いたパスの変更を見張って、決めた action(sync、rebuild、sync+restart)を実行します。ログも合わせて見たいときは `docker compose up --watch` も使えます。
+
+- B. `up --build` は起動のときに 1 回ビルドするだけで、その後の変更は見張りません。
+- C. `logs -f` はログを追いかけて表示するだけです。
+- D. `run` は一回だけのコマンドを実行するもので、`--watch` のオプションはありません。
+
+### 問23 `Docker-6.0-023`
+
+**正解**: C
+
+Compose の `secrets` は、サービスに書いた秘密を、コンテナの `/run/secrets/<秘密の名前>` のファイルとして見せます。名前は一番上の `secrets` のキー(`db_password`)で、ホストのファイル名ではありません。postgres の公式のイメージは、`POSTGRES_PASSWORD_FILE` のように `_FILE` で終わる変数でファイルからパスワードを読めます。
+
+- A. ホストの `./secrets/db_password.txt` の場所や名前は、コンテナの中のパスには使われません。
+- B. `/etc/secrets` には置かれません。
+- D. データのディレクトリとは関係ありません。
+
+### 問24 `Docker-6.0-024`
+
+**正解**: B
+
+今の `docker compose` は、`deploy.resources.limits` の `cpus` と `memory` をコンテナの上限として設定します(`docker run --cpus` と `--memory` と同じ)。メモリの上限を超えると、カーネルの OOM killer がコンテナの中のプロセスを強制終了し、終了コードは 137(128 + SIGKILL の 9)になります。`docker inspect` の `State.OOMKilled` が `true` になります。`restart` の方針があれば、再起動されます。
+
+- A. 以前は Swarm でだけ使われましたが、今の Compose は単体のホストでも適用します。
+- C. 数を増やす仕組みは、上限とは関係ありません。
+- D. コンテナの swap の扱いは別の設定で、上限を超えて使い続けることはできません。
