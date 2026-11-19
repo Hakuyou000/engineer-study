@@ -275,3 +275,28 @@ describe('解答の書式', () => {
     expect(() => parseQuestions(md.replace('**正解**: B', 'B'))).toThrow(/正解/)
   })
 })
+
+describe('タグ', () => {
+  const md = '# K8s 問題 1.0 x\n\n## 問題\n\n### 1.1 a\n\n**問1** `K8s-1.0-001` [CKA] 問題文\n\n- A. a\n- B. b\n\n**問2** `K8s-1.0-002` [実務] 二つ目\n\n- A. a\n- B. b\n\n## 解答・解説\n\n### 問1\n\n**正解**: A\n\nx\n\n### 問2\n\n**正解**: B\n\ny\n'
+
+  it('ID の後ろの [タグ] を取り出し、問題文から除く', () => {
+    const [a, b] = parseQuestions(md)
+    expect(a.tags).toEqual(['CKA'])
+    expect(a.stem).toBe('問題文')
+    expect(b.tags).toEqual(['実務'])
+  })
+
+  it('決めていないタグはエラーにする', () => {
+    expect(() => parseQuestions(md.replace('[CKA]', '[CKS]'))).toThrow('CKS')
+  })
+
+  it('タグのない問題には tags を付けない', () => {
+    const [a] = parseQuestions(md.replace('[CKA] ', ''))
+    expect(a.tags).toBeUndefined()
+  })
+
+  it('Kubernetes の問題には、CKA か 実務 のタグがちょうど 1 つある', () => {
+    const k8s = (questions as Question[]).filter((q) => q.exam === 'K8s')
+    for (const q of k8s) expect(q.tags?.length, q.code).toBe(1)
+  })
+})

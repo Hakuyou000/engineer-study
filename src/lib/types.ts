@@ -22,6 +22,8 @@ export interface Question {
   explanation: string
   /** 入力問題。answer に入力として認める答えが入る */
   kind?: 'input'
+  /** 問題の区分。例: ['CKA'](試験の範囲)、['実務'](試験の外の実務の知識) */
+  tags?: string[]
   /** 選択肢を並べ替えたときの、表示上の記号 → 元の記号 */
   keyMap?: Record<string, string>
 }

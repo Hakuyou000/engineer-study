@@ -7,7 +7,8 @@ import type { Question } from './types'
  *   # <試験名> 問題 <分野番号> <分野名>
  *   ## 問題
  *   ### <小項目>
- *   **問N** `問題ID` 問題文(複数行、コードブロック可)。問題 ID は省略できるが、書くなら questionCode と一致させる
+ *   **問N** `問題ID` [タグ] 問題文(複数行、コードブロック可)。問題 ID は省略できるが、書くなら questionCode と一致させる
+ *   タグは任意。ID の直後に [CKA] や [実務] のように書く(TAGS にあるものだけ)
  *   - A. 選択肢
  *   ## 解答・解説
  *   ### 問N `問題ID`
@@ -17,6 +18,9 @@ import type { Question } from './types'
  * 入力問題は選択肢を書かず、正解に入力として認める答えをコードで書く。
  *   **正解**: `ssh-keygen`      複数あれば「`atq`、`at -l`」
  */
+/** 問題に付けられるタグ。試験の範囲(CKA)と、試験の外の実務の知識(実務)を見分ける */
+export const TAGS = ['CKA', '実務'] as const
+
 /** 画面と Markdown に表示する問題 ID。試験名-分野番号-問番号(3 桁)。例: LinuC102-1.06-019 */
 export function questionCode(exam: string, domain: string, number: number): string {
   return `${exam}-${domain}-${String(number).padStart(3, '0')}`
@@ -118,6 +122,12 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
           if (idm[1] !== code) throw new Error(`${source}: 問${number} の問題 ID ${idm[1]} は ${code} であるべき`)
           rest = idm[2]
         }
+        const tags: string[] = []
+        for (let tm2 = rest.match(/^\[([^\]\s]+)\]\s*(.*)$/); tm2; tm2 = rest.match(/^\[([^\]\s]+)\]\s*(.*)$/)) {
+          if (!(TAGS as readonly string[]).includes(tm2[1])) throw new Error(`${source}: 問${number} のタグ [${tm2[1]}] は ${TAGS.join('、')} のどれかにする`)
+          tags.push(tm2[1])
+          rest = tm2[2]
+        }
         cur = {
           id: `${exam.toLowerCase()}-${domain}-q${number}`,
           code,
@@ -130,6 +140,7 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
           choices: [],
           answer: [],
           explanation: '',
+          ...(tags.length ? { tags } : {}),
         }
         stem = shared && number >= shared.from && number <= shared.to ? [shared.text, '', rest] : [rest]
         continue
