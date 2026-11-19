@@ -15,10 +15,37 @@ export function shuffleChoices(q: Question, rng: () => number = Math.random): Qu
   for (const [orig, shown] of toNew) keyMap[shown] = q.keyMap?.[orig] ?? orig
   return {
     ...q,
+    explanation: relabel(q.explanation, toNew),
     choices: order.map((c, i) => ({ key: KEYS[i], text: c.text })),
     answer: q.answer.map((k) => toNew.get(k)!).sort(),
     keyMap,
   }
+}
+
+const BULLET = /^- ([A-H])\. /
+
+/**
+ * 解説の「- A. …」で始まる行(選択肢ごとの説明)の記号を、入れ替えた後の記号に付け替える。
+ * 続いている行のまとまりは、新しい記号の順に並べ直す。
+ */
+export function relabel(text: string, toNew: ReadonlyMap<string, string>): string {
+  const out: string[] = []
+  let run: string[] = []
+  const flush = () => {
+    run.sort((a, b) => a[2].localeCompare(b[2]))
+    out.push(...run)
+    run = []
+  }
+  for (const line of text.split('\n')) {
+    const m = line.match(BULLET)
+    if (m && toNew.has(m[1])) run.push(`- ${toNew.get(m[1])}. ${line.slice(5)}`)
+    else {
+      flush()
+      out.push(line)
+    }
+  }
+  flush()
+  return out.join('\n')
 }
 
 /** 表示上の記号を、元の記号に戻す。 */
