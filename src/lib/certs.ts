@@ -19,8 +19,8 @@ export interface Cert {
   domainsNote?: string
   /** 勉強の進め方のヒント */
   tips: string[]
-  /** このアプリで学べる試験なら、その試験名(questions.json の exam) */
-  exam?: string
+  /** このアプリで学べる試験なら、その試験名(questions.json の exam)。1 つの資格に複数の試験があるものは並べる */
+  exams?: string[]
   official: { label: string; url: string }
 }
 
@@ -51,13 +51,13 @@ export const CERTS: Cert[] = [
       { name: '102: セキュリティ' },
       { name: '102: オープンソースの文化' },
     ],
-    domainsNote: 'このアプリで学べるのは 102 試験の範囲です。',
+    domainsNote: 'このアプリでは 101 試験と 102 試験を、別々の試験として学べます。',
     tips: [
       'Linux を自分で動かせる環境(仮想マシンや WSL)を用意し、コマンドを実際に打ちながら覚えます。',
       'パーミッションや cron は計算ドリルで繰り返し練習できます。',
-      '102 試験の「重要度」の高い項目から先に固めます。',
+      '101 試験から始め、「重要度」の高い項目から先に固めます。',
     ],
-    exam: 'LinuC102',
+    exams: ['LinuC101', 'LinuC102'],
     official: { label: 'LinuC レベル1(LPI-Japan)', url: 'https://linuc.org/linuc1/' },
   },
   {
@@ -86,7 +86,7 @@ export const CERTS: Cert[] = [
       '設定のコマンドは Packet Tracer などで実際に打って確かめます。',
       'show コマンドの出力を読んで原因を答える問題が多いので、出力の読み方に慣れます。',
     ],
-    exam: 'CCNA',
+    exams: ['CCNA'],
     official: {
       label: 'CCNA v2.0 出題範囲(Cisco)',
       url: 'https://learningcontent.cisco.com/documents/marketing/exam-topics/200-301_CCNA_v2.0_Exam_Topics_PDF.pdf',
@@ -116,7 +116,7 @@ export const CERTS: Cert[] = [
       '問題文の「最もコストが低い」「運用の手間が最も少ない」などの条件で答えが変わるので、条件に線を引くつもりで読みます。',
       'VPC のサブネットで使える IP の数は計算ドリルで練習できます。',
     ],
-    exam: 'SAA',
+    exams: ['SAA'],
     official: { label: 'AWS SAA(公式)', url: 'https://aws.amazon.com/certification/certified-solutions-architect-associate/' },
   },
   {
@@ -172,12 +172,12 @@ export const CERTS: Cert[] = [
       'state がどこに置かれ、何のためにあるのかを説明できるようにします。',
       '試験は英語だけです。テキストの英語の用語(state、backend、workspace など)はそのまま覚えます。',
     ],
-    exam: 'Terraform',
+    exams: ['Terraform'],
     official: { label: 'Terraform Associate(HashiCorp)', url: 'https://developer.hashicorp.com/certifications/terraform-associate' },
   },
   {
     id: 'cka',
-    exam: 'K8s',
+    exams: ['K8s'],
     name: 'CKA(Certified Kubernetes Administrator)',
     issuer: 'CNCF / The Linux Foundation',
     summary: 'Kubernetes のクラスタを作り、運用し、障害を直せることを証明する資格です。実際のクラスタで作業する実技の試験です。',

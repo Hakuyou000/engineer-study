@@ -227,7 +227,7 @@ export function App() {
       {view.name === 'cert' && certById(view.id) && (
         <CertView
           cert={certById(view.id)!}
-          stat={allGroups.find((g) => g.key === certById(view.id)!.exam)}
+          stats={allGroups.filter((g) => certById(view.id)!.exams?.includes(g.key))}
           onOpen={openGroup}
           onRoadmap={(focus) => setView({ name: 'roadmap', focus })}
         />

@@ -16,10 +16,10 @@ export interface DrillKind {
 
 // 表示順は LinuC → CCNA → AWS SAA
 export const DRILLS: DrillKind[] = [
-  { type: 'perm-to-symbolic', label: '8 進 → 記号', group: 'パーミッション', exams: ['LinuC102'], gen: genOctalToSymbolic },
-  { type: 'perm-to-octal', label: '記号 → 8 進', group: 'パーミッション', exams: ['LinuC102'], gen: genSymbolicToOctal },
-  { type: 'chmod-symbolic', label: 'chmod 記号モード', group: 'パーミッション', exams: ['LinuC102'], gen: genSymbolic },
-  { type: 'umask', label: 'umask', group: 'パーミッション', exams: ['LinuC102'], gen: genUmask },
+  { type: 'perm-to-symbolic', label: '8 進 → 記号', group: 'パーミッション', exams: ['LinuC101', 'LinuC102'], gen: genOctalToSymbolic },
+  { type: 'perm-to-octal', label: '記号 → 8 進', group: 'パーミッション', exams: ['LinuC101', 'LinuC102'], gen: genSymbolicToOctal },
+  { type: 'chmod-symbolic', label: 'chmod 記号モード', group: 'パーミッション', exams: ['LinuC101', 'LinuC102'], gen: genSymbolic },
+  { type: 'umask', label: 'umask', group: 'パーミッション', exams: ['LinuC101', 'LinuC102'], gen: genUmask },
   { type: 'cron-next', label: '次の実行日時', group: 'cron', exams: ['LinuC102'], gen: genCronNext },
   { type: 'ipv4-netbc', label: 'ネットワーク / ブロードキャスト', group: 'IPv4', exams: ['LinuC102', 'CCNA', 'SAA'], gen: genNetworkBroadcast },
   { type: 'ipv4-hosts', label: 'ホスト範囲', group: 'IPv4', exams: ['LinuC102', 'CCNA'], gen: genHostRange },

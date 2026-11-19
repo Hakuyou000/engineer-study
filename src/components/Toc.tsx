@@ -17,7 +17,7 @@ const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v * 100)}%
 
 /** 目次。試験を選び、問題演習・計算ドリル・テキスト・成績のどれを開くかを決める。 */
 export function Toc({ groups, textCount, current, onOpen, onCert }: Props) {
-  const certOf = (exam: string) => CERTS.find((c) => c.exam === exam)
+  const certOf = (exam: string) => CERTS.find((c) => c.exams?.includes(exam))
   const actions = (exam: string | null) => {
     return (
       <div className="row-actions">

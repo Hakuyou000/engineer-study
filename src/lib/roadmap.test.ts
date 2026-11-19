@@ -22,7 +22,7 @@ describe('資格の表紙', () => {
   it('アプリで学べる試験として指定した試験は、問題がある', async () => {
     const { CERTS } = await import('./certs')
     const exams = new Set((data as { exam: string }[]).map((q) => q.exam))
-    for (const c of CERTS) if (c.exam) expect(exams.has(c.exam)).toBe(true)
+    for (const c of CERTS) for (const e of c.exams ?? []) expect(exams.has(e)).toBe(true)
   })
 
   it('出題の割合を書いた資格は、合計が 100%', async () => {

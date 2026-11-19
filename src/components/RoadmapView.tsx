@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { certById } from '../lib/certs'
 import { INTRO, NON_TECH, NOTE, OPTIONAL_CERTS, STAGES, loadChecked, saveChecked } from '../lib/roadmap'
-import { accuracy, type ExamStat } from '../lib/stats'
+import { accuracy, examLabel, type ExamStat } from '../lib/stats'
 
 interface Props {
   groups: ExamStat[]
@@ -69,21 +69,22 @@ export function RoadmapView({ groups, onOpen, onCert, focus }: Props) {
             <ul className="roadmap-list">
               {s.certs.map((c) => {
                 const cert = certById(c.cert)!
-                const g = cert.exam ? groups.find((x) => x.key === cert.exam) : undefined
+                const gs = groups.filter((x) => cert.exams?.includes(x.key))
                 return (
                   <li key={c.cert}>
                     <button className="link accent cert-link" onClick={() => onCert(c.cert)}>
                       {cert.name}
                     </button>
                     : {c.note}
-                    {g && (
-                      <div className="inline roadmap-app">
+                    {gs.map((g) => (
+                      <div key={g.key} className="inline roadmap-app">
                         <span className="meta">
-                          このアプリ: {g.seen} / {g.total} 問に着手 ・ 正答率 {pct(accuracy(g))}
+                          このアプリ{gs.length > 1 ? `(${examLabel(g.key)})` : ''}: {g.seen} / {g.total} 問に着手 ・ 正答率{' '}
+                          {pct(accuracy(g))}
                         </span>
                         <button onClick={() => onOpen(g.key)}>問題演習を開く</button>
                       </div>
-                    )}
+                    ))}
                   </li>
                 )
               })}
