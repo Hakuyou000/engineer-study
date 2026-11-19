@@ -1,10 +1,10 @@
 # sre-drill
 
-資格試験(LinuC 102、CCNA、AWS SAA、Terraform Associate)と SRE の基礎知識を身につけるための学習アプリです。ブラウザだけで動く静的な SPA で、サーバーは必要ありません。解答の履歴は、使っているブラウザの中に保存されます。
+資格試験(LinuC 102、CCNA、AWS SAA、Terraform Associate)と SRE の基礎知識(Docker など)を身につけるための学習アプリです。ブラウザだけで動く静的な SPA で、サーバーは必要ありません。解答の履歴は、使っているブラウザの中に保存されます。
 
 ## 機能
 
-- 目次: 試験(LinuC 102、CCNA、AWS SAA、Terraform、すべて)を選び、問題演習・計算ドリル・テキスト・成績を開きます。選んだ試験は次回も引き継がれます
+- 目次: 試験(LinuC 102、CCNA、AWS SAA、Terraform、Docker、すべて)を選び、問題演習・計算ドリル・テキスト・成績を開きます。選んだ試験は次回も引き継がれます
 - ロードマップ: SRE を目指す学習の段階(Linux → ネットワーク → クラウド → コンテナと IaC → Kubernetes と監視 → SRE の実践)と、段階ごとのチェックリスト、資格、おすすめの本を表示します。チェックはブラウザに保存されます。アプリで学べる試験は、進み具合と問題演習へのボタンも表示します
 - 資格の表紙: ロードマップに載せた資格ごとに、試験の概要、出題範囲と割合、勉強の進め方、公式サイトをまとめたページです。ロードマップの資格名から開き、表紙からロードマップの段階に戻れます。アプリで学べる試験は、問題演習・テキスト・計算ドリル・成績へのボタンと進み具合も表示します
 - 問題演習: 4 択と複数選択。出題範囲は分野ごとに選べます
@@ -126,7 +126,7 @@ src/lib/stats.ts    成績の集計
 src/lib/texts.ts    テキストの一覧と節の切り出し
 src/lib/roadmap.ts  ロードマップの内容
 src/lib/certs.ts    資格の表紙の内容
-src/lib/order.ts    試験の表示順(LinuC → CCNA → AWS SAA → Terraform)
+src/lib/order.ts    試験の表示順(LinuC → CCNA → AWS SAA → Terraform → Docker)
 src/lib/drills/     計算ドリルの生成と採点
 src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴)
 src/components/     画面

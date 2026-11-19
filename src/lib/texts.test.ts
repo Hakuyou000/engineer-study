@@ -48,9 +48,9 @@ describe('同梱のテキスト', () => {
     expect(ccna).toEqual(['0', '1.0', '2.0', '3.0', '4.0', '5.0'])
   })
 
-  it('LinuC → CCNA → AWS SAA → Terraform の順に並ぶ', () => {
+  it('LinuC → CCNA → AWS SAA → Terraform → Docker の順に並ぶ', () => {
     const exams = [...new Set(TEXTS.map((t) => t.exam))]
-    expect(exams).toEqual(['LinuC102', 'CCNA', 'SAA', 'Terraform'])
+    expect(exams).toEqual(['LinuC102', 'CCNA', 'SAA', 'Terraform', 'Docker'])
   })
 
   it('全問題の小項目に、対応するテキストの節がある', async () => {
