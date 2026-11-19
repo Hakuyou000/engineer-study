@@ -148,6 +148,8 @@ export const CERTS: Cert[] = [
     summary: 'Terraform を使って、インフラをコードで作り、変更し、管理できることを証明する資格です。',
     facts: [
       ['試験', 'Terraform Associate(004)'],
+      ['言語', '英語のみ'],
+      ['受験料', 'US$70.50(税別)'],
       ['試験時間', '1 時間'],
       ['形式', '選択式。オンラインで受験'],
       ['対象のバージョン', 'Terraform 1.12'],
@@ -168,7 +170,9 @@ export const CERTS: Cert[] = [
     tips: [
       'AWS の無料枠で、VPC と EC2 を Terraform で作り、変更し、消す流れを何度も繰り返します。',
       'state がどこに置かれ、何のためにあるのかを説明できるようにします。',
+      '試験は英語だけです。テキストの英語の用語(state、backend、workspace など)はそのまま覚えます。',
     ],
+    exam: 'Terraform',
     official: { label: 'Terraform Associate(HashiCorp)', url: 'https://developer.hashicorp.com/certifications/terraform-associate' },
   },
   {
