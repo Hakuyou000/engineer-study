@@ -214,7 +214,7 @@ secrets:
 - C. `/run/secrets/db_password`
 - D. `/var/lib/postgresql/data/db_password`
 
-**問24** `Docker-6.0-024` `compose.yaml` で、サービス `web` に `deploy.resources.limits.memory: 512M` を書いて `docker compose up -d` で起動した。`web` のアプリが 512 MB を超えてメモリを使おうとしたときの動きとして、正しいものはどれか。
+**問24** `Docker-6.0-024` ホストに swap はない。`compose.yaml` で、サービス `web` に `deploy.resources.limits.memory: 512M` を書いて `docker compose up -d` で起動した。`web` のアプリが 512 MB を超えてメモリを使おうとしたときの動きとして、正しいものはどれか。
 
 - A. 上限は Docker Swarm でだけ使われるので、何も起きない
 - B. コンテナはカーネルの OOM killer で強制終了され、`docker ps -a` では `Exited (137)` になる
@@ -357,7 +357,7 @@ Compose は、プロジェクトの既定のネットワークを作り、全サ
 
 - A. `sync` は、ファイルをコンテナの中にコピーするだけです。自動で読み込み直すアプリのソースコードに使います。
 - B. `sync+restart` は、コピーしてからコンテナを再起動します。起動のときに読む設定ファイルに使います。パッケージは入りません。
-- C. `restart` という action はありません。
+- C. `restart`(Compose 2.32 以降)はコンテナを再起動するだけで、イメージは作り直しません。
 
 ### 問22 `Docker-6.0-022`
 
@@ -387,4 +387,4 @@ Compose の `secrets` は、サービスに書いた秘密を、コンテナの 
 
 - A. 以前は Swarm でだけ使われましたが、今の Compose は単体のホストでも適用します。
 - C. 数を増やす仕組みは、上限とは関係ありません。
-- D. コンテナの swap の扱いは別の設定で、上限を超えて使い続けることはできません。
+- D. swap があるホストでは、`memswap_limit` を決めなければ memory と同じ量まで swap も使えますが、それを超えると OOM で終わります。この問題ではホストに swap がないので、512MB を超えた時点で終わります。

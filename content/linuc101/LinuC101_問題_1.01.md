@@ -100,7 +100,7 @@
 
 **問14** `LinuC101-1.01-014` ユニットのファイル `/etc/systemd/system/app.service` を書き換えた。systemd に変更を読み込ませるコマンドを、サブコマンドまで答えよ。
 
-**問15** `LinuC101-1.01-015` root のパスワードを忘れたので、保守用のシングルユーザーモードで起動したい。GRUB の画面で、カーネルの起動の行に付け加える指定として正しいものはどれか。
+**問15** `LinuC101-1.01-015` ファイルシステムを直すために、保守用のシングルユーザーモード(rescue.target)で起動したい。GRUB の画面で、カーネルの起動の行に付け加える指定として正しいものはどれか。
 
 - A. `init=/bin/false`
 - B. `systemd.unit=rescue.target`
@@ -201,7 +201,7 @@
 
 ### 問5 `LinuC101-1.01-005`
 
-**正解**: `Ctrl+D`、`^D`
+**正解**: `Ctrl+D`、`^D`、`Ctrl-D`、`CTRL+D`
 
 `Ctrl+D` は、入力の終わり(EOF)を送ります。シェルは入力が終わったと判断して終わるので、ログアウトします。`exit` や `logout` と同じ結果になります。
 
@@ -294,7 +294,7 @@ Intel の仮想化支援機能(VT-x)は `vmx`、AMD の機能(AMD-V)は `svm` �
 
 **正解**: B
 
-GRUB の画面で `e` を押して起動の設定を開き、`linux` で始まる行の最後に `systemd.unit=rescue.target`(または `single`、`1`)を付けて、`Ctrl+X` で起動します。
+GRUB の画面で `e` を押して起動の設定を開き、`linux` で始まる行の最後に `systemd.unit=rescue.target`(または `single`、`1`)を付けて、`Ctrl+X` で起動します。rescue.target は root のパスワードを求めるので、root のパスワードを忘れたときには使えません(そのときは `rd.break` などを使います)。
 
 - A. `/bin/false` はすぐに終わるので、PID 1 が終わってカーネルが止まります。
 - C. GUI の通常の起動です。
@@ -351,7 +351,7 @@ SIGKILL(9)は、プロセスが受け取り方を変えられず、すぐに終�
 
 ### 問21 `LinuC101-1.01-021`
 
-**正解**: `pstree`
+**正解**: `pstree`、`ps -ef --forest`、`ps axjf`
 
 `pstree` は、プロセスの親子の関係を木の形で表示します。`-p` で PID も表示します。`ps -ef` の PPID の列でも親を調べられます。
 

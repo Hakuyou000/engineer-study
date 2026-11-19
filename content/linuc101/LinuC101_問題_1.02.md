@@ -96,7 +96,7 @@
 - C. `dd if=/dev/null of=test.img bs=1M count=100`
 - D. `dd if=/dev/zero of=test.img bs=1M count=100`
 
-**問14** `LinuC101-1.02-014` gzip で圧縮した `access.log.gz` を、展開せずに中身を表示するコマンドを答えよ。
+**問14** `LinuC101-1.02-014` gzip で圧縮した `access.log.gz` を、展開せずに中身を表示するコマンドを答えよ(ファイル名は不要)。
 
 ### 1.02.3 ハードリンクとシンボリックリンク
 
