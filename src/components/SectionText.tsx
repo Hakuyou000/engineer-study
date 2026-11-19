@@ -30,7 +30,7 @@ export function SectionText({ q }: { q: Question }) {
       {!error && body === null && <p className="meta">読み込み中</p>}
       {body !== null && (
         <Suspense fallback={<p className="meta">読み込み中</p>}>
-          <Markdown text={body} />
+          <Markdown text={body} exam={q.exam} />
         </Suspense>
       )}
     </details>

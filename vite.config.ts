@@ -38,5 +38,5 @@ export default defineConfig({
   plugins: [react(), shutdownPlugin()],
   // 問題データ(JSON)を本体に同梱しているため。ローカルで使う前提なので分割はしない
   build: { chunkSizeWarningLimit: 1000 },
-  test: { include: ['src/**/*.test.ts'] },
+  test: { include: ['src/**/*.test.ts', 'src/**/*.test.tsx'] },
 })
