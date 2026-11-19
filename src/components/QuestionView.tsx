@@ -24,14 +24,14 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
 
   return (
     <div>
-      <div className="meta">
+      <div className="qmeta">
         <span className="qcode">{q.code}</span>
         {q.tags?.map((t) => (
           <span key={t} className={`qtag ${t === 'CKA' ? 'exam' : 'work'}`}>{t}</span>
-        ))}{' '}
-        ・ {q.section}
-        {multi && ` ・ ${q.answer.length} つ選択`}
-        {input && ' ・ 入力'}
+        ))}
+        <span className="qsection">{q.section}</span>
+        {multi && <span className="qhint">{q.answer.length} つ選ぶ</span>}
+        {input && <span className="qhint">入力して答える</span>}
       </div>
       <Md text={q.stem} />
       {input && (
@@ -73,11 +73,14 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
       </ul>
       {revealed && (
         <div className={`verdict ${isCorrect(q, chosen) ? 'ok' : 'ng'}`}>
-          <strong>
-            {isCorrect(q, chosen) ? '正解' : '不正解'}(正解: {input ? q.answer.join(' / ') : q.answer.join('、')})
-          </strong>
-          {input && !isCorrect(q, chosen) && <p>入力: {chosen[0] ? <code>{chosen[0]}</code> : '(未入力)'}</p>}
-          <Md text={q.explanation} link={{ exam: q.exam }} />
+          <p className="verdict-head">
+            <span className="verdict-word">{isCorrect(q, chosen) ? '正解' : '不正解'}</span>
+            <span>正解は {input ? q.answer.map((a, i) => <code key={i}>{a}</code>) : q.answer.join('、')}</span>
+          </p>
+          {input && !isCorrect(q, chosen) && <p className="meta">あなたの入力: {chosen[0] ? <code>{chosen[0]}</code> : '(未入力)'}</p>}
+          <div className="explain">
+            <Md text={q.explanation} link={{ exam: q.exam }} />
+          </div>
         </div>
       )}
       {revealed && <SectionText key={q.id} q={q} />}

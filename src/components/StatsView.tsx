@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { drillsFor } from '../lib/drills'
 import { accuracy, groupByExam, type DomainStat, type SectionStat } from '../lib/stats'
 import type { DrillAttempt } from '../lib/types'
+import { LampLegend, Lamps } from './Lamps'
 
 interface Props {
   /** 表示中の試験。null ならすべて */
@@ -20,15 +21,28 @@ function Row({
   s,
   level,
   onPractice,
+  open,
+  onToggle,
 }: {
   s: SectionStat
   level: 'exam' | 'domain' | 'sub'
   onPractice?: () => void
+  open?: boolean
+  onToggle?: () => void
 }) {
   const acc = accuracy(s)
   return (
     <tr className={level}>
-      <th scope="row">{s.label}</th>
+      <th scope="row">
+        {onToggle ? (
+          <button className="row-toggle" aria-expanded={open} onClick={onToggle}>
+            <span className="caret" aria-hidden="true" />
+            {s.label}
+          </button>
+        ) : (
+          s.label
+        )}
+      </th>
       <td>
         {s.seen} / {s.total}
       </td>
@@ -54,11 +68,55 @@ function Row({
 
 export function StatsView({ exam, stats, drills, onPractice, onExport, onImport, onReset }: Props) {
   const [confirming, setConfirming] = useState(false)
+  const [open, setOpen] = useState<Set<string>>(new Set())
+  const toggle = (k: string) =>
+    setOpen((o) => {
+      const n = new Set(o)
+      if (n.has(k)) n.delete(k)
+      else n.add(k)
+      return n
+    })
+  const groups = groupByExam(stats)
   const file = useRef<HTMLInputElement>(null)
 
   return (
-    <section className="card">
-      <h2>成績</h2>
+    <section className="page">
+      <div className="page-head">
+        <h2>成績</h2>
+        <LampLegend />
+      </div>
+      <ul className="stat-summary">
+        {groups.map((g) => (
+          <li key={g.key}>
+            <h3>{g.label}</h3>
+            <Lamps items={g.domains} label={`${g.label} の分野ごとの状態`} />
+            <dl className="figures">
+              <div>
+                <dt>着手</dt>
+                <dd>
+                  {g.seen}
+                  <small> / {g.total}</small>
+                </dd>
+              </div>
+              <div>
+                <dt>正答率</dt>
+                <dd>{pct(accuracy(g))}</dd>
+              </div>
+              <div>
+                <dt>解答数</dt>
+                <dd>{g.attempts}</dd>
+              </div>
+              <div>
+                <dt>要復習</dt>
+                <dd className={g.weak > 0 ? 'alert' : ''}>{g.weak}</dd>
+              </div>
+            </dl>
+          </li>
+        ))}
+      </ul>
+
+      <h3 className="section-title">分野と小項目</h3>
+      <p className="note">分野の名前を押すと、小項目が開きます。要復習のある小項目は「解く」から演習できます。</p>
       <div className="scroll">
         <table className="stats">
           <thead>
@@ -72,11 +130,11 @@ export function StatsView({ exam, stats, drills, onPractice, onExport, onImport,
             </tr>
           </thead>
           <tbody>
-            {groupByExam(stats).flatMap((g) => [
+            {groups.flatMap((g) => [
               <Row key={g.key} s={g} level="exam" />,
               ...g.domains.flatMap((d) => [
-                <Row key={d.key} s={{ ...d, label: d.shortLabel }} level="domain" />,
-                ...d.sections.map((s) => (
+                <Row key={d.key} s={{ ...d, label: d.shortLabel }} level="domain" open={open.has(d.key)} onToggle={() => toggle(d.key)} />,
+                ...(open.has(d.key) ? d.sections : []).map((s) => (
                   <Row key={`${d.key}/${s.key}`} s={s} level="sub" onPractice={() => onPractice(d.key, s.key)} />
                 )),
               ]),
@@ -85,7 +143,7 @@ export function StatsView({ exam, stats, drills, onPractice, onExport, onImport,
         </table>
       </div>
 
-      <h3>計算ドリル</h3>
+      <h3 className="section-title">計算ドリル</h3>
       <table className="stats">
         <thead>
           <tr>
@@ -110,8 +168,8 @@ export function StatsView({ exam, stats, drills, onPractice, onExport, onImport,
         </tbody>
       </table>
 
-      <h3>履歴データ</h3>
-      <p className="meta">解答の履歴は、このブラウザの中(IndexedDB)にだけ保存されます。別の PC やブラウザに移すときは、エクスポートしたファイルをインポートしてください。</p>
+      <h3 className="section-title">履歴データ</h3>
+      <p className="note">解答の履歴は、このブラウザの中(IndexedDB)にだけ保存されます。別の PC やブラウザに移すときは、エクスポートしたファイルをインポートしてください。</p>
       <div className="actions">
         <button onClick={onExport}>エクスポート(JSON)</button>
         <button onClick={() => file.current?.click()}>インポート(置き換え)</button>
