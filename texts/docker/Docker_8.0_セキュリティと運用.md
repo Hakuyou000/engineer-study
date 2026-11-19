@@ -97,6 +97,22 @@ Docker は既定で、seccomp(使えるシステムコールの制限)と AppArm
 | `no space left on device` | `docker system df`、`df -h` | イメージ、ビルドキャッシュ、ログが溜まった。prune、ログのローテーション |
 | `docker` コマンドが `permission denied ... docker.sock` | ユーザーのグループ | `docker` グループに入っていない(入れることの危険性に注意) |
 
+## 8.5 別のホストの Docker を操作する: docker context
+
+docker コマンドは、Docker デーモン(Server)に API で命令を送っているだけです。接続先を切り替えると、手元の docker コマンドで、別のサーバーの Docker を操作できます。
+
+```bash
+docker context create build-server --docker "host=ssh://ops@build01.example.com"
+docker context ls                    # * が今の接続先
+docker context use build-server      # 以降の docker コマンドは build01 で動く
+docker ps                            # build01 のコンテナ
+docker context use default           # 手元に戻す
+docker --context build-server ps     # 一回だけ別の接続先を使う
+```
+
+- 環境変数 `DOCKER_HOST`(例: `ssh://ops@build01.example.com`)でも接続先を変えられます。設定されていると、`docker context use` より優先されます。
+- ssh で接続するので、接続先のユーザーが Docker を使える(`docker` グループに入っている)必要があります。Docker の API を TCP のまま、TLS なしで公開してはいけません(誰でも root の権限を持てます)。
+
 ### まとめ: よく出る判断
 
 | 問われ方 | 答え |

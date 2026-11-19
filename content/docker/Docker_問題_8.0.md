@@ -1,6 +1,6 @@
 # Docker 問題 8.0 セキュリティと運用、トラブルシュート
 
-対象: 実務の Docker / 全22問 / すべてオリジナル問題
+対象: 実務の Docker / 全24問 / すべてオリジナル問題
 対応テキスト: `Docker_8.0_セキュリティと運用.md`
 解答・解説は末尾。
 
@@ -175,6 +175,23 @@ true
 - C. ホストを再起動する
 - D. `docker ps -a` で終了コードを見て、`docker logs` でアプリの出力を確かめる
 
+### 8.5 別のホストの Docker を操作する: docker context
+
+**問23** `Docker-8.0-023` 手元の端末の docker コマンドで、ssh でつながるビルド用のサーバー `build01` の Docker を操作したい。正しい手順はどれか。
+
+- A. `docker context create build01 --docker "host=ssh://ops@build01"` で接続先を作り、`docker context use build01` で切り替える
+- B. `docker login build01` を実行する
+- C. `docker network connect build01` を実行する
+- D. build01 の Docker の API を TCP の 2375 番で TLS なしに公開し、誰でも接続できるようにする
+
+**問24** `Docker-8.0-024` `docker context use default` を実行したのに、`docker ps` が手元ではなく別のホストのコンテナを表示する。原因として最も適切なものはどれか。
+
+- A. Docker Desktop の再起動が必要である
+- B. `docker context ls` の結果が古い
+- C. 手元のイメージが古い
+- D. 環境変数 `DOCKER_HOST` が設定されていて、context の設定より優先されている
+
+
 ## 解答・解説
 
 ### 問1 `Docker-8.0-001`
@@ -312,3 +329,23 @@ rootless モードは、Docker デーモンとコンテナを root 以外のユ�
 **正解**: D
 
 すぐ終了するコンテナは、まず `docker ps -a` で終了コードを見て、`docker logs` でアプリがエラーを出していないかを確かめます。止まったコンテナには `docker exec` は使えません。原因が分からないままイメージを入れ直したり、ホストを再起動したりしても解決しません。
+
+### 問23 `Docker-8.0-023`
+
+**正解**: A
+
+docker コマンドは、接続先の Docker デーモンに API で命令を送るだけです。`docker context` で接続先を登録して切り替えると、以降のコマンドはそのホストで実行されます。ssh で接続するので、build01 のユーザーが Docker を使える必要があります。一回だけなら `docker --context build01 ps` とも書けます。
+
+- B. `docker login` はレジストリへのログインで、別のホストの Docker の操作とは関係ありません。
+- C. `docker network connect` は、コンテナをネットワークにつなぐコマンドです。
+- D. TLS なしで Docker の API を公開すると、接続できる人は誰でもホストの root の権限を持てるので、絶対に避けます。
+
+### 問24 `Docker-8.0-024`
+
+**正解**: D
+
+環境変数 `DOCKER_HOST`(と `DOCKER_CONTEXT`)が設定されていると、`docker context use` で選んだ接続先より優先されます。シェルの設定ファイルや CI の設定に残っていないかを確かめ、`unset DOCKER_HOST` で外します。`docker context ls` を実行すると、環境変数で上書きされていることを知らせる警告が出ます。
+
+- A. 接続先の選び方の問題で、Docker Desktop の再起動では直りません。
+- B. `docker context ls` は毎回その時点の設定を表示します。
+- C. イメージは、どのホストに接続するかとは関係ありません。

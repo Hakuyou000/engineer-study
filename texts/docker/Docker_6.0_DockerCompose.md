@@ -125,6 +125,75 @@ services:
 
 `profiles` を付けたサービスは、普段の `up` では起動せず、`docker compose --profile debug up` のときだけ起動します。
 
+## 6.5 開発中の自動反映: develop と watch
+
+ソースコードを変えるたびに `up --build` をやり直すのは手間です。サービスに `develop.watch` を書き、`docker compose watch`(または `docker compose up --watch`)で起動すると、ファイルの変更を見張って自動で反映します。
+
+```yaml
+services:
+  web:
+    build: .
+    develop:
+      watch:
+        - action: sync           # ファイルをコンテナにコピーする(再起動はしない)
+          path: ./src
+          target: /app/src
+        - action: rebuild        # イメージを作り直してコンテナを入れ替える
+          path: requirements.txt
+        - action: sync+restart   # コピーしてからコンテナを再起動する
+          path: ./config
+          target: /app/config
+```
+
+| action | 使う場面 |
+|---|---|
+| `sync` | 自動で読み込み直す仕組みがあるアプリのソースコード |
+| `rebuild` | 依存関係の一覧や Dockerfile のように、イメージを作り直す必要があるもの |
+| `sync+restart` | 起動のときだけ読む設定ファイル |
+
+バインドマウント(`./src:/app/src`)でも似たことができますが、watch はホストと OS が違っても速く、`.dockerignore` に従って不要なファイルを除けます。
+
+## 6.6 secrets と資源の上限
+
+### 1. secrets
+
+パスワードを `environment` に書くと、`docker inspect` で見えます。Compose の `secrets` を使うと、値をファイルとしてコンテナの `/run/secrets/<名前>` に見せられます。
+
+```yaml
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password   # 公式のイメージは _FILE の変数に対応している
+    secrets:
+      - db_password
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt      # environment: DB_PASSWORD ならホストの環境変数から
+```
+
+- サービスの `secrets` に書いたものだけが、そのコンテナに見えます。
+- `./secrets/` は `.gitignore` と `.dockerignore` に入れ、Git やイメージに入らないようにします。
+
+### 2. 資源の上限
+
+1 つのサービスがホストのメモリを使い切らないように、上限を付けます。
+
+```yaml
+services:
+  web:
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          memory: 256M
+```
+
+`docker compose up` は `deploy.resources` の limits を、`docker run --cpus` と `--memory` と同じようにコンテナに設定します。上限を超えてメモリを使うと、コンテナは OOM で強制終了されます(3.0 の終了コード 137)。
+
 ### まとめ: よく出る判断
 
 | 問われ方 | 答え |
