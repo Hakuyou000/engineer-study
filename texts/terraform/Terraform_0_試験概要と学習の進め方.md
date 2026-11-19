@@ -97,3 +97,63 @@ Terraform Associate は、HashiCorp が実施する Terraform の基礎の資格
 | backend | バックエンド。state を置く場所 |
 | drift | ドリフト。Terraform の外で変更され、実際のインフラが state とずれた状態 |
 | workspace | ワークスペース。CLI と HCP Terraform で意味が違う(分野 6 と 8) |
+
+## 7. 演習環境の作り方
+
+### 1. Terraform を入れる
+
+試験の対象は Terraform 1.12 です。新しい版でも基本は同じですが、迷ったら 1.12 以降を使います。
+
+| OS | 入れ方 |
+|---|---|
+| Windows | `winget install Hashicorp.Terraform` |
+| Mac | `brew tap hashicorp/tap` の後に `brew install hashicorp/tap/terraform` |
+| Linux | HashiCorp の公式のパッケージのリポジトリを追加して入れる |
+
+```bash
+terraform -version     # 入ったかを確かめる
+```
+
+エディターは VS Code に HashiCorp Terraform の拡張機能を入れると、書き方の誤りがその場で分かります。
+
+### 2. まずは費用のかからない練習から
+
+最初は、パソコンの中だけで動くプロバイダーで、init → plan → apply → destroy の流れに慣れます。
+
+```hcl
+terraform {
+  required_version = ">= 1.12.0"
+  required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
+  }
+}
+
+resource "local_file" "hello" {
+  filename = "${path.module}/hello.txt"
+  content  = "Hello, Terraform"
+}
+```
+
+```bash
+terraform init
+terraform plan
+terraform apply      # hello.txt ができる
+terraform destroy    # hello.txt が消える
+```
+
+Docker を入れていれば、`kreuzwerger/docker` プロバイダーでコンテナを作る練習もできます(Docker のテキストを参照)。
+
+### 3. AWS で試す
+
+AWS で試すときは、先に AWS のテキスト(SAA 0 の「演習環境の作り方」)の費用の守りをしておきます。
+
+- 認証情報は、`aws configure sso`(IAM Identity Center)か、環境変数で渡します。`.tf` ファイルには書きません。
+- 最初は S3 のバケットや、VPC とサブネットのように、置いておくだけでは費用のかからないものから始めます。NAT ゲートウェイや RDS は時間の料金がかかります。
+- 練習の最後には必ず `terraform destroy` を実行し、`terraform state list` が空になったことを確かめます。
+
+### 4. HCP Terraform を試す
+
+HCP Terraform の無料の枠では、管理するリソース 500 個まで使えます。`terraform login` でつなぎ、`cloud` ブロックで設定をワークスペースにつなぐと、plan と apply がリモートで動く様子を確かめられます。

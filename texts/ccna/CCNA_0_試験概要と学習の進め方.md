@@ -90,3 +90,47 @@ CCNA は、Cisco が実施するネットワークの基礎の資格です。ネ
 - https://learningcontent.cisco.com/documents/marketing/exam-topics/200-301_CCNA_v2.0_Exam_Topics_PDF.pdf (公式の v2.0 出題範囲)
 - https://achievable.me/exams/ccna/resources/ccna-exam-topics/ (v1.1 と v2.0 の違い、切り替えの日)
 - https://computingforgeeks.com/ccna-exam-topics/ (v1.1 の終了日)
+
+## 9. 演習環境の作り方
+
+### 1. Packet Tracer を入れる
+
+Packet Tracer は、Cisco のネットワークのシミュレーターです。無料で、CCNA の設定のほとんどを試せます。
+
+1. Cisco Networking Academy(Skills for All)のアカウントを作ります(無料)。
+2. 「Getting Started with Cisco Packet Tracer」のコースに登録し、そのページからダウンロードします。2026-11 時点の版は 9.0 系です。Windows、macOS、Ubuntu の版があります。
+3. 最初の起動のときに、Skills for All のアカウントでログインします。
+
+> **【要確認】** ダウンロードの場所と版は変わることがあります。Networking Academy のページで確認してください。
+
+### 2. Packet Tracer で試せること、試せないこと
+
+| 試せる | 試せない、または一部だけ |
+|---|---|
+| VLAN、トランク、STP、EtherChannel、ポートセキュリティ | 実機のような NETCONF / RESTCONF / REST API の操作 |
+| スタティックルート、OSPF、HSRP | Ansible で機器を設定すること |
+| ACL、NAT、DHCP、DHCP スヌーピング、SSH、syslog、NTP、SNMP | 生成 AI やエージェント型 AI での運用(5.0 の一部) |
+| IPv6 のアドレスとルーティング | 一部の新しい show コマンドの出力 |
+
+試せないものは、テキストの出力例で読み方を覚えます。実機に近い IOS を動かしたいときは、Cisco Modeling Labs の無料版(CML-Free。動かせる機器の数に上限がある)や、Cisco DevNet のサンドボックス(予約して使う無料の実験環境)を使います。
+
+### 3. 最初に作る構成
+
+次の小さな構成で、ほとんどの分野を練習できます。
+
+```
+PC1 ── SW1 ──(トランク)── SW2 ── PC2
+        │                      │
+        └─── R1 ─────── R2 ────┘
+              (OSPF)
+```
+
+1. SW1 と SW2 に VLAN 10 と 20 を作り、トランクでつなぐ
+2. R1 でサブインターフェース(ルーター・オン・ア・スティック)を作り、VLAN の間をルーティングする
+3. R1 と R2 で OSPF を動かし、`show ip ospf neighbor` と `show ip route` を読む
+4. R1 に DHCP サーバーと NAT と ACL を設定し、PC から確かめる
+5. 設定は `.pkt` ファイルに保存し、壊したら開き直す
+
+### 4. 片付け
+
+Packet Tracer はパソコンの中だけで動くので、費用はかかりません。作った構成は分野ごとに別のファイルにすると、後で復習しやすくなります。

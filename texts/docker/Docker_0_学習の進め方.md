@@ -50,3 +50,41 @@ Docker はよく変わります。古い記事の書き方は、今は次のよ�
 | `--link` でコンテナをつなぐ | ユーザー定義のブリッジネットワーク(名前で通信できる) |
 | `DOCKER_CONTENT_TRUST=1` でイメージの署名を確かめる | Docker Content Trust は廃止された。Sigstore(Cosign)や Notation を使う |
 | 旧来のビルダー | BuildKit(既定) |
+
+## 5. 演習環境の作り方
+
+### 1. Docker を入れる
+
+| OS | おすすめ | メモ |
+|---|---|---|
+| Windows | Docker Desktop(WSL 2 を使う設定) | `winget install Docker.DockerDesktop`。WSL を先に有効にする(LinuC 102 0 の「演習環境の作り方」) |
+| Windows(別の方法) | WSL の Ubuntu の中に Docker Engine を入れる | Linux と同じ手順で、Linux のサーバーに近い動きになる |
+| Mac | Docker Desktop | Apple シリコンの Mac では、イメージは arm64 が既定になる |
+| Linux | Docker Engine | Docker の公式の手順で、パッケージのリポジトリを追加して入れる |
+
+Docker Desktop は、個人の学習や、従業員 250 人未満かつ年間売上 1,000 万ドル未満の会社では無料で使えます。それより大きい会社の仕事で使うときは、有料の契約が必要です。
+
+### 2. 入ったかを確かめる
+
+```bash
+docker version               # Client と Server の両方が表示されれば、デーモンにつながっている
+docker run --rm hello-world  # イメージを取得して動かせるか
+docker compose version       # Compose v2 が入っているか
+```
+
+`Server` の欄がエラーになるときは、Docker Desktop が起動していないか、Linux なら Docker デーモンが動いていない(`sudo systemctl status docker`)か、ユーザーが `docker` グループに入っていません。
+
+### 3. テキストの例で使うイメージ
+
+テキストの例は、タグを固定したイメージを使っています(`nginx:1.27`、`postgres:17`、`python:3.13-slim`、`alpine:3.22`、`busybox:1.37` など)。同じタグを使えば、同じ結果になります。
+
+### 4. 片付け
+
+練習の後に残ったものは、次で確かめて消します。
+
+```bash
+docker ps -a                  # 止まったコンテナ
+docker system df              # 全体の使用量
+docker system prune           # 止まったコンテナ、使っていないネットワーク、dangling なイメージを消す
+docker volume ls              # ボリュームは prune では消えない。不要なものは docker volume rm で消す
+```
