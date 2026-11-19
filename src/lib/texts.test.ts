@@ -50,7 +50,7 @@ describe('同梱のテキスト', () => {
 
   it('LinuC → CCNA → AWS SAA → Terraform → Docker → K8s の順に並ぶ', () => {
     const exams = [...new Set(TEXTS.map((t) => t.exam))]
-    expect(exams).toEqual(['LinuC102', 'CCNA', 'SAA', 'Terraform', 'Docker', 'K8s'])
+    expect(exams).toEqual(['LinuC101', 'LinuC102', 'CCNA', 'SAA', 'Terraform', 'Docker', 'K8s'])
   })
 
   it('全問題の小項目に、対応するテキストの節がある', async () => {
