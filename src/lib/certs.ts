@@ -177,6 +177,7 @@ export const CERTS: Cert[] = [
   },
   {
     id: 'cka',
+    exam: 'K8s',
     name: 'CKA(Certified Kubernetes Administrator)',
     issuer: 'CNCF / The Linux Foundation',
     summary: 'Kubernetes のクラスタを作り、運用し、障害を直せることを証明する資格です。実際のクラスタで作業する実技の試験です。',
