@@ -16,14 +16,18 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
   const [chosen, setChosen] = useState<string[]>([])
   const [revealed, setRevealed] = useState(false)
   const [score, setScore] = useState(0)
+  const [results, setResults] = useState<('ok' | 'ng')[]>([])
   const startedAt = useRef(0)
 
   if (idx >= questions.length) {
     return (
-      <section className="card">
-        <h2>終了</h2>
-        <p className="big">
-          {score} / {questions.length} 問正解
+      <section className="page">
+        <div className="page-head">
+          <h2>おつかれさまでした</h2>
+        </div>
+        <Progress results={results} total={questions.length} current={-1} />
+        <p className="result-score">
+          <strong>{score}</strong> / {questions.length} 問正解
         </p>
         <button className="primary" onClick={onExit}>
           戻る
@@ -42,7 +46,9 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
   }
   const submit = () => {
     const ms = startedAt.current ? Date.now() - startedAt.current : 0
-    if (isCorrect(q, chosen)) setScore((s) => s + 1)
+    const ok = isCorrect(q, chosen)
+    if (ok) setScore((s) => s + 1)
+    setResults((r) => [...r, ok ? 'ok' : 'ng'])
     onAnswer(q, chosen, ms)
     setRevealed(true)
   }
@@ -54,15 +60,16 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
   }
 
   return (
-    <section className="card">
+    <section className="page question-page">
       <div className="bar">
-        <span>
-          {idx + 1} / {questions.length}
+        <span className="count-label">
+          {idx + 1} / {questions.length} 問目
         </span>
         <button className="link" onClick={onExit}>
-          中断
+          中断して戻る
         </button>
       </div>
+      <Progress results={results} total={questions.length} current={idx} />
       <QuestionView
         key={q.id}
         q={q}
@@ -74,7 +81,7 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
           else if (revealed) next()
         }}
       />
-      <div className="actions">
+      <div className={revealed ? 'actions sticky-actions' : 'actions sticky-actions pending'}>
         {!revealed && (
           <button className="primary" disabled={!ready} onClick={submit}>
             解答する
@@ -97,5 +104,16 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
         )}
       </div>
     </section>
+  )
+}
+
+/** 問題ごとの結果のランプ。正解は緑、不正解は赤、今の問題は枠で示す */
+function Progress({ results, total, current }: { results: ('ok' | 'ng')[]; total: number; current: number }) {
+  return (
+    <ol className="progress" aria-label={`${total} 問中 ${results.length} 問解答済み`}>
+      {Array.from({ length: total }, (_, i) => (
+        <li key={i} className={['lamp', results[i] === 'ok' ? 'solid' : results[i] === 'ng' ? 'weak' : 'off', i === current && 'now'].filter(Boolean).join(' ')} />
+      ))}
+    </ol>
   )
 }

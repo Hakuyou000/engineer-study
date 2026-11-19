@@ -171,35 +171,40 @@ export function App() {
     setView({ name: section })
   }
 
+  const isOn = (name: string) => view.name === name || (name === 'roadmap' && view.name === 'cert') || (name === 'home' && session !== null)
   const tab = (name: 'toc' | 'roadmap' | 'glossary' | Section, label: string) => (
     <button
-      className={view.name === name || (name === 'roadmap' && view.name === 'cert') ? 'tab on' : 'tab'}
+      className={isOn(name) ? 'tab on' : 'tab'}
+      aria-current={isOn(name) ? 'page' : undefined}
       onClick={name === 'home' ? home : () => setView({ name } as View)}>
       {label}
     </button>
   )
 
   return (
-    <main>
-      <header>
-        <h1>
-          sre-drill
-          <button className="link group-name" onClick={() => setView({ name: 'toc' })}>
+    <div className="shell">
+      <header className="appbar">
+        <div className="appbar-top">
+          <h1 className="brand">sre-drill</h1>
+          <button className="exam-switch" onClick={() => setView({ name: 'toc' })} aria-label="試験を選ぶ(目次を開く)">
             {group === null ? 'すべての試験' : examLabel(group)}
+            <span aria-hidden="true" className="caret" />
           </button>
-        </h1>
-        <nav>
+          <div className="appbar-aux">
+            {tab('roadmap', 'ロードマップ')}
+            {tab('glossary', '用語集')}
+            {import.meta.env.DEV && <Quit onQuit={() => setStopped(true)} onError={setError} />}
+          </div>
+        </div>
+        <nav className="sections" aria-label="画面">
           {tab('toc', '目次')}
-          {tab('roadmap', 'ロードマップ')}
           {tab('home', '問題演習')}
           {tab('drill', '計算ドリル')}
           {tab('text', 'テキスト')}
-          {tab('glossary', '用語集')}
           {tab('stats', '成績')}
-          {import.meta.env.DEV && <Quit onQuit={() => setStopped(true)} onError={setError} />}
         </nav>
       </header>
-
+      <main>
       {view.name === 'toc' && (
         <Toc
           groups={allGroups}
@@ -311,6 +316,7 @@ export function App() {
           onReset={() => void db.clearAll().then(reload).catch(fail)}
         />
       )}
-    </main>
+      </main>
+    </div>
   )
 }

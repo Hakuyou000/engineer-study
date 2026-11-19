@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { loadShufflePref, saveShufflePref } from '../lib/shuffle'
+import { LAMP_LABEL, lampOf } from '../lib/lamp'
 import { groupByExam, type DomainStat } from '../lib/stats'
 
 export interface StartOptions {
@@ -59,14 +60,94 @@ export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props
   const weak = picked.reduce((n, d) => n + d.weak, 0)
   const none = domains.length === 0
 
+  const modes: { kind: StartOptions['kind']; title: string; desc: string; count: number | null; disabled: boolean }[] = [
+    { kind: 'weak', title: '間違えた問題', desc: '最後に間違えた問題と、正答率が 70% 未満の問題', count: weak, disabled: none || weak === 0 },
+    { kind: 'input', title: '入力で解く', desc: '答えが 1 語の問題を、選択肢を見ずに入力して答える', count: inputCount(domains), disabled: none || inputCount(domains) === 0 },
+    { kind: 'random', title: 'ランダム', desc: '復習の予定に関係なく、範囲から無作為に出す', count: null, disabled: none },
+    { kind: 'exam', title: '模擬試験', desc: '1 問 90 秒の制限時間で解き、最後にまとめて採点する', count: null, disabled: none },
+  ]
+
   return (
-    <section className="card">
-      <h2>出題範囲</h2>
+    <section className="page">
+      <div className="page-head">
+        <h2>問題演習</h2>
+        <dl className="figures">
+          <div>
+            <dt>選んだ範囲</dt>
+            <dd>{total}</dd>
+          </div>
+          <div>
+            <dt>復習待ち</dt>
+            <dd>{due}</dd>
+          </div>
+          <div>
+            <dt>未出題</dt>
+            <dd>{unseen}</dd>
+          </div>
+          <div>
+            <dt>要復習</dt>
+            <dd className={weak > 0 ? 'alert' : ''}>{weak}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div className="start">
+        <button
+          className="primary big-action"
+          disabled={none || due + unseen === 0}
+          onClick={() => onStart({ kind: 'study', domains, size })}>
+          学習を始める
+          <span className="sub">復習待ちの問題から、次に未出題の問題を {size} 問</span>
+        </button>
+        {!none && due + unseen === 0 && (
+          <p className="note">いま解くべき問題はありません。次の復習日まで待つか、ランダムで解いてください。</p>
+        )}
+        <ul className="modes">
+          {modes.map((m) => (
+            <li key={m.kind}>
+              <button className="mode" disabled={m.disabled} onClick={() => onStart({ kind: m.kind, domains, size })}>
+                <span className="mode-title">
+                  {m.title}
+                  {m.count !== null && <span className="count">{m.count}</span>}
+                </span>
+                <span className="mode-desc">{m.desc}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <h3 className="section-title">設定</h3>
+      <div className="settings">
+        <div className="setting">
+          <span id="size-label">1 回の問題数</span>
+          <div className="segmented" role="radiogroup" aria-labelledby="size-label">
+            {[5, 10, 20, 40].map((n) => (
+              <button key={n} role="radio" aria-checked={size === n} className={size === n ? 'on' : ''} onClick={() => setSize(n)}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="setting check">
+          <input
+            type="checkbox"
+            checked={shuffleOn}
+            onChange={(e) => {
+              setShuffleOn(e.target.checked)
+              saveShufflePref(e.target.checked)
+            }}
+          />
+          選択肢の並びを毎回入れ替える
+        </label>
+      </div>
+
+      <h3 className="section-title">出題範囲</h3>
       {groupByExam(stats).map((g) => {
         const keys = g.domains.map((d) => d.key)
         const on = keys.filter((k) => domains.includes(k)).length
         return (
-          <fieldset key={g.key} className="exam-group">
+          <fieldset key={g.key} className="scope-group">
             <legend>
               <label>
                 <input
@@ -81,11 +162,9 @@ export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props
                 />
                 {g.label}
               </label>
-              <span className="meta">
-                {g.total} 問 ・ 要復習 {g.weak}
-              </span>
+              <span className="legend-count">{g.total} 問</span>
             </legend>
-            <ul className="plain scope">
+            <ul className="scope">
               {g.domains.map((d) => (
                 <li key={d.key}>
                   <label>
@@ -96,9 +175,12 @@ export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props
                         update(e.target.checked ? [...domains, d.key] : domains.filter((k) => k !== d.key))
                       }
                     />
-                    <span>{d.shortLabel}</span>
-                    <span className="meta">
-                      {d.total} 問 ・ 復習待ち {d.due} ・ 未出題 {d.total - d.seen} ・ 要復習 {d.weak}
+                    <span className={`lamp ${lampOf(d)}`} title={LAMP_LABEL[lampOf(d)]} aria-hidden="true" />
+                    <span className="scope-name">{d.shortLabel}</span>
+                    <span className="scope-nums">
+                      <span>{d.total} 問</span>
+                      {d.due > 0 && <span>復習待ち {d.due}</span>}
+                      {d.weak > 0 && <span className="alert">要復習 {d.weak}</span>}
                     </span>
                   </label>
                 </li>
@@ -108,63 +190,17 @@ export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props
         )
       })}
 
-      <label className="inline">
-        問題数
-        <select value={size} onChange={(e) => setSize(Number(e.target.value))}>
-          {[5, 10, 20, 40].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="inline">
-        <input
-          type="checkbox"
-          checked={shuffleOn}
-          onChange={(e) => {
-            setShuffleOn(e.target.checked)
-            saveShufflePref(e.target.checked)
-          }}
-        />
-        選択肢の並びを毎回入れ替える
-      </label>
-
-      <p className="meta">
-        選択中: {total} 問 ・ 復習待ち {due} ・ 未出題 {unseen} ・ 要復習 {weak}
-      </p>
-
-      <div className="actions">
-        <button className="primary" disabled={none || due + unseen === 0} onClick={() => onStart({ kind: 'study', domains, size })}>
-          学習(復習待ち → 未出題)
-        </button>
-        <button disabled={none || weak === 0} onClick={() => onStart({ kind: 'weak', domains, size })}>
-          間違えた問題({weak})
-        </button>
-        <button disabled={none || inputCount(domains) === 0} onClick={() => onStart({ kind: 'input', domains, size })}>
-          入力で解く({inputCount(domains)})
-        </button>
-        <button disabled={none} onClick={() => onStart({ kind: 'random', domains, size })}>
-          ランダム
-        </button>
-        <button disabled={none} onClick={() => onStart({ kind: 'exam', domains, size })}>
-          模擬試験(1 問 90 秒)
-        </button>
-      </div>
-      <p className="meta">要復習: 最後に間違えた問題と、2 回以上解いて正答率が 70% 未満の問題です。</p>
-      <p className="meta">入力で解く: 答えがコマンド名やファイル名など1語になる問題を、選択肢を見ずに入力して答えます。</p>
-      <form
-        className="inline code-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          setNotFound(!onOpenCode(code))
-        }}
-      >
-        <label className="inline">
-          問題 ID で開く
+      <details className="open-code">
+        <summary>問題 ID で 1 問だけ開く</summary>
+        <form
+          className="inline"
+          onSubmit={(e) => {
+            e.preventDefault()
+            setNotFound(!onOpenCode(code))
+          }}>
           <input
             type="text"
+            aria-label="問題 ID"
             value={code}
             placeholder="例: LinuC102-1.06-019"
             autoComplete="off"
@@ -174,13 +210,10 @@ export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props
               setNotFound(false)
             }}
           />
-        </label>
-        <button disabled={code.trim() === ''}>開く</button>
-        {notFound && <span className="meta">その ID の問題は見つかりませんでした。</span>}
-      </form>
-      {!none && due + unseen === 0 && (
-        <p className="meta">いま解くべき問題はありません。次の復習日まで待つか、「ランダム」で解いてください。</p>
-      )}
+          <button disabled={code.trim() === ''}>開く</button>
+          {notFound && <span className="note">その ID の問題は見つかりませんでした。</span>}
+        </form>
+      </details>
     </section>
   )
 }
