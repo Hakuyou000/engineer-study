@@ -261,7 +261,7 @@ Pod が Kubernetes の API を使うときの ID です。RBAC で権限を与�
 関連: RBAC、IRSA
 
 ### RBAC
-別名: ロールベースのアクセス制御
+別名: ロールベースのアクセス制御、Role、ClusterRole、RoleBinding、ClusterRoleBinding
 試験: K8s
 Kubernetes の認可の仕組みです。Role(Namespace の中の権限)や ClusterRole(クラスタ全体の権限)を作り、RoleBinding や ClusterRoleBinding でユーザーや ServiceAccount に結び付けます。許可だけを書きます。
 関連: 認可、ServiceAccount
@@ -295,8 +295,9 @@ Ingress の後継の、外からの通信を管理する API です。GatewayCla
 関連: Ingress
 
 ### CoreDNS
+別名: Corefile
 試験: K8s
-クラスタの中の DNS のサーバーです。`Service 名.Namespace.svc.cluster.local` の名前を解決します。設定は kube-system の ConfigMap `coredns` です。
+クラスタの中の DNS のサーバーです。`Service 名.Namespace.svc.cluster.local` の名前を解決します。設定(Corefile)は kube-system の ConfigMap `coredns` にあります。
 関連: DNS、Service
 
 ### NetworkPolicy
@@ -517,7 +518,7 @@ Docker デーモンを root 以外のユーザーで動かす方式です。コ�
 関連: root、Docker デーモン
 
 ### kube-controller-manager
-別名: コントローラー、調整ループ
+別名: コントローラーマネージャー
 試験: K8s
 Deployment、ReplicaSet、Node などのコントローラーをまとめて動かす部品です。コントローラーは、あるべき状態と今の状態を比べ、差をなくす動きを繰り返します(調整ループ)。
 関連: コントロールプレーン、Deployment
@@ -596,3 +597,74 @@ Kubernetes のリソースに起きた出来事の記録です(スケジュー�
 試験: K8s
 コンテナを止める前に実行するフックです。数秒待って、Service の振り分けから外れるのを待つのによく使います。
 関連: グレースフルシャットダウン
+
+### CreateContainerConfigError
+試験: K8s
+コンテナを作る前の設定の段階で失敗した状態です。参照している ConfigMap や Secret、そのキーがないときによく起きます。`kubectl describe pod` のイベントで原因を見ます。
+関連: ConfigMap、Secret、イベント
+
+### Evicted
+試験: K8s
+ノードのメモリやディスクが足りなくなり、kubelet が Pod を追い出した状態です。追い出す順番は QoS クラスと使用量で決まります。
+関連: kubelet、QoS クラス
+
+### コントローラー
+別名: 調整ループ、reconcile
+試験: K8s
+リソースのあるべき状態(spec)と今の状態(status)を見比べ、差を埋める操作を繰り返すプログラムです。Deployment や Job の動きも、それぞれのコントローラーが担います。
+関連: kube-controller-manager、オペレーター
+
+### Admission コントローラー
+別名: アドミッションコントローラー、admission webhook
+試験: K8s
+API サーバーが、認証と認可の後、etcd に保存する前に、リクエストを確かめたり書き換えたりする仕組みです。Pod Security Admission や ResourceQuota の確認もこの段階で動きます。
+関連: kube-apiserver、Pod Security Admission
+
+### CSR(Kubernetes)
+別名: CertificateSigningRequest、証明書署名要求
+試験: K8s
+ユーザーなどの証明書をクラスタの CA で署名してもらうための Kubernetes のリソースです。`kubectl certificate approve` で承認すると、署名された証明書を取り出せます。
+関連: kubeconfig、RBAC
+
+### jsonpath
+試験: K8s
+kubectl の出力から、決まった項目だけを取り出す書き方です。`kubectl get pod web -o jsonpath='{.status.podIP}'` のように使います。
+関連: kubectl
+
+### port-forward
+試験: K8s
+`kubectl port-forward` で、手元のポートを Pod や Service のポートにつなぐ機能です。外に公開していないアプリを、手元から確かめるのに使います。
+関連: kubectl、Service
+
+### ndots
+試験: K8s
+名前の中のドットがこの数より少ないと、検索用のドメインを順に付けて問い合わせる、という DNS のクライアントの設定です。Pod の既定は 5 なので、外の名前を引くと余計な問い合わせが増えることがあります。
+関連: CoreDNS、DNS
+
+### Pod のアフィニティ
+別名: podAffinity、podAntiAffinity
+試験: K8s
+ほかの Pod がいるノード(またはゾーン)に、近づけたり(podAffinity)、離したり(podAntiAffinity)して Pod を置く設定です。レプリカを別々のノードに分けるのに使います。
+関連: nodeAffinity、topologySpreadConstraints
+
+### VolumeSnapshot
+試験: K8s
+PVC の中身のスナップショットを取るための Kubernetes のリソースです。CSI のドライバーが対応している必要があります。
+関連: CRI、PVC
+
+### Velero
+試験: K8s
+Kubernetes のリソースとボリュームを、まとめてバックアップし、別のクラスタにも復元できる道具です。
+関連: etcd、VolumeSnapshot
+
+### Sealed Secrets
+別名: SOPS
+試験: K8s
+Secret を暗号化した形で Git に置けるようにする道具です。Sealed Secrets はクラスタの中のコントローラーが復号します。SOPS はファイルを KMS などの鍵で暗号化します。
+関連: Secret、GitOps
+
+### OpenCost
+別名: Kubecost
+試験: K8s
+Kubernetes の費用を、Namespace や Deployment ごとに分けて見えるようにする道具です。requests と使用量から費用を割り振ります。
+関連: requests、コストの最適化
