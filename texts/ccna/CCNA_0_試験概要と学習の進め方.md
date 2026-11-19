@@ -85,13 +85,7 @@ CCNA は、Cisco が実施するネットワークの基礎の資格です。ネ
 | テキスト | `CCNA_5.0_AIとネットワーク運用管理.md` |
 | 問題 | `CCNA_問題_1.0.md` 〜 `CCNA_問題_5.0.md`(41 / 37 / 34 / 39 / 26、合計 177 問) |
 
-## 8. 情報源
-
-- https://learningcontent.cisco.com/documents/marketing/exam-topics/200-301_CCNA_v2.0_Exam_Topics_PDF.pdf (公式の v2.0 出題範囲)
-- https://achievable.me/exams/ccna/resources/ccna-exam-topics/ (v1.1 と v2.0 の違い、切り替えの日)
-- https://computingforgeeks.com/ccna-exam-topics/ (v1.1 の終了日)
-
-## 9. 演習環境の作り方
+## 8. 演習環境の作り方
 
 ### 1. Packet Tracer を入れる
 
@@ -134,3 +128,9 @@ PC1 ── SW1 ──(トランク)── SW2 ── PC2
 ### 4. 片付け
 
 Packet Tracer はパソコンの中だけで動くので、費用はかかりません。作った構成は分野ごとに別のファイルにすると、後で復習しやすくなります。
+
+## 9. 情報源
+
+- https://learningcontent.cisco.com/documents/marketing/exam-topics/200-301_CCNA_v2.0_Exam_Topics_PDF.pdf (公式の v2.0 出題範囲)
+- https://achievable.me/exams/ccna/resources/ccna-exam-topics/ (v1.1 と v2.0 の違い、切り替えの日)
+- https://computingforgeeks.com/ccna-exam-topics/ (v1.1 の終了日)

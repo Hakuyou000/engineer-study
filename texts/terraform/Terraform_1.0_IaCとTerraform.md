@@ -38,6 +38,8 @@ resource "aws_instance" "web" {
 }
 ```
 
+> `ami-0abcdef1234567890` は説明用の架空の ID です。実際の AMI の ID はリージョンと時期で変わるので、そのままでは動きません。実際に使うときは、data ブロックの `aws_ami` で最新の ID を探します(4.1 の「2. data ブロック」)。
+
 ### 3. Terraform とは
 
 - HashiCorp が開発した IaC のツールです。設定は **HCL(HashiCorp Configuration Language)** という言語で `.tf` ファイルに書きます(JSON でも書けます)。
