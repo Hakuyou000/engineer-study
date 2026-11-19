@@ -215,6 +215,8 @@ terraform {
 
 local バックエンドは、state を更新する前の内容を `terraform.tfstate.backup` に残します。誤った変更のときに戻すのに使えます。
 
+`.terraform/` はプロバイダーやモジュールを入れる作業用のディレクトリで、state の控えは置きません。`terraform.tfstate.old` という名前のファイルは作られません。
+
 ### 問3 `Terraform-6.0-003`
 
 **正解**: A、B
