@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { DrillView } from './components/DrillView'
 import { CertView } from './components/CertView'
 import { Exam } from './components/Exam'
+import { GlossaryView } from './components/GlossaryView'
 import { Home, type StartOptions } from './components/Home'
 import { Quit } from './components/Quit'
 import { RoadmapView } from './components/RoadmapView'
@@ -19,6 +20,7 @@ import { computeStats, examLabel, groupByExam } from './lib/stats'
 import { TEXTS } from './lib/texts'
 import { certById } from './lib/certs'
 import { weakQuestions } from './lib/weak'
+import { OPEN_GLOSSARY } from './lib/glossaryData'
 import type { Attempt, Card, DrillAttempt, Question } from './lib/types'
 
 const ALL_QUESTIONS = data as Question[]
@@ -27,6 +29,7 @@ const EXAMS = examList([...ALL_QUESTIONS.map((q) => q.exam), ...TEXTS.map((t) =>
 type View =
   | { name: 'toc' | Section }
   | { name: 'roadmap'; focus?: string | null }
+  | { name: 'glossary'; focus?: string | null }
   | { name: 'cert'; id: string }
   | { name: 'study' | 'exam'; questions: Question[] }
 
@@ -61,6 +64,13 @@ export function App() {
 
   const fail = (e: unknown) => setError(message(e))
   const reload = () => fetchStore().then(setStore).catch(fail)
+
+  // 本文の用語から「用語集で開く」を押したとき
+  useEffect(() => {
+    const open = (e: Event) => setView({ name: 'glossary', focus: (e as CustomEvent<string | null>).detail })
+    window.addEventListener(OPEN_GLOSSARY, open)
+    return () => window.removeEventListener(OPEN_GLOSSARY, open)
+  }, [])
 
   useEffect(() => {
     fetchStore()
@@ -161,7 +171,7 @@ export function App() {
     setView({ name: section })
   }
 
-  const tab = (name: 'toc' | 'roadmap' | Section, label: string) => (
+  const tab = (name: 'toc' | 'roadmap' | 'glossary' | Section, label: string) => (
     <button
       className={view.name === name || (name === 'roadmap' && view.name === 'cert') ? 'tab on' : 'tab'}
       onClick={name === 'home' ? home : () => setView({ name } as View)}>
@@ -184,6 +194,7 @@ export function App() {
           {tab('home', '問題演習')}
           {tab('drill', '計算ドリル')}
           {tab('text', 'テキスト')}
+          {tab('glossary', '用語集')}
           {tab('stats', '成績')}
           {import.meta.env.DEV && <Quit onQuit={() => setStopped(true)} onError={setError} />}
         </nav>
@@ -280,6 +291,8 @@ export function App() {
       )}
 
       {view.name === 'text' && <TextView key={group ?? '*'} exam={group} />}
+
+      {view.name === 'glossary' && <GlossaryView key={`${group ?? '*'}:${view.focus ?? ''}`} exam={group} focus={view.focus} />}
 
       {view.name === 'stats' && (
         <StatsView

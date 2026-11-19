@@ -50,6 +50,7 @@ export function TextView({ exam }: { exam: string | null }) {
   if (TEXTS.length === 0) return <section className="card">テキストがありません。`texts/` に Markdown のファイルを置いてください。</section>
 
   const exams = [...new Set(TEXTS.map((t) => t.exam))]
+  const textExam = ALL_TEXTS.find((t) => t.id === id)?.exam ?? null
 
   return (
     <section className="card">
@@ -83,7 +84,7 @@ export function TextView({ exam }: { exam: string | null }) {
             </nav>
           )}
           <Suspense fallback={<p className="meta">読み込み中</p>}>
-            <Markdown text={intro} />
+            <Markdown text={intro} exam={textExam} />
             {sections.map((s, i) => (
               <section
                 key={`${id}-${i}`}
@@ -91,7 +92,7 @@ export function TextView({ exam }: { exam: string | null }) {
                   refs.current[i] = el
                 }}
               >
-                <Markdown text={s.body} />
+                <Markdown text={s.body} exam={textExam} />
               </section>
             ))}
           </Suspense>

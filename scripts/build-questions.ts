@@ -1,9 +1,10 @@
-// content/**/*.md を解析し、src/data/questions.json を生成する。
+// content/**/*.md を解析し、src/data/questions.json を生成する。glossary/*.md から src/data/glossary.json も作る。
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compareExam } from '../src/lib/order'
 import { parseQuestions } from '../src/lib/parser'
+import { parseGlossary, validateGlossary, type Term } from '../src/lib/glossary'
 import type { Question } from '../src/lib/types'
 
 // import.meta.dirname は Node.js 20.11 以降にしかないので、古い Node.js でも動く書き方にする
@@ -34,3 +35,16 @@ if (ids.size !== all.length) throw new Error('問題 ID が重複している')
 mkdirSync(join(root, 'src', 'data'), { recursive: true })
 writeFileSync(outFile, JSON.stringify(all, null, 1) + '\n')
 console.log(`合計 ${all.length} 問 → ${relative(root, outFile)}`)
+
+// 用語集
+const glossaryDir = join(root, 'glossary')
+const terms: Term[] = []
+for (const file of walk(glossaryDir)) {
+  const ts = parseGlossary(readFileSync(file, 'utf8'), relative(root, file))
+  terms.push(...ts)
+  console.log(`${relative(root, file)}: ${ts.length} 語`)
+}
+validateGlossary(terms, [...new Set(all.map((q) => q.exam))])
+const glossaryFile = join(root, 'src', 'data', 'glossary.json')
+writeFileSync(glossaryFile, JSON.stringify(terms, null, 1) + '\n')
+console.log(`用語 ${terms.length} 語 → ${relative(root, glossaryFile)}`)

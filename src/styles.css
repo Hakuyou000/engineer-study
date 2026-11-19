@@ -181,3 +181,18 @@ a { color: var(--accent); }
 .qtag.work { color: var(--work); }
 .code-form { margin-top: 16px; }
 .code-form input { width: min(100%, 220px); font-family: ui-monospace, Consolas, monospace; }
+
+/* 用語集 */
+.term { all: unset; cursor: pointer; border-bottom: 1px dotted var(--muted); }
+.term:hover, .term:focus-visible { border-bottom-style: solid; }
+.term-sheet-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.35); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+.term-sheet { background: var(--panel); color: var(--text); width: min(640px, 100%); max-height: 60vh; overflow: auto; padding: 14px 18px 18px; border-radius: 12px 12px 0 0; box-shadow: 0 -4px 16px rgb(0 0 0 / 0.2); }
+.term-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.glossary-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0 12px; }
+.glossary-tools input[type='search'] { flex: 1 1 240px; }
+.glossary dl { margin: 0; }
+.term-entry { padding: 8px 10px; border-bottom: 1px solid var(--line); scroll-margin-top: 80px; }
+.term-entry.on { outline: 2px solid var(--accent); border-radius: 6px; }
+.term-entry dt { font-weight: 600; }
+.term-entry dt .meta { font-weight: 400; margin-left: 6px; }
+.term-entry dd { margin: 4px 0 0; }
