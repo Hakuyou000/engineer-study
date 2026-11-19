@@ -1,5 +1,5 @@
 /** 試験の表示順。ここにない試験は後ろに、名前順で並ぶ。 */
-export const EXAM_ORDER = ['LinuC', 'CCNA', 'SAA', 'Terraform']
+export const EXAM_ORDER = ['LinuC', 'CCNA', 'SAA', 'Terraform', 'Docker']
 
 export function examRank(exam: string): number {
   const i = EXAM_ORDER.findIndex((p) => exam.toLowerCase().startsWith(p.toLowerCase()))
