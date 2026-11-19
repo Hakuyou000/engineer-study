@@ -43,6 +43,18 @@ describe('選択問題の入力化', () => {
     }
   })
 
+  it('入力の別解(長い形のオプションなど)でも正解になる', () => {
+    const q = all.find((x) => x.code === 'LinuC102-1.08-004')!
+    const i = toInput(q)
+    expect(isCorrect(i, ['-m'])).toBe(true)
+    expect(isCorrect(i, ['--create-home'])).toBe(true)
+    expect(isCorrect(i, ['-d'])).toBe(false)
+  })
+
+  it('入力の別解は、入力化できる問題にだけ書く', () => {
+    for (const q of all.filter((x) => x.inputAlt)) expect(canInput(q), q.id).toBe(true)
+  })
+
   it('複数選択や文章の正解は入力化しない', () => {
     for (const q of all.filter((x) => x.kind !== 'input' && (x.answer.length > 1 || /\s/.test(x.choices.find((c) => c.key === x.answer[0])?.text.replace(/`/g, '') ?? '')))) {
       expect(canInput(q), q.id).toBe(false)

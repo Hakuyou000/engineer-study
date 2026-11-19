@@ -17,6 +17,10 @@ import type { Question } from './types'
  *
  * 入力問題は選択肢を書かず、正解に入力として認める答えをコードで書く。
  *   **正解**: `ssh-keygen`      複数あれば「`atq`、`at -l`」
+ *
+ * 選択問題を入力でも出すとき、正解の選択肢と同じ意味の別の書き方(長い形のオプションなど)は、
+ * 正解の行の次に書く。
+ *   **入力の別解**: `--create-home`
  */
 /** 問題に付けられるタグ。試験の範囲(CKA)と、試験の外の実務の知識(実務)を見分ける */
 export const TAGS = ['CKA', '実務'] as const
@@ -37,18 +41,27 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
   const answerStart = lines.findIndex((l) => /^## 解答/.test(l))
   if (answerStart < 0) throw new Error(`${source}: 「## 解答」節がない`)
 
-  const answers = new Map<number, { answer: string[]; accept: string[] | null; explanation: string }>()
+  const answers = new Map<number, { answer: string[]; accept: string[] | null; alt: string[]; explanation: string }>()
   const parseAnswer = (number: number, body: string[]) => {
     const i = body.findIndex((l) => /^\*\*正解\*\*[:：]/.test(l))
     if (i < 0) throw new Error(`${source}: 問${number} の解答に「**正解**:」の行がない`)
     const value = body[i].replace(/^\*\*正解\*\*[:：]\s*/, '').trim()
-    const explanation = body.slice(i + 1).join('\n').trim()
+    let rest = body.slice(i + 1)
+    const j = rest.findIndex((l) => l.trim() !== '')
+    let alt: string[] = []
+    if (j >= 0 && /^\*\*入力の別解\*\*[:：]/.test(rest[j])) {
+      alt = [...rest[j].matchAll(/`([^`]+)`/g)].map((x) => x[1].trim())
+      if (alt.length === 0) throw new Error(`${source}: 問${number} の入力の別解が空`)
+      rest = rest.slice(j + 1)
+    }
+    const explanation = rest.join('\n').trim()
     if (answers.has(number)) throw new Error(`${source}: 問${number} の解答が重複`)
     if (/^[A-Z](?:\s*[、,]\s*[A-Z])*$/.test(value)) {
-      answers.set(number, { answer: value.split(/[、,]/).map((x) => x.trim()), accept: null, explanation })
+      answers.set(number, { answer: value.split(/[、,]/).map((x) => x.trim()), accept: null, alt, explanation })
     } else if (value.startsWith('`')) {
       const accept = [...value.matchAll(/`([^`]+)`/g)].map((x) => x[1].trim())
-      answers.set(number, { answer: accept, accept, explanation })
+      if (alt.length) throw new Error(`${source}: 問${number} は入力問題なので、別解は正解の行に並べる`)
+      answers.set(number, { answer: accept, accept, alt, explanation })
     } else {
       throw new Error(`${source}: 問${number} の正解「${value}」の書き方が誤り`)
     }
@@ -172,8 +185,10 @@ export function parseQuestions(md: string, source = '(input)'): Question[] {
     for (const k of a.answer) {
       if (!keys.has(k)) throw new Error(`${source}: 問${q.number} の正解 ${k} が選択肢にない`)
     }
+    if (a.alt.length && a.answer.length !== 1) throw new Error(`${source}: 問${q.number} は複数選択なので、入力の別解は書けない`)
     q.answer = a.answer
     q.explanation = a.explanation
+    if (a.alt.length) q.inputAlt = a.alt
   }
 
   const declared = md.match(/全(\d+)問/)

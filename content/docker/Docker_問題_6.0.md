@@ -25,7 +25,18 @@ services:
 - C. `db`
 - D. `postgres`
 
-**問2** `Docker-6.0-002` 前の問題の `compose.yaml` で、`db` に `ports` を書いていない。`web` から `db` の 5432 番に接続できるか。
+**問2** `Docker-6.0-002` 次の `compose.yaml` で、`db` に `ports` を書いていない。
+
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8000"
+  db:
+    image: postgres:17
+```
+`web` から `db` の 5432 番に接続できるか。
 
 - A. できない。`ports: ["5432:5432"]` が必要である
 - B. `links` を書けばできる

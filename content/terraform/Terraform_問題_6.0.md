@@ -108,7 +108,7 @@ terraform {
 - C. backend ブロックでは、変数や参照を使えない
 - D. S3 バックエンドには `key` を書けない
 
-**問13** `Terraform-6.0-013` 前の問題で、バケット名を環境ごとに変えたい。正しい方法はどれか。
+**問13** `Terraform-6.0-013` S3 バックエンドの state のバケット名を、環境ごとに変えたい。backend ブロックでは変数を使えない。正しい方法はどれか。
 
 - A. `terraform apply -var="state_bucket=..."` で渡す
 - B. backend ブロックに `locals` の値を書く
@@ -248,6 +248,8 @@ local バックエンドでは、`default` 以外のワークスペースの sta
 ### 問8 `Terraform-6.0-008`
 
 **正解**: D
+
+**入力の別解**: `-lock-timeout=300s`
 
 `-lock-timeout` は、ロックが取れないときに指定した時間だけ待ちます。既定は待たずにすぐエラーです。`-lock=false` はロックを使わない危険な設定で、相手の操作とぶつかります。`-parallelism` は同時に処理するリソースの数です。
 

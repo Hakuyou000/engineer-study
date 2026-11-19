@@ -244,6 +244,8 @@ Linux の Docker は、ポートを公開するために iptables(nftables)の�
 
 **正解**: C
 
+**入力の別解**: `--add-host host.docker.internal:host-gateway`
+
 Docker Desktop では `host.docker.internal` が最初から使えますが、Linux では使えません。`--add-host=host.docker.internal:host-gateway` を付けると、その名前がホストの IP に解決されます。
 
 ### 問16 `Docker-4.0-016`
