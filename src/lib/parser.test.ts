@@ -215,7 +215,8 @@ describe('小項目の前置き', () => {
 
 describe('生成済みの問題データ', () => {
   it('他の問題を参照しない(出題順が変わるため)', () => {
-    expect(questions.filter((q) => /問\d+/.test(q.stem)).map((q) => q.id)).toEqual([])
+    const ref = /問\d+|(前|上|先|次)の問題/
+    expect(questions.filter((q) => ref.test(q.stem)).map((q) => q.id)).toEqual([])
   })
 
   it('全問に選択肢、正解、解説がある', () => {
@@ -273,6 +274,20 @@ describe('解答の書式', () => {
 
   it('正解の行がなければエラーにする', () => {
     expect(() => parseQuestions(md.replace('**正解**: B', 'B'))).toThrow(/正解/)
+  })
+
+  it('入力の別解を読み、解説には含めない', () => {
+    const [q] = parseQuestions(md.replace('**正解**: B\n', '**正解**: B\n\n**入力の別解**: `bb`、`b2`\n'))
+    expect(q.inputAlt).toEqual(['bb', 'b2'])
+    expect(q.explanation.startsWith('手順です。')).toBe(true)
+  })
+
+  it('別解のない問題には inputAlt を付けない', () => {
+    expect(parseQuestions(md)[0].inputAlt).toBeUndefined()
+  })
+
+  it('複数選択に入力の別解を書くとエラーにする', () => {
+    expect(() => parseQuestions(md.replace('**正解**: B\n', '**正解**: A、B\n\n**入力の別解**: `x`\n'))).toThrow(/別解/)
   })
 })
 

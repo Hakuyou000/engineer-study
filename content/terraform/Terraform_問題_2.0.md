@@ -62,7 +62,7 @@ terraform {
 - C. 5.80.0
 - D. 5.0.0
 
-**問7** `Terraform-2.0-007` 前の問題の状況で、制約の範囲の最新のバージョンに上げ、ロックファイルも更新したい。実行するコマンドはどれか。
+**問7** `Terraform-2.0-007` プロバイダーの制約は `~> 5.0` で、`.terraform.lock.hcl` には 5.40.0 が記録されている。Registry には 5.80.0 が公開されている。制約の範囲の最新のバージョン(5.80.0)に上げ、ロックファイルも更新したい。実行するコマンドはどれか。
 
 - A. `terraform apply -refresh-only`
 - B. `terraform get`
@@ -144,7 +144,22 @@ resource "aws_s3_bucket" "b" {
 - C. 両方のリージョン
 - D. エラーになる。alias が 2 つ必要である
 
-**問16** `Terraform-2.0-016` 前の問題の設定で、バケットを大阪(ap-northeast-3)に作りたい。リソースに書く引数として正しいものはどれか。
+**問16** `Terraform-2.0-016` 次の設定で、バケットを大阪(ap-northeast-3)に作りたい。`aws_s3_bucket.b` に書く引数として正しいものはどれか。
+
+```hcl
+provider "aws" {
+  region = "ap-northeast-1"
+}
+
+provider "aws" {
+  alias  = "osaka"
+  region = "ap-northeast-3"
+}
+
+resource "aws_s3_bucket" "b" {
+  bucket = "example-b"
+}
+```
 
 - A. `provider = "aws.osaka"`
 - B. `provider = aws.osaka`

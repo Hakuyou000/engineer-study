@@ -45,7 +45,7 @@ export function toInput(q: Question): Question {
     kind: 'input',
     stem: `${q.stem}\n\n(選択肢はありません。答えを入力してください)`,
     choices: [],
-    answer: [c.text.match(TOKEN)![1]],
+    answer: [c.text.match(TOKEN)![1], ...(q.inputAlt ?? [])],
     keyMap: undefined,
   }
 }
