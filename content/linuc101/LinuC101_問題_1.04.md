@@ -253,7 +253,7 @@
 
 ### 問14 `LinuC101-1.04-014`
 
-**正解**: `yumdownloader`、`dnf download`
+**正解**: `yumdownloader`、`dnf download`、`yum download`
 
 `yumdownloader`(yum-utils に入っています)は、パッケージを入れずに .rpm のファイルだけを落とします。`--resolve` で依存するものも、`--source` でソースのパッケージも落とせます。dnf では `dnf download` です。
 
