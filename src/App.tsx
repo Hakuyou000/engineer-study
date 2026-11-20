@@ -65,7 +65,8 @@ export function App() {
   const [error, setError] = useState<string | null>(null)
   // 選択中の試験。null は「すべての試験」
   const [group, setGroup] = useState<string | null>(() => loadGroup(EXAMS))
-  const [view, setViewRaw] = useState<View>(() => ({ name: loadGroup(EXAMS) === null ? 'toc' : 'home' }))
+  // 起動したときは、選んでいた試験に関係なく目次から始める
+  const [view, setViewRaw] = useState<View>({ name: 'toc' })
   // ブラウザの履歴での位置。0 なら戻る先がない
   const [depth, setDepth] = useState(0)
   const QUESTIONS = useMemo(
