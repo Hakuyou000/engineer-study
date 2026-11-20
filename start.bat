@@ -20,7 +20,8 @@ echo       終了するときは、画面右上の「終了」を押す
 echo.
 call npm run dev -- --open
 if errorlevel 1 goto failed
-exit /b 0
+rem 画面の「終了」で止めたら、この黒いウィンドウも閉じる(exit /b ではなく exit でコマンドプロンプトごと終える)
+exit 0
 
 :oldnode
 for /f %%v in ('node -v') do echo Node.js のバージョンが古い。今のバージョンは %%v。22.12 以降が必要。https://nodejs.org/ から LTS 版を入れてからやり直す
