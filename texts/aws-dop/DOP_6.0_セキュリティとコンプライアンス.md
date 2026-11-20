@@ -43,6 +43,16 @@ AWS STS(一時的な認証情報を発行するサービス)の主な API です
 - 境界を外したり、別のポリシーに付け替えたり、境界のポリシーを書き換えたりする操作は拒否します(`iam:DeleteRolePermissionsBoundary`、条件のない `iam:PutRolePermissionsBoundary`、境界のポリシーへの `iam:CreatePolicyVersion`、`iam:DeletePolicyVersion`、`iam:SetDefaultPolicyVersion`)。
 - こうすると、開発者は、自分の権限を超えるロールを作れません(権限の昇格を防げます)。
 
+セッションポリシーです。
+
+- ロールを引き受けるとき(`AssumeRole` の `Policy` パラメータや `PolicyArns` パラメータ)に渡す、そのセッションだけの絞り込みです。
+- セッションの権限は、**ロールのアイデンティティベースのポリシーと、セッションポリシーの共通部分** です。
+- セッションポリシーで、ロールの権限を超えて許可することはできません。
+- 例: ロールが `Get`、`Put`、`Delete` を許可し、セッションポリシーが `Get`、`Put` だけを許可すると、そのセッションは `Delete` できません。
+- セッションポリシーは、`AssumeRole` を呼ぶ側が渡します。利用者本人に強制する仕組みではありません。業務委託者に認証情報を渡す仲介アプリなど、管理している仕組みが呼ぶときに使います。
+- リソースベースのポリシーが、セッションの ARN を主体として指定しているときは、その許可はセッションポリシーで絞られません。
+- ロールを増やさず、引き受ける人やアプリごとに、権限を絞りたいときに使います。
+
 ### 3. 最小権限とアクセス制御のパターン
 
 **ロールベースのアクセス制御(RBAC)**: 職務ごとにロール(権限セット)を作り、人に割り当てます。
@@ -135,7 +145,9 @@ AWS Secrets Manager(秘密情報を保管し、自動でローテーションで
 - 組織の **新しいアカウントに自動で有効化する** 設定があります。
 - Security Hub は、複数のリージョンの検出結果を、**集約リージョン** に集められます。
 - Control Tower では、**コントロール(ガードレール)** を有効にします。予防的(SCP)、検出的(AWS Config のルール)、プロアクティブ(CloudFormation フック)があります。
-- CloudFormation StackSets の、サービスマネージドの権限を使うと、組織の OU にスタックを配り、新しいアカウントにも自動で展開できます。
+- CloudFormation StackSets の、サービスマネージドの権限を使うと、組織の OU にスタックを配れます。各アカウントに、実行用のロールを手作業で作る必要がありません。**自動デプロイ** を有効にすると、OU に追加された新しいアカウントにも、スタックが自動で作られます。アカウントが OU から外れたときの動作は、「スタックを削除する」か「保持する」(`RetainStacksOnAccountRemoval`)から選べます。自動デプロイは、StackSet の単位で設定します。
+- サービスマネージドの権限を使うには、Organizations のすべての機能を有効にし、管理アカウントで StackSets の信頼されたアクセスを有効にします。すると、CloudFormation が、対象のアカウントに必要なロールを作ります。
+- Control Tower の予防的コントロール(SCP、RCP、宣言型ポリシー)は、違反する操作を拒否します。検出的コントロールは、検出して報告するだけです。プロアクティブコントロールは、CloudFormation で作るリソースだけが対象です。OU で有効にすると、その OU のアカウントすべてに適用されます。
 - Systems Manager の Quick Setup でも、複数のアカウントとリージョンに設定を配れます。
 
 ### 3. 多層防御の組み合わせ
@@ -192,7 +204,9 @@ AWS Secrets Manager(秘密情報を保管し、自動でローテーションで
 | 複数アカウント・リージョンの検出結果を 1 か所に | Security Hub(委任管理者、集約リージョン) |
 | S3 の個人情報を探す | Amazon Macie |
 | 脆弱性を継続的に見つける | Amazon Inspector |
-| 新しいアカウントにも、同じ設定を自動で配る | StackSets(サービスマネージド)、Control Tower |
+| 新しいアカウントにも、同じ設定を自動で配る | StackSets(サービスマネージド、自動デプロイ)、Control Tower |
+| 違反する操作そのものを拒否する | Control Tower の予防的コントロール(SCP、RCP、宣言型ポリシー) |
+| 引き受けるセッションだけ権限を絞る | セッションポリシー(`AssumeRole` の `Policy`)。実効の権限は、ロールとの共通部分 |
 | 証明書を自動で更新 | ACM(DNS 検証) |
 | 暗号化の鍵を毎年自動で入れ替える | KMS の CMK の自動ローテーション |
 | 専用のハードウェアで、鍵を自分で管理 | CloudHSM |
@@ -274,6 +288,11 @@ CloudFormation の **ドリフト検出** は、スタックのリソースが�
 ## 出典
 
 - AWS KMS のキーのローテーション: https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html
+- IAM のロールの引き受けとセッションポリシー: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_control-access_assumerole.html
+- Control Tower のコントロールの種類: https://docs.aws.amazon.com/controltower/latest/controlreference/control-behavior.html
+- StackSets の自動デプロイ: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-manage-auto-deployment.html
+- StackSets の信頼されたアクセス: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-enable-trusted-access.html
+- EKS CreateAccessEntry: https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateAccessEntry.html
 - KMS EnableKeyRotation: https://docs.aws.amazon.com/kms/latest/APIReference/API_EnableKeyRotation.html
 - Secrets Manager のローテーションの方式: https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotation-strategy.html
 - CloudFront で使う ACM の証明書: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html

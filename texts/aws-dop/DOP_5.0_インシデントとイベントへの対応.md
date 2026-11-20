@@ -209,6 +209,13 @@ CloudFormation の失敗の読み方です。
 - `UPDATE_ROLLBACK_FAILED` になったら、原因を直してから、ロールバックを続行します。直せないリソースは、スキップして続行できます。
 - 作成の失敗の調査のために、リソースを残したいときは、ロールバックを無効にします。
 
+CodePipeline と CodeBuild の失敗の調べ方です。
+
+- パイプラインの画面には、失敗したステージとアクションが出ます。詳しい原因は、アクションの詳細から、呼び出したサービス(CodeBuild など)の画面へ移って調べます。
+- CodeBuild のビルドの詳細に、フェーズごとの結果が出ます。失敗したフェーズを見つけて、そのログ(CloudWatch Logs)を読みます。
+- CodePipeline の CodeCommit のソースアクションで、出力アーティファクトの形式を「完全クローン」にしたときは、CodeBuild のサービスロールに `codecommit:GitPull` が要ります。既定の形式では、ソースアクションが作った ZIP を S3 から受け取るので、要りません。
+- CodePipeline のサービスロールの権限不足は、アクションのエラーの文言に出ます。権限を直したあと、失敗したステージを再試行するか、パイプラインを手動で実行し直します。
+
 CodeDeploy のポイントです。
 
 - アラームを関連付けると、デプロイ中のアラームで、自動でロールバックできます。
@@ -234,8 +241,13 @@ CodeDeploy のポイントです。
 **Amazon EKS**
 
 - ポッドの状態は `kubectl describe pod` と `kubectl logs` で見ます。
+- `Pending` は、ノードのリソースが足りない、ノードの Pod 数の上限(max-pods)に達している、ノードが `Ready` でない、taint や nodeSelector が合わない、などでスケジュールできない状態です。`kubectl describe pod` の Events に理由が出ます。
+- サブネットの空き IP が足りないと、Pod は `ContainerCreating` のまま止まります。Events に `failed to assign an IP address to container` が出ます。
+- `CrashLoopBackOff` は、コンテナが起動しても、すぐ終了することを繰り返す状態です。`kubectl logs <pod> --previous` で直前のログを、`kubectl describe pod` で終了コードと理由(`OOMKilled` など)を見ます。
+- ノードが `NotReady` のときは、CPU、メモリ、ディスクの逼迫と、ネットワークプラグイン(`aws-node`)の状態を確かめます。
+- ノードがクラスターに参加しない原因は、IAM ロール、セキュリティグループ、サブネットの経路が多いです。特に、ノードの IAM ロールが、アクセスエントリか `aws-auth` ConfigMap で、クラスターに対応付けられているかを確かめます。指定するのは、インスタンスプロファイルの ARN ではなく、ロールの ARN です。
+- `kubectl` が `Unauthorized` になるときは、使っている IAM の主体が、アクセスエントリか `aws-auth` ConfigMap に対応付けられているかを確かめます。
 - コントロールプレーンのログ(API サーバー、監査など)は、有効にすると CloudWatch Logs に出ます。
-- ノードが参加しない原因は、IAM ロール、セキュリティグループ、サブネットの経路が多いです。
 
 **Lambda**
 
@@ -265,6 +277,8 @@ CodeDeploy のポイントです。
 - Lambda の非同期呼び出しの送り先: https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html
 - Step Functions のワークフローの種類: https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html
 - Incident Manager: https://docs.aws.amazon.com/incident-manager/latest/userguide/what-is-incident-manager.html
+- CodePipeline のトラブルシューティング: https://docs.aws.amazon.com/codepipeline/latest/userguide/troubleshooting.html
+- EKS のトラブルシューティング: https://docs.aws.amazon.com/eks/latest/userguide/troubleshooting.html
 - AWS Config の修復: https://docs.aws.amazon.com/config/latest/developerguide/remediation.html
 - Auto Scaling のライフサイクルフック: https://docs.aws.amazon.com/autoscaling/ec2/userguide/lifecycle-hooks.html
 - 公式の試験ガイド(分野 5): https://docs.aws.amazon.com/aws-certification/latest/devops-engineer-professional-02/devops-engineer-professional-02-domain5.html
