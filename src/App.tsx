@@ -33,6 +33,18 @@ type View =
   | { name: 'cert'; id: string }
   | { name: 'study' | 'exam'; questions: Question[] }
 
+/** 履歴に積む画面の記録。問題の一覧は大きいので入れない */
+type ViewEntry = Exclude<View, { questions: Question[] }> | { name: 'study' | 'exam' }
+interface HistoryEntry {
+  sreDrill: true
+  idx: number
+  view: ViewEntry
+  group: string | null
+}
+// 問題演習と模擬試験の問題は大きいので、履歴には入れず、ここに置く(履歴の位置 → 問題)
+const SESSIONS = new Map<number, Question[]>()
+const toEntry = (v: View): ViewEntry => ('questions' in v ? { name: v.name } : v)
+
 interface Store {
   attempts: Attempt[]
   cards: Map<string, Card>
@@ -53,7 +65,9 @@ export function App() {
   const [error, setError] = useState<string | null>(null)
   // 選択中の試験。null は「すべての試験」
   const [group, setGroup] = useState<string | null>(() => loadGroup(EXAMS))
-  const [view, setView] = useState<View>(() => ({ name: loadGroup(EXAMS) === null ? 'toc' : 'home' }))
+  const [view, setViewRaw] = useState<View>(() => ({ name: loadGroup(EXAMS) === null ? 'toc' : 'home' }))
+  // ブラウザの履歴での位置。0 なら戻る先がない
+  const [depth, setDepth] = useState(0)
   const QUESTIONS = useMemo(
     () => (group === null ? ALL_QUESTIONS : ALL_QUESTIONS.filter((q) => q.exam === group)),
     [group],
@@ -62,15 +76,55 @@ export function App() {
   // 「自信なし」で格下げするために、直前の解答より前のカード状態を残す
   const prevCard = useRef<{ id: string; card: Card | undefined } | null>(null)
 
+  /** 画面を移る。ブラウザの履歴にも積むので、ブラウザの「戻る」やスワイプでも前の画面に戻れる */
+  const navigate = (next: View, nextGroup: string | null = group) => {
+    const idx = depth + 1
+    if ('questions' in next) SESSIONS.set(idx, next.questions)
+    try {
+      history.pushState({ sreDrill: true, idx, view: toEntry(next), group: nextGroup }, '')
+    } catch {
+      // 履歴に積めなくても、画面は移る
+    }
+    setDepth(idx)
+    if (nextGroup !== group) {
+      setGroup(nextGroup)
+      saveGroup(nextGroup)
+    }
+    setViewRaw(next)
+  }
+  const setView = (next: View) => navigate(next)
+
+  // 最初の画面を履歴に記録し、「戻る」で前の画面を出す
+  useEffect(() => {
+    history.replaceState({ sreDrill: true, idx: 0, view: toEntry(view), group }, '')
+    const onPop = (e: PopStateEvent) => {
+      const st = e.state as HistoryEntry | null
+      if (!st?.sreDrill) return
+      setDepth(st.idx)
+      setGroup(st.group)
+      saveGroup(st.group)
+      if (st.view.name === 'study' || st.view.name === 'exam') {
+        const qs = SESSIONS.get(st.idx)
+        setViewRaw(qs ? { name: st.view.name, questions: qs } : { name: 'home' })
+      } else {
+        setViewRaw(st.view as View)
+      }
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+    // 最初の 1 回だけ。以降の画面の移動は navigate が履歴に積む
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const fail = (e: unknown) => setError(message(e))
   const reload = () => fetchStore().then(setStore).catch(fail)
 
   // 本文の用語から「用語集で開く」を押したとき
   useEffect(() => {
-    const open = (e: Event) => setView({ name: 'glossary', focus: (e as CustomEvent<string | null>).detail })
+    const open = (e: Event) => navigate({ name: 'glossary', focus: (e as CustomEvent<string | null>).detail })
     window.addEventListener(OPEN_GLOSSARY, open)
     return () => window.removeEventListener(OPEN_GLOSSARY, open)
-  }, [])
+  })
 
   useEffect(() => {
     fetchStore()
@@ -173,10 +227,8 @@ export function App() {
   }
 
   const openGroup = (g: string | null, section: Section) => {
-    setGroup(g)
-    saveGroup(g)
     setStore({ ...store, now: Date.now() })
-    setView({ name: section })
+    navigate({ name: section }, g)
   }
 
   const isOn = (name: string) => view.name === name || (name === 'roadmap' && view.name === 'cert') || (name === 'home' && session !== null)
@@ -193,6 +245,12 @@ export function App() {
     <div className="shell">
       <header className="appbar">
         <div className="appbar-top">
+          {depth > 0 && (
+            <button className="back" onClick={() => history.back()} aria-label="前の画面に戻る">
+              <span aria-hidden="true">‹</span>
+              <span className="back-label">戻る</span>
+            </button>
+          )}
           <h1 className="brand">sre-drill</h1>
           <button className="exam-switch" onClick={() => setView({ name: 'toc' })} aria-label="試験を選ぶ(目次を開く)">
             {group === null ? 'すべての試験' : examLabel(group)}
