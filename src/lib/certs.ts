@@ -228,6 +228,7 @@ export const CERTS: Cert[] = [
       { name: 'セキュリティとコンプライアンス', weight: 17 },
     ],
     tips: ['AWS での実務の経験が 2 年ほどある人向けです。段階 4・5 で作ったものを AWS のサービスで組み直しながら学びます。'],
+    exams: ['DOP'],
     official: { label: 'AWS DevOps Engineer – Professional(公式)', url: 'https://aws.amazon.com/certification/certified-devops-engineer-professional/' },
   },
   {

@@ -230,6 +230,18 @@ describe('生成済みの問題データ', () => {
       expect(q.section.length, q.id).toBeGreaterThan(0)
     }
   })
+
+  it('選択問題の解説の箇条書きは、選択肢の記号で始まる(並べ替えで付け替えるため)', () => {
+    for (const q of questions as Question[]) {
+      if (q.kind === 'input') continue
+      const labels = q.choices.map((_, i) => String.fromCharCode(65 + i))
+      for (const line of q.explanation.split('\n').filter((l) => l.startsWith('- '))) {
+        const m = /^- ([A-H])\. /.exec(line)
+        expect(m, `${q.id}: ${line}`).not.toBeNull()
+        expect(labels, `${q.id}: ${line}`).toContain(m![1])
+      }
+    }
+  })
 })
 
 describe('問題 ID', () => {
