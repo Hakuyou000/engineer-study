@@ -34,4 +34,19 @@ echo
 npm run dev -- --open || fail
 
 echo
-echo "終了しました。このウィンドウは閉じてかまいません。"
+echo "終了しました。このウィンドウを閉じます。"
+
+# 画面の「終了」で止めたら、このターミナルのウィンドウも閉じる。
+# シェルが終わってから閉じないと「プロセスを終了しますか」と聞かれるので、少し待ってから閉じる。
+# 閉じられないとき(初回の許可を断ったときなど)は、ウィンドウが残るだけで害はない。
+MY_TTY="$(tty)"
+nohup osascript \
+  -e 'on run argv' \
+  -e 'delay 1' \
+  -e 'tell application "Terminal"' \
+  -e 'repeat with w in windows' \
+  -e 'if tty of selected tab of w is (item 1 of argv) then close w' \
+  -e 'end repeat' \
+  -e 'end tell' \
+  -e 'end run' "$MY_TTY" >/dev/null 2>&1 &
+exit 0
