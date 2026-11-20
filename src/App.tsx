@@ -147,7 +147,7 @@ export function App() {
       <main>
         <section className="card">
           <h2>終了しました</h2>
-          <p>このタブは閉じて大丈夫です。解答の履歴は保存されています。</p>
+          <p>解答の履歴は保存されています。このタブは Ctrl+W(Mac は ⌘W)で閉じられます。</p>
         </section>
       </main>
     )
