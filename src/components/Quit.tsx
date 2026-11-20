@@ -9,7 +9,8 @@ export function Quit({ onQuit, onError }: { onQuit: () => void; onError: (messag
       .then((r) => {
         if (!r.ok) throw new Error(`終了できませんでした(${r.status})`)
         onQuit()
-        // スクリプトから開いたタブでなければ閉じられない。閉じられないときは案内を表示したままにする
+        // ブラウザは、スクリプトで開いていないタブを、履歴が 2 件以上あると閉じさせない(画面の移動で履歴を積むので、ほぼ閉じない)。
+        // 閉じられないときは、終了の画面に Ctrl+W の案内を出したままにする
         window.close()
       })
       .catch((e: unknown) => onError(e instanceof Error ? e.message : String(e)))
