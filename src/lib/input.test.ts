@@ -20,6 +20,13 @@ describe('入力の判定', () => {
     expect(inputMatches(['atq'], '')).toBe(false)
   })
 
+  it('拡張子は「*」を付けても正解になる', () => {
+    expect(inputMatches(['.tf'], '*.tf')).toBe(true)
+    expect(inputMatches(['.tf.json'], '*.tf.json')).toBe(true)
+    expect(inputMatches(['.tf'], '*.tfvars')).toBe(false)
+    expect(inputMatches(['ls'], '*ls')).toBe(false)
+  })
+
   it('コマンド名は大文字小文字を区別し、大文字だけの答えは区別しない', () => {
     expect(inputMatches(['who'], 'WHO')).toBe(false)
     expect(inputMatches(['KILL'], 'kill')).toBe(true)
