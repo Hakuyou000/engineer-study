@@ -133,6 +133,40 @@ main { max-width: var(--content); margin: 0 auto; padding: var(--sp-6) var(--gut
   padding: 2px var(--sp-3); min-height: 32px; font-weight: 700; font-size: var(--fs-ui); line-height: var(--lh-ui);
 }
 .exam-switch:not(:disabled):hover { border-color: var(--console-ink); }
+.exam-switch:disabled { opacity: 0.6; }
+
+/* 試験の切り替えメニュー。デスクトップはボタンの下に、スマホは下から出す */
+.exam-switch-wrap { position: relative; min-width: 0; }
+.exam-menu-backdrop { position: fixed; inset: 0; z-index: 40; background: transparent; }
+.exam-menu {
+  position: absolute; top: calc(100% + var(--sp-2)); left: 0; z-index: 41;
+  width: 340px; max-height: min(70vh, 560px); overflow: auto;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--rule-strong); border-radius: var(--r-lg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); padding: var(--sp-2);
+}
+.exam-menu-title { margin: var(--sp-1) var(--sp-2) var(--sp-2); font-size: var(--fs-sm); font-weight: 700; color: var(--sub); }
+.exam-menu-item {
+  display: flex; align-items: center; gap: var(--sp-3); width: 100%; text-align: left;
+  border: 0; border-radius: var(--r-md); background: transparent; padding: var(--sp-2) var(--sp-3);
+}
+.exam-menu-item:not(:disabled):hover, .exam-menu-item:focus-visible { background: var(--accent-soft); }
+.exam-menu-item:focus-visible { outline-offset: -2px; }
+.exam-menu-item.on { box-shadow: inset 3px 0 0 var(--accent); font-weight: 700; }
+.exam-menu-item .lamp { width: 14px; height: 8px; }
+.exam-menu-name { flex: 1 1 auto; min-width: 0; }
+.exam-menu-count { color: var(--sub); font-size: var(--fs-sm); font-weight: 400; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.exam-menu-toc { margin-top: var(--sp-1); border-top: 1px solid var(--rule); border-radius: 0 0 var(--r-md) var(--r-md); color: var(--accent); font-size: var(--fs-ui); }
+@media (max-width: 720px) {
+  .exam-menu-backdrop { z-index: 50; background: rgb(0 0 0 / 0.38); }
+  .exam-menu {
+    position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 51; width: auto;
+    max-height: 75vh; border-radius: var(--r-lg) var(--r-lg) 0 0; border-width: 4px 0 0; border-color: var(--accent);
+    padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+  }
+  .exam-menu-item { min-height: var(--tap); }
+}
+
 .caret { display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; }
 .appbar-aux { margin-left: auto; display: flex; align-items: center; gap: var(--sp-1); }
 .appbar .tab {
