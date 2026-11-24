@@ -3,9 +3,11 @@ import { Md } from './Md'
 
 /** 用語の詳しい説明、例、注意。用語集と本文の用語のシートで共通 */
 export function TermDetail({ term }: { term: Term }) {
+  // 要約と同じ文で始まる説明は、その文を繰り返さない
+  const body = term.body.startsWith(term.summary) ? term.body.slice(term.summary.length).trim() : term.body
   return (
     <div className="term-detail">
-      <Md text={term.body} />
+      {body && <Md text={body} />}
       {term.examples.length > 0 && (
         <div className="term-examples">
           <p className="term-label">例</p>
