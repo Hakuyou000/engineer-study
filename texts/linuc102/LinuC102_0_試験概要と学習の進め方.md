@@ -103,11 +103,78 @@ WSL では、ネットワークの設定(nmcli、ifup)と時刻の同期の設�
 - **ifup / ifdown**: AlmaLinux 9 では、古い network-scripts が外され、NetworkManager の仕組みで動きます。Ubuntu では `ifupdown` を入れると使えますが、普段は netplan と NetworkManager で設定します。試験では、両方の考え方を問われます。
 - **ntpd / ntpdate**: AlmaLinux 9 と Ubuntu 24.04 では、時刻の同期には chrony(または systemd-timesyncd)を使います。ntpd は入っていません。ntpd と ntpdate は、試験の範囲として設定ファイルとコマンドの役割を覚えます。
 
-### 5. 壊してもよいようにする
+### 5. 壊してもよいようにする(スナップショット)
 
-- 仮想マシンは、作業の前にスナップショットを取っておきます。設定を壊しても、すぐに戻せます。
-- WSL では `wsl --export AlmaLinux-9 alma.tar` で丸ごと保存できます。
-- 練習が終わった配布版は `wsl --unregister AlmaLinux-9` で消せます(中のファイルもすべて消えます)。
+**スナップショット**は、仮想マシンのある時点のディスク(と、取り方によってはメモリ)の状態を保存したものです。設定を壊しても、取った時点にすぐ戻せます。次の時点で取っておくと便利です。
+
+- OS を入れ終わり、足りないコマンドを入れた直後(まっさらな状態)
+- ネットワークやディスクの設定を変える練習の前
+
+戻すと、その時点より後の変更はすべて消えます。残したいファイルは、戻す前に外へコピーしておきます。
+
+#### VirtualBox
+
+画面では、左の一覧で仮想マシンを選び、その名前の横のメニュー(≡)から「スナップショット」(Snapshots)を開いて「作成」を押します。戻すときは、一覧でスナップショットを選んで「復元」を押します。コマンドでも同じことができます(Windows では `C:\Program Files\Oracle\VirtualBox` にある `VBoxManage.exe`)。
+
+```bash
+VBoxManage snapshot "alma9" take "clean" --description "OS を入れた直後"
+VBoxManage snapshot "alma9" list
+VBoxManage controlvm "alma9" poweroff     # 戻す前に止める
+VBoxManage snapshot "alma9" restore "clean"
+VBoxManage snapshot "alma9" delete "clean" # 要らなくなったら消す
+```
+
+動いている仮想マシンでも取れますが、戻すときは仮想マシンを止めておきます。
+
+#### Hyper-V
+
+Hyper-V では、スナップショットを**チェックポイント**と呼びます。Hyper-V マネージャーで仮想マシンを右クリックし、「チェックポイント」を選びます。戻すときは、チェックポイントを右クリックして「適用」を選びます。PowerShell(管理者)では次のとおりです。
+
+```powershell
+Checkpoint-VM -Name alma9 -SnapshotName clean
+Get-VMSnapshot -VMName alma9
+Restore-VMSnapshot -VMName alma9 -Name clean -Confirm:$false
+Remove-VMSnapshot -VMName alma9 -Name clean
+```
+
+既定の「運用チェックポイント」は、ゲストの OS に頼んでディスクを整った状態にしてから取ります(メモリは保存しない)。
+
+#### Multipass
+
+止めてから取ります。
+
+```bash
+multipass stop alma9
+multipass snapshot alma9 --name clean
+multipass list --snapshots
+multipass restore alma9.clean
+```
+
+#### UTM(Mac)
+
+UTM は 5.0 からスナップショットに対応しました。それより古い版では、仮想マシンを止めて「複製」(Clone)を作り、それを控えにします。
+
+> **【要確認】** UTM のスナップショットの画面の場所は、版によって違うことがあります。
+
+#### WSL
+
+WSL にはスナップショットがないので、配布版を丸ごとファイルに書き出して控えにします。
+
+```powershell
+wsl --shutdown
+wsl --export AlmaLinux-9 C:\WSL\backup\alma-clean.tar          # 書き出す
+wsl --unregister AlmaLinux-9                                    # 消す(中のファイルもすべて消える)
+wsl --import AlmaLinux-9 C:\WSL\AlmaLinux-9 C:\WSL\backup\alma-clean.tar   # 控えから戻す
+```
+
+`wsl --import` で戻すと、ログインするユーザーが root になります。元のユーザーでログインするには、配布版の中の `/etc/wsl.conf` に次を書き、`wsl --terminate AlmaLinux-9` で一度止めます。
+
+```ini
+[user]
+default=sato
+```
+
+練習が終わった配布版は `wsl --unregister AlmaLinux-9` で消せます。
 
 ## 6. 情報源
 

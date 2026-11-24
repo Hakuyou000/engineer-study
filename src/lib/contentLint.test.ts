@@ -37,6 +37,11 @@ describe('lintQuestions', () => {
     expect(rules([q({ stem: '問3 の設定で、次はどうなるか' })])).toEqual(['error:xref'])
   })
 
+  it('「セキュリティ上の問題」「運用上の問題」は他問参照にしない', () => {
+    expect(rules([q({ explanation: 'セキュリティ上の問題があり、運用上の問題もある。\n\n- B. x\n- C. x\n- D. x' })])).toEqual([])
+    expect(rules([q({ stem: '上の問題と同じ設定で、次はどうなるか' })])).toEqual(['error:xref'])
+  })
+
   it('コードブロックの中の「問1の」は見ない', () => {
     expect(rules([q({ stem: '```\necho 問1の答え\n```\n出力はどれか' })])).toEqual([])
   })
