@@ -35,7 +35,7 @@ export function CertView({ cert, stats, onOpen, onRoadmap }: Props) {
         </button>
       </p>
 
-      {stats.map((stat) => (
+      {stats.map((stat, i) => (
         <div key={stat.key} className="cert-app">
           <h3>このアプリで学ぶ{stats.length > 1 ? `: ${examLabel(stat.key)}` : ''}</h3>
           <p className="meta">
@@ -43,7 +43,8 @@ export function CertView({ cert, stats, onOpen, onRoadmap }: Props) {
           </p>
           <progress className="roadmap-bar" max={stat.total} value={stat.seen} />
           <div className="actions">
-            <button className="primary" onClick={() => onOpen(stat.key, 'home')}>
+            {/* 塗りのボタンは 1 画面に 1 つ(DESIGN.md)。最初の試験だけ塗る */}
+            <button className={i === 0 ? 'primary' : ''} onClick={() => onOpen(stat.key, 'home')}>
               問題演習
             </button>
             <button onClick={() => onOpen(stat.key, 'text')}>テキスト</button>
