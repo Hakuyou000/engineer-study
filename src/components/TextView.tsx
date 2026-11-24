@@ -71,8 +71,8 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
 
   return (
     <section className="card">
-      <label className="inline">
-        テキスト
+      <label className="text-head">
+        <span className="text-head-label">テキスト</span>
         <select value={id} onChange={(e) => select(e.target.value)}>
           {exams.map((exam) => (
             <optgroup key={exam} label={exam}>
@@ -92,12 +92,19 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
       {md !== null && (
         <>
           {sections.length > 1 && (
-            <nav className="toc" aria-label="目次">
-              {sections.map((s, i) => (
-                <button key={i} className="link" onClick={() => refs.current[i]?.scrollIntoView({ block: 'start' })}>
-                  {s.heading}
-                </button>
-              ))}
+            <nav className="toc" aria-labelledby="text-toc-label">
+              <p className="toc-label" id="text-toc-label">
+                このページの内容
+              </p>
+              <ol>
+                {sections.map((s, i) => (
+                  <li key={i}>
+                    <button className="link" onClick={() => refs.current[i]?.scrollIntoView({ block: 'start' })}>
+                      {s.heading}
+                    </button>
+                  </li>
+                ))}
+              </ol>
             </nav>
           )}
           <Suspense fallback={<p className="meta">読み込み中</p>}>
