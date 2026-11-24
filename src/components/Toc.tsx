@@ -21,7 +21,8 @@ export function Toc({ groups, textCount, current, onOpen, onCert }: Props) {
   const actions = (exam: string | null) => {
     return (
       <div className="row-actions">
-        <button className="primary" onClick={() => onOpen(exam, 'home')}>
+        {/* 塗りのボタンは 1 画面に 1 つ(DESIGN.md)。選んでいる試験だけ塗る */}
+        <button className={exam === current ? 'primary' : ''} onClick={() => onOpen(exam, 'home')}>
           問題演習
         </button>
         <button className="quiet" onClick={() => onOpen(exam, 'drill')}>
