@@ -50,6 +50,20 @@ export interface Card {
   last: number
 }
 
+/** 問題への指摘の種類 */
+export const FLAG_KINDS = ['答えが違う', '問題文があいまい', '解説が足りない', '入力の別解がある', '古い情報', 'その他'] as const
+export type FlagKind = (typeof FLAG_KINDS)[number]
+
+/** 解いた人が問題に付ける指摘。1 問に 1 つ。エクスポートして npm run triage で一覧にする */
+export interface Flag {
+  questionId: string
+  /** 画面の問題 ID。例: CCNA-1.0-012 */
+  code: string
+  ts: number
+  kind: FlagKind
+  note: string
+}
+
 export interface DrillAttempt {
   id?: number
   type: string

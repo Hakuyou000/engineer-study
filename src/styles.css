@@ -307,6 +307,15 @@ ul.plain, ul.choices { list-style: none; padding: 0; margin: 14px 0; }
 .verdict p { margin: 4px 0 0; }
 .explain { margin-top: 6px; border-top: 1px solid var(--rule); }
 .explain .md p { margin: 10px 0; }
+.flag-box { margin: 10px 0 0; }
+.flag-box.meta .link { margin-left: 8px; }
+.flag-form { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px 14px; }
+.flag-form label { display: grid; gap: 4px; font-size: var(--fs-small); color: var(--sub); }
+.flag-form select, .flag-form textarea { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 6px; padding: 6px 8px; width: 100%; box-sizing: border-box; }
+.flag-form .actions { margin-top: 0; }
+.flag-list { list-style: none; padding: 0; margin: 8px 0; }
+.flag-list li { padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.flag-list .link { margin-left: 8px; }
 .review { border-top: 1px solid var(--rule); padding-top: 16px; margin-top: 16px; }
 .result-score { font-size: 1.125rem; }
 .result-score strong { font-size: 2.25rem; font-variant-numeric: tabular-nums; margin-right: 4px; }
