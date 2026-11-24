@@ -17,6 +17,8 @@ export function inputMatches(accept: readonly string[], input: string): boolean 
     const n = normalizeInput(a)
     // プレフィックス長は「/26」と「26」のどちらでもよい
     if (/^\/\d+$/.test(n)) return v.replace(/^\//, '') === n.slice(1)
+    // 拡張子は「.tf」と「*.tf」のどちらでもよい
+    if (/^\.[A-Za-z0-9.]+$/.test(n) && v === `*${n}`) return true
     return /^[A-Z0-9_-]+$/.test(n) ? n.toLowerCase() === v.toLowerCase() : n === v
   })
 }
