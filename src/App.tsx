@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { DrillView } from './components/DrillView'
 import { CertView } from './components/CertView'
 import { Exam } from './components/Exam'
+import { ExamSwitch } from './components/ExamSwitch'
 import { GlossaryView } from './components/GlossaryView'
 import { Home, type StartOptions } from './components/Home'
 import { Quit } from './components/Quit'
@@ -16,7 +17,7 @@ import { buildStudySession, isCorrect, review, shuffle } from './lib/srs'
 import { loadShufflePref, originalKeys, shuffleChoices } from './lib/shuffle'
 import { examList, loadGroup, saveGroup } from './lib/groups'
 import { canInput, toInput } from './lib/input'
-import { computeStats, examLabel, groupByExam } from './lib/stats'
+import { computeStats, groupByExam } from './lib/stats'
 import { TEXTS } from './lib/texts'
 import { certById } from './lib/certs'
 import { weakQuestions } from './lib/weak'
@@ -232,6 +233,13 @@ export function App() {
     navigate({ name: section }, g)
   }
 
+  /** 上の帯で試験を選んだ。今の画面のまま、試験だけを切り替える(用語集は開いていた用語を閉じる) */
+  const switchGroup = (g: string | null) => {
+    if (session) return
+    setStore({ ...store, now: Date.now() })
+    navigate(view.name === 'glossary' ? { name: 'glossary' } : view, g)
+  }
+
   const isOn = (name: string) => view.name === name || (name === 'roadmap' && view.name === 'cert') || (name === 'home' && session !== null)
   const tab = (name: 'toc' | 'roadmap' | 'glossary' | Section, label: string) => (
     <button
@@ -253,10 +261,13 @@ export function App() {
             </button>
           )}
           <h1 className="brand">sre-drill</h1>
-          <button className="exam-switch" onClick={() => setView({ name: 'toc' })} aria-label="試験を選ぶ(目次を開く)">
-            {group === null ? 'すべての試験' : examLabel(group)}
-            <span aria-hidden="true" className="caret" />
-          </button>
+          <ExamSwitch
+            groups={allGroups}
+            current={group}
+            locked={session !== null}
+            onSelect={switchGroup}
+            onToc={() => setView({ name: 'toc' })}
+          />
           <div className="appbar-aux">
             {tab('roadmap', 'ロードマップ')}
             {tab('glossary', '用語集')}
