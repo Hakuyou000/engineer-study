@@ -2,6 +2,7 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { countByRule, lintQuestions } from '../src/lib/contentLint'
 import { compareExam } from '../src/lib/order'
 import { parseQuestions } from '../src/lib/parser'
 import { parseGlossary, validateGlossary, type Term } from '../src/lib/glossary'
@@ -31,6 +32,14 @@ all.sort((a, b) => compareExam({ exam: a.exam, number: a.domain }, { exam: b.exa
 
 const ids = new Set(all.map((q) => q.id))
 if (ids.size !== all.length) throw new Error('問題 ID が重複している')
+
+// 内容の検査(src/lib/contentLint.ts)。error があれば止める。warn は件数だけ出す
+const findings = lintQuestions(all)
+const errors = findings.filter((f) => f.level === 'error')
+for (const f of errors) console.error(`[${f.rule}] ${f.code}: ${f.message}`)
+const warns = countByRule(findings.filter((f) => f.level === 'warn'))
+for (const [rule, n] of Object.entries(warns)) console.log(`warn ${rule}: ${n} 問`)
+if (errors.length) throw new Error(`内容の検査で ${errors.length} 件の誤り`)
 
 mkdirSync(join(root, 'src', 'data'), { recursive: true })
 writeFileSync(outFile, JSON.stringify(all, null, 1) + '\n')

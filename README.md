@@ -49,9 +49,21 @@ macOS では、`start.command` をダブルクリックすると起動できま�
 | `npm test` | 単体テスト |
 | `npm run lint` | ESLint |
 | `npm run build` | 型検査と本番ビルド(`dist/`) |
-| `npm run gen` | `content/` から `src/data/questions.json` を生成 |
+| `npm run gen` | `content/` から `src/data/questions.json` を生成し、内容を検査する |
+| `npm run coverage` | 出題範囲の用語が問題に出てくるかを表示する。`-- --check` で検査、`-- --update` で基準を更新 |
+| `npm run triage -- <バックアップ>` | エクスポートした履歴から、指摘のある問題と正答率の低い問題を一覧にする |
+| `npm run metrics` | 改善ループの指標を `docs/指標.md` に記録する |
+| `npm run check` | lint、テスト、網羅性の検査、ビルドをまとめて実行する(CI と同じ) |
 
-`dev`、`test`、`build` は、実行する前に `gen` を自動で呼びます。
+`dev`、`test`、`build`、`coverage`、`triage`、`metrics` は、実行する前に `gen` を自動で呼びます。
+
+## 改善の進め方
+
+欠陥を見つけたら直し、同じ種類が二度と入らないように検査に変えます。手順と記録は [docs/改善ログ.md](docs/改善ログ.md)、指標は [docs/指標.md](docs/指標.md) にあります。
+
+- 内容の検査(`src/lib/contentLint.ts`): `npm run gen` のたびに実行します。ほかの問題を前提にした書き方、並べ替えで崩れる解説の記号、複数選択の数の食い違い、同じ問題文、取り決めた版との違いなどを見つけると、生成が失敗します
+- 網羅性の検査(`scripts/coverage/`): 試験ごとの用語の表(`terms/`)と基準(`baseline.json`)を比べ、出てこなくなった用語、問題のない小項目、2 問未満の小項目があると失敗します
+- 学習中の指摘: 解説の下の「この問題に指摘する」で、答えの誤りや別解を記録できます。成績画面に一覧が出て、エクスポートに含まれます
 
 ## 問題の追加
 
@@ -148,7 +160,9 @@ show interfaces の出力など
 content/            問題の正本(Markdown)
 texts/              テキスト(Markdown)
 glossary/           用語集(Markdown)
-scripts/            Markdown → JSON の変換
+scripts/            Markdown → JSON の変換、網羅性の検査、指標、指摘の一覧
+src/lib/contentLint.ts 問題の内容の検査
+src/lib/triage.ts   指摘と正答率から直す候補を選ぶ
 src/lib/parser.ts   問題 Markdown の解析
 src/lib/srs.ts      間隔反復と出題順
 src/lib/weak.ts     間違えた問題の抽出
@@ -161,7 +175,7 @@ src/lib/roadmap.ts  ロードマップの内容
 src/lib/certs.ts    資格の表紙の内容
 src/lib/order.ts    試験の表示順(LinuC → CCNA → AWS SAA → Terraform → Docker → K8s)
 src/lib/drills/     計算ドリルの生成と採点
-src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴)
+src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴、問題への指摘)
 src/components/     画面
 ```
 
@@ -171,7 +185,7 @@ src/components/     画面
 
 ## CI
 
-`.github/workflows/ci.yml` が、push と pull request のたびに lint、テスト、ビルドを実行します。
+`.github/workflows/ci.yml` が、push と pull request のたびに lint、テスト、網羅性の検査、ビルドを実行します。変更はブランチで作り、pull request で CI を通してから main に入れます。
 
 ## 今後
 
