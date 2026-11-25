@@ -58,6 +58,25 @@ volumes:
 - プロジェクトごとに**既定のネットワーク**(`myapp_default`)を自動で作り、全サービスをつなぎます。サービスは**サービス名で**互いに通信できます(上の例では `db:5432`)。
 - コンテナ同士の通信に `ports` は不要です。`ports` はホストの外から入るときだけ使います。
 
+上の例を `docker compose up -d` で動かしたときの構成です。サービス同士はサービス名で通信し、`ports` で公開したものだけが外から届きます。
+
+```text
+client
+  |
+  |  8080 (ports "8080:8000")
+  v
+[myapp-web-1]  service: web, port 8000
+  |
+  |  db:5432         <- サービス名で接続する。ports は不要
+  v
+[myapp-db-1]   service: db
+  |
+  v
+[volume myapp_pgdata]    <- down では消えない
+
+network: myapp_default   <- 全サービスがつながる
+```
+
 ## 6.2 主なコマンド
 
 | コマンド | 動き |
@@ -91,6 +110,15 @@ depends_on:
 | `service_started`(短い書き方の既定) | 依存先のコンテナが**起動した**ら始める |
 | `service_healthy` | 依存先が **healthy** になったら始める(依存先に healthcheck が必要) |
 | `service_completed_successfully` | 依存先が**正常に終了した**ら始める(マイグレーションなどの一回だけの処理) |
+
+`depends_on` の条件ごとに、web が始まる時点を比べます。
+
+```text
+time ------------------------------------------------------------>
+db                      : [started] -- healthcheck -- [healthy]
+web (service_healthy)   :                              [started]    <- db が healthy になってから
+web (service_started)   : [started]                                 <- db の起動の直後に始める
+```
 
 - `depends_on: [db]` の短い書き方は「起動の順番」を決めるだけで、データベースが**接続を受け付けられる状態か**は待ちません。そのため、Web アプリが先に接続して失敗することがあります。`service_healthy` と healthcheck を組み合わせます。
 - それでも、アプリ側にも接続の再試行を入れておくのが堅牢です。
