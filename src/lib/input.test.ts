@@ -14,6 +14,22 @@ describe('入力の判定', () => {
     expect(normalizeInput('/')).toBe('/')
   })
 
+  it('全角の数字と英字は半角と同じに扱う', () => {
+    expect(inputMatches(['500'], '５００')).toBe(true)
+    expect(inputMatches(['500個'], '５００個')).toBe(true)
+    expect(inputMatches(['CPRM'], 'ＣＰＲＭ')).toBe(true)
+    expect(inputMatches(['500'], '５０１')).toBe(false)
+  })
+
+  it('数は桁の区切りを無視する', () => {
+    expect(inputMatches(['11110000'], '1111 0000')).toBe(true)
+    expect(inputMatches(['1000'], '1,000')).toBe(true)
+    expect(inputMatches(['2F'], '2f')).toBe(true)
+    expect(inputMatches(['11110000'], '1111 0001')).toBe(false)
+    expect(inputMatches(['17日'], '17 日')).toBe(true)
+    expect(inputMatches(['at -l'], 'at-l')).toBe(false)
+  })
+
   it('複数の正解のどれかに一致すればよい', () => {
     expect(inputMatches(['atq', 'at -l'], 'at -l')).toBe(true)
     expect(inputMatches(['atq', 'at -l'], 'atrm')).toBe(false)

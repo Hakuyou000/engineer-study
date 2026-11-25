@@ -28,7 +28,7 @@ export interface ExamStat extends SectionStat {
 
 /** 表示用の試験名。LinuC102 → LinuC 102 */
 /** 表示名が試験コードから作れない試験 */
-const LABELS: Record<string, string> = { SAA: 'AWS SAA', DOP: 'AWS DOP' }
+const LABELS: Record<string, string> = { SAA: 'AWS SAA', DOP: 'AWS DOP', ITPassport: 'ITパスポート', FE: '基本情報' }
 
 export const examLabel = (exam: string) => LABELS[exam] ?? exam.replace(/^([A-Za-z]+)(\d+)$/, '$1 $2')
 
