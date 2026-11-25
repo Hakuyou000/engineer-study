@@ -25,6 +25,19 @@ Docker は既定で、seccomp(使えるシステムコールの制限)と AppArm
 | ユーザーを `docker` グループに入れる | `docker` コマンドを sudo なしで使えるが、実質的に root の権限を与えることになる |
 | `--network host`、`--pid host` | ホストとの分離がなくなる |
 
+docker.sock をマウントしたコンテナから、ホストの Docker デーモンを操作できる様子です。
+
+```text
+[container]  -v /var/run/docker.sock:/var/run/docker.sock
+  |
+  |  Docker API
+  v
+[dockerd on the host: root]     <- コンテナから、デーモンに何でも命じられる
+  |
+  v
+[any new container]             <- 好きな設定のコンテナを作れる。ホストの root と同じ
+```
+
 デーモンを root 以外で動かす **rootless モード**を使うと、抜け出されたときの被害を小さくできます。
 
 ### 3. 秘密情報をイメージに入れない
@@ -53,6 +66,20 @@ Docker は既定で、seccomp(使えるシステムコールの制限)と AppArm
 | `journald` / `syslog` | ホストの journald / syslog |
 | `awslogs` / `gcplogs` | CloudWatch Logs / Cloud Logging |
 | `fluentd` | Fluentd に送る |
+
+コンテナの標準出力と標準エラー出力は、デーモンのロギングドライバーが受け取り、送り先に渡します。
+
+```text
+[app]
+  |
+  |  stdout / stderr
+  v
+[dockerd: logging driver]
+  +-- json-file   --> host file             <- 既定。ローテーションしない
+  +-- journald    --> host journald
+  +-- awslogs     --> CloudWatch Logs
+  `-- fluentd     --> Fluentd
+```
 
 ### 2. ログのローテーション
 
@@ -108,6 +135,16 @@ docker context use build-server      # 以降の docker コマンドは build01 
 docker ps                            # build01 のコンテナ
 docker context use default           # 手元に戻す
 docker --context build-server ps     # 一回だけ別の接続先を使う
+```
+
+docker コマンドが、context で接続先のデーモンを切り替える様子です。
+
+```text
+[docker CLI]
+  |
+  +-- context: default       --> /var/run/docker.sock --> [local dockerd]
+  |
+  `-- context: build-server  --> ssh                   --> [build01: dockerd]
 ```
 
 - 環境変数 `DOCKER_HOST`(例: `ssh://ops@build01.example.com`)でも接続先を変えられます。設定されていると、`docker context use` より優先されます。

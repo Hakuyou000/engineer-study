@@ -52,6 +52,17 @@ docker build -t myapp:1.0 .
 
 shell 形式だと、`docker stop` が送る SIGTERM をシェルが受け取り、アプリに届かないことがあります。その結果、10 秒待って SIGKILL で強制終了されます。`CMD` と `ENTRYPOINT` は exec 形式で書きます。
 
+`docker stop` が送る SIGTERM が、どのプロセスに届くかを比べます。
+
+```text
+exec-form:  CMD ["python", "app.py"]
+  PID 1: python app.py                <- SIGTERM を直接受け取る
+
+shell-form: CMD python app.py
+  PID 1: /bin/sh -c "python app.py"   <- SIGTERM を受け取るのはシェル
+    +-- python app.py                 <- 届かないことがある。10 秒後に SIGKILL
+```
+
 ### 4. CMD と ENTRYPOINT
 
 | | `CMD` | `ENTRYPOINT` |
@@ -108,6 +119,23 @@ COPY . .                          # ソースコード(よく変わる)
 ```
 
 ソースコードを先に全部 `COPY` すると、1 行変えただけで毎回 `pip install` がやり直しになります。
+
+ソースコードを 1 行変えたあとのビルドを、命令の順番ごとに比べます。依存関係の一覧を先に `COPY` すると、`pip install` の層を使い回せます。
+
+```text
+Good: requirements.txt を先に COPY する
+  1  FROM python:3.13-slim                 cache
+  2  COPY requirements.txt .               cache
+  3  RUN pip install -r requirements.txt   cache    <- 一覧が同じなので、前の層を使う
+  4  COPY . .                              rebuild  <- ソースが変わったのでここから作り直す
+  5  CMD ["python", "app.py"]              rebuild
+
+Bad: ソースを先に全部 COPY する
+  1  FROM python:3.13-slim                 cache
+  2  COPY . .                              rebuild  <- 1 行変えただけで、ここから作り直す
+  3  RUN pip install -r requirements.txt   rebuild  <- 毎回、パッケージを入れ直す
+  4  CMD ["python", "app.py"]              rebuild
+```
 
 キャッシュを使わずにビルドするには `docker build --no-cache` を使います。
 
@@ -170,6 +198,17 @@ FROM gcr.io/distroless/static-debian12
 COPY --from=build /out/app /app
 USER nonroot
 ENTRYPOINT ["/app"]
+```
+
+マルチステージビルドで、ファイルが次の段階に渡る様子です。
+
+```text
+[stage build: golang:1.25]          <- コンパイラとソースコードがある
+  |
+  |  COPY --from=build /out/app /app
+  v
+[stage final: distroless/static]    <- この段階だけが最終のイメージになる
+  /app                              <- コピーした実行ファイルだけが入る
 ```
 
 - `FROM … AS 名前` で段階に名前を付け、`COPY --from=名前` で前の段階からファイルだけをコピーします。
