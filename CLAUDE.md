@@ -4,7 +4,7 @@
 
 ## 1. このアプリ
 
-- 資格(LinuC 101 と 102、CCNA、AWS SAA、AWS DevOps Engineer – Professional、Terraform Associate、CKA)と SRE の基礎を学ぶ、ブラウザだけで動く学習アプリ。
+- 資格(ITパスポート、基本情報技術者、LinuC 101 と 102、CCNA、AWS SAA、AWS DevOps Engineer – Professional、Terraform Associate、CKA)と SRE の基礎を学ぶ、ブラウザだけで動く学習アプリ。
 - 使う人: 学習している本人。エンジニアになって 1 年以内の人に分かる内容にする。
 - 構成: Vite + React 19 + TypeScript。テストは vitest、lint は eslint。
 - 教材は Markdown が正。`npm run gen`(`scripts/build-questions.ts`)が `content/`、`texts/`、`glossary/` から `src/data/*.json` を作る。JSON は Git に入れない。
@@ -45,6 +45,8 @@
 - 入力問題は選択肢を書かず、`**正解**:` に答えを並べる。よくある別の正しい書き方(長いオプション、`Ctrl+D`・`Ctrl-D`・`^D` のような表記の揺れ、同じ結果になる別のコマンド)も並べる。答えにファイル名を含めないなら、問題文に「(ファイル名は不要)」と書く。
 - 選択問題を入力でも出すときの別の書き方は、`**入力の別解**:` の行に書く。
 - YAML の穴埋めは入力問題として書き、問題文の先頭に「【YAML の穴埋め】」、空欄を `____` にする。
+- 基本情報の擬似言語は、IPA の「試験で使用する情報技術に関する用語・プログラム言語など」の記法に合わせる。`○` は手続と関数の宣言にだけ付け、変数の宣言(`整数型: x`)には付けない。大域変数は `大域: 整数型: x` と書く。配列の要素番号が 1 から始まることは、問題文に毎回書く。
+- 解説で、作業や工場などの名前を記号で呼ぶときは「作業 B は」のように名詞を付ける。文頭の「B は」は、選択肢の記号への言及とテストが判定する。
 - Kubernetes の問題には `[CKA]` か `[実務]` のタグを付ける。
 - 正解の選択肢の位置(A〜D)が偏らないようにする。
 - 版をそろえる。Terraform の AWS プロバイダーは 6 系。架空の値(AMI ID など)は、架空であることを書く。
@@ -64,7 +66,7 @@
 | Obsidian の Vault(クロの倉庫) | `C:\Users\mira8\OneDrive\Documents\クロの倉庫\SRE\<科目>\` | テキストは `<科目>\`、問題は `<科目>\問題\`、用語集は `用語集\` |
 | claude.ai の Project「SREエンジニアになるための知識定着」 | `<科目>/…`、`<科目>/問題/…`、`用語集/…` | 同上 |
 
-科目のフォルダの名前: `linuc101` → `LinuC101`、`linuc102` → `LinuC102`、`ccna` → `CCNA`、`aws-saa` → `AWS-SAA`、`aws-dop` → `AWS-DOP`、`terraform` → `Terraform`、`docker` → `Docker`、`k8s` → `Kubernetes`、`glossary` → `用語集`。調査の報告は `調査`。
+科目のフォルダの名前: `itpassport` → `ITパスポート`、`fe` → `基本情報`、`linuc101` → `LinuC101`、`linuc102` → `LinuC102`、`ccna` → `CCNA`、`aws-saa` → `AWS-SAA`、`aws-dop` → `AWS-DOP`、`terraform` → `Terraform`、`docker` → `Docker`、`k8s` → `Kubernetes`、`glossary` → `用語集`。調査の報告は `調査`。
 
 - Vault への書き込みは、ユーザーの PC につながっているときだけできる。つながっていなければ、その旨を報告する。
 - Project の既存の文書を上書きするには、先に今の文書を読む必要がある。量が多いときは、予約実行に分けてよい。

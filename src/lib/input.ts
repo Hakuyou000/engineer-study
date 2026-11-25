@@ -1,8 +1,9 @@
 import type { Question } from './types'
 
-/** 入力の比較用。前後の空白、囲みの記号、連続する空白、末尾の / を無視する。 */
+/** 入力の比較用。全角の英数字と記号(NFKC で半角にする)、前後の空白、囲みの記号、連続する空白、末尾の / を無視する。 */
 export function normalizeInput(s: string): string {
   return s
+    .normalize('NFKC')
     .trim()
     .replace(/^[`'"「]+|[`'"」]+$/g, '')
     .replace(/\s+/g, ' ')
@@ -19,6 +20,10 @@ export function inputMatches(accept: readonly string[], input: string): boolean 
     if (/^\/\d+$/.test(n)) return v.replace(/^\//, '') === n.slice(1)
     // 拡張子は「.tf」と「*.tf」のどちらでもよい
     if (/^\.[A-Za-z0-9.]+$/.test(n) && v === `*${n}`) return true
+    // 数(2 進数、16 進数を含む)は、桁の区切りの空白、「,」、「_」を無視する(「1111 0000」「1,000」)
+    if (/^(?=.*\d)[0-9A-Fa-f]+$/.test(n) && v.replace(/[\s,_]/g, '').toLowerCase() === n.toLowerCase()) return true
+    // 英字を含まない答え(「17日」「500個」)は、数と単位の間の空白を無視する
+    if (!/[A-Za-z]/.test(n) && v.replace(/\s/g, '') === n.replace(/\s/g, '')) return true
     return /^[A-Z0-9_-]+$/.test(n) ? n.toLowerCase() === v.toLowerCase() : n === v
   })
 }
