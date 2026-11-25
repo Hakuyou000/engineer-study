@@ -205,9 +205,12 @@ ENTRYPOINT ["/app"]
 
 ### 2. イメージの名前
 
-```
+```text
 registry.example.com/team/myapp:1.0
-└──── レジストリ ────┘└名前空間┘└リポジトリ┘└タグ┘
+^^^^^^^^^^^^^^^^^^^^                  レジストリ
+                     ^^^^             名前空間
+                          ^^^^^       リポジトリ
+                                ^^^   タグ
 ```
 
 - レジストリを省略すると Docker Hub(`docker.io`)です。公式イメージは `library/` が省略されています(`nginx` = `docker.io/library/nginx`)。
