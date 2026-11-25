@@ -70,15 +70,7 @@ docker.sock をマウントしたコンテナから、ホストの Docker デー
 コンテナの標準出力と標準エラー出力は、デーモンのロギングドライバーが受け取り、送り先に渡します。
 
 ```text
-[app]
-  |
-  |  stdout / stderr
-  v
-[dockerd: logging driver]
-  +-- json-file   --> host file             <- 既定。ローテーションしない
-  +-- journald    --> host journald
-  +-- awslogs     --> CloudWatch Logs
-  `-- fluentd     --> Fluentd
+[app] --stdout/stderr--> [dockerd: logging driver] --> 送り先(上の表)
 ```
 
 ### 2. ログのローテーション

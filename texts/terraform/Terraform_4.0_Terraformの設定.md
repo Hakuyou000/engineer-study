@@ -102,19 +102,6 @@ resource "aws_subnet" "a" {
 }
 ```
 
-参照から、作成の順番が決まる流れを図にします。
-
-```text
-aws_subnet.a の設定: vpc_id = aws_vpc.main.id
-  |
-  | 他のリソースの属性を参照している
-  v
-Terraform: aws_subnet.a は aws_vpc.main に依存すると判断する
-  |
-  v
-作成は aws_vpc.main が先、aws_subnet.a が後(削除は逆)
-```
-
 順番を自分で書く必要はありません。ほとんどの依存関係は、この参照で表せます。
 
 ### 3. 文字列の中で参照する
@@ -163,27 +150,6 @@ variable "instance_type" {
 | 4 | `terraform.tfvars.json` |
 | 5 | `*.auto.tfvars`、`*.auto.tfvars.json`(ファイル名の順) |
 | 6(最も強い) | コマンドラインの `-var` と `-var-file`(書いた順。後のものが優先) |
-
-変数の値の優先順位を図にします。下に行くほど優先されます。
-
-```text
-default                      最も弱い
-  |
-  v
-TF_VAR_<name>(環境変数)
-  |
-  v
-terraform.tfvars
-  |
-  v
-terraform.tfvars.json
-  |
-  v
-*.auto.tfvars(.json)
-  |
-  v
--var, -var-file              最も強い。書いた順に読まれ、後のものが優先される
-```
 
 - `terraform.tfvars` と `*.auto.tfvars` は自動で読まれます。それ以外の名前(`prod.tfvars` など)は `-var-file=prod.tfvars` で指定します。
 - どこからも値が渡されず、`default` もない変数は、実行時に**入力を求められます**(`-input=false` ならエラー)。
@@ -510,13 +476,14 @@ output "db_password" {
 秘密情報が、画面と state にどう現れるかを比べます。
 
 ```text
-A) sensitive = true の変数、data で読んだ秘密情報
+A) sensitive の値を渡したリソースの引数、data で読んだ秘密情報
   |
+  +-- 画面: (sensitive value) と隠される
   +-- state: 平文で保存される
 
 B) ephemeral な値、write-only の引数
   |
-  +-- state: 保存されない
+  +-- state と計画のファイル: 保存されない
 ```
 
 `sensitive` は画面の表示を隠すだけで、state には平文で入ります。state に残したくない値は、ephemeral な値か write-only の引数にします。

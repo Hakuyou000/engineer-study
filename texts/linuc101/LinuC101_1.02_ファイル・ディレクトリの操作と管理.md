@@ -68,11 +68,15 @@ chmod -R 755 dir/           # ディレクトリの中もまとめて変える
 SUID が付いた `/usr/bin/passwd` を、一般ユーザーが実行したときの図です。
 
 ```text
-user sato --- runs ---> /usr/bin/passwd (-rwsr-xr-x, owner root)
-                            |
-                            |  SUID が付いているので
-                            v
-                        process runs as root     /etc/shadow を書き換えられる
+user sato
+  |
+  |  実行
+  v
+/usr/bin/passwd (-rwsr-xr-x, owner root)
+  |
+  |  SUID が付いているので
+  v
+実効ユーザー ID が root のプロセスになる。/etc/shadow を書き換えられる
 ```
 
 

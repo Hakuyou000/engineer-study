@@ -27,8 +27,7 @@ VM: 1 台ごとにゲスト OS(カーネル)を持つ
   [Hardware]
 
 Container: ホストのカーネルを共有する
-  [App A]        [App B]
-  [Docker Engine]
+  [App A]   [App B]   [dockerd]   <- どれもホストのカーネルの上で動くプロセス
   [Host OS (kernel)]
   [Hardware]
 ```
@@ -116,13 +115,13 @@ runc(コンテナを実際に作る。OCI の実装)
 イメージの層と、コンテナの書き込み層の関係です。同じイメージから作った 2 つのコンテナは、読み取り専用の層を共有し、書き込み層だけがコンテナごとに別になります。
 
 ```text
-[A: writable layer]   [B: writable layer]     <- コンテナごとに 1 つ。コンテナと一緒に消える
+[A: writable layer]   [B: writable layer]     <- コンテナごとに 1 つ。docker rm で消える
          |                     |
          +----------+----------+
                     v
         [image layer 3: COPY app.py]           <- ここから下は読み取り専用。イメージは変わらない
         [image layer 2: RUN pip install]
-        [image layer 1: FROM python:3.13-slim]
+        [base image layers: FROM python:3.13-slim]   <- ベースのイメージ自体が複数の層
 ```
 
 - 1 つのイメージから、いくつでもコンテナを作れます。

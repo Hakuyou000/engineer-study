@@ -35,7 +35,7 @@ docker pull registry.example.com/team/myapp:1.0
   |
   |  docker tag myapp:1.0 registry.example.com/team/myapp:1.0
   v
-[local: registry.example.com/team/myapp:1.0]    <- 名前にレジストリのホスト名が入った
+[local: registry.example.com/team/myapp:1.0]    <- 同じイメージに名前を 1 つ足しただけ。myapp:1.0 も残る
   |
   |  docker push      <- 名前のホスト名のレジストリに送られる
   v
@@ -96,7 +96,10 @@ myapp@sha256:4c3f…e91a
 1 つのタグに、CPU のアーキテクチャごとのイメージが入っている様子です。
 
 ```text
-myapp:1.4.2    (tag)
+myapp:1.4.2 (tag)
+  |
+  v
+[image index]
   +-- [image for linux/amd64]
   `-- [image for linux/arm64]      <- pull すると、Docker がホストに合うものを選ぶ
 ```

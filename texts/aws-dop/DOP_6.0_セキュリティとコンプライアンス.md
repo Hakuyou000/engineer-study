@@ -56,7 +56,8 @@ AWS STS(一時的な認証情報を発行するサービス)の主な API です
 権限の上限が重なる様子を図にします。実際に使える権限は、すべての上限と許可の共通部分です。
 
 ```text
-[SCP] 組織の上限
+[SCP] 組織の上限(ユーザーやロールの側)
+[RCP] リソースコントロールポリシー。組織の上限(リソースの側)
   |
   v
 [Permissions boundary] アクセス許可の境界(ユーザーやロールの上限)
@@ -67,6 +68,8 @@ AWS STS(一時的な認証情報を発行するサービス)の主な API です
   v
 [Effective permissions] IAM ポリシーの許可のうち、すべてを通ったものだけが使える
 ```
+
+リソースベースのポリシーは、これらとは別の規則で評価されます。
 
 ### 3. 最小権限とアクセス制御のパターン
 
@@ -102,17 +105,6 @@ AWS Secrets Manager(秘密情報を保管し、自動でローテーションで
 - RDS などでは、ローテーション用の Lambda 関数のテンプレートが用意されています。一部の秘密情報には、Lambda を使わない **マネージドローテーション** があります。
 - Lambda 関数の手順は、`createSecret` → `setSecret` → `testSecret` → `finishSecret` です。新しい版(`AWSPENDING`)を作り、データベースに設定して、確認してから、現在の版(`AWSCURRENT`)にします。
 - アプリは、キャッシュを使いつつ、取得し直す設計にします。
-
-Secrets Manager のローテーションで、Lambda 関数が実行する 4 つの手順を図にします。
-
-```text
-createSecret --> setSecret --> testSecret --> finishSecret
-     |               |              |               |
-     |               |              |               +-- AWSPENDING を AWSCURRENT にする
-     |               |              +-- 新しい認証情報で接続できるか確認する
-     |               +-- データベースに新しい認証情報を設定する
-     +-- 新しい版(AWSPENDING)を作る
-```
 
 | 項目 | Secrets Manager | Systems Manager Parameter Store |
 |---|---|---|
@@ -224,13 +216,16 @@ createSecret --> setSecret --> testSecret --> finishSecret
   |
   |  GenerateDataKey
   v
-[Data key (plaintext)] + [Data key (encrypted)]
-  |                              |
-  v                              |
-[Encrypted data] <---------------+
+[Data key] 平文のデータキーと、暗号化したデータキーが返る
+  |
+  v
+[Plaintext data key] で、入力のデータを暗号化する
+  |
+  v
+[Encrypted data] と、暗号化したデータキーを一緒に保存する
 ```
 
-平文のデータキーでデータを暗号化し、平文のデータキーは捨てます。暗号化したデータと、暗号化済みのデータキーを一緒に保存します。
+平文のデータキーは、使い終わったら捨てます。
 
 **AWS CloudHSM**(専用のハードウェアでキーを管理するサービス)は、鍵の管理をすべて自分で行いたいとき、規制で専用のハードウェアが必要なときに使います。
 
@@ -288,7 +283,8 @@ VPC フローログです。
 [VPC Flow Logs] -----------+--> [S3 bucket in log account] KMS で暗号化したログ用のバケット
 [AWS Config] --------------+          |
                                       +--> Athena で SQL の分析
-                                      +--> CloudWatch Logs --> metric filter --> alarm
+
+[CloudTrail org trail] --> [CloudWatch Logs] --> [Metric filter] --> [Alarm] 証跡を CloudWatch Logs にも出力する
 ```
 
 CloudFormation の **ドリフト検出** は、スタックのリソースが、テンプレートの定義と違う状態になっていないか(手作業の変更がないか)を検出します。

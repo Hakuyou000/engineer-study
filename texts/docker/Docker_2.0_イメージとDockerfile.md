@@ -203,12 +203,12 @@ ENTRYPOINT ["/app"]
 マルチステージビルドで、ファイルが次の段階に渡る様子です。
 
 ```text
-[stage build: golang:1.25]          <- コンパイラとソースコードがある
+[stage build: golang:1.25]                         <- コンパイラとソースコードがある
   |
   |  COPY --from=build /out/app /app
   v
-[stage final: distroless/static]    <- この段階だけが最終のイメージになる
-  /app                              <- コピーした実行ファイルだけが入る
+[stage final: gcr.io/distroless/static-debian12]   <- この段階だけが最終のイメージになる
+  /app                                               <- コピーした実行ファイルだけが入る
 ```
 
 - `FROM … AS 名前` で段階に名前を付け、`COPY --from=名前` で前の段階からファイルだけをコピーします。

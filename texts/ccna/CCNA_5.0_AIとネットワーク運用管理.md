@@ -470,14 +470,6 @@ show snmp host
 
 Ansible は、コントロールノードから、管理対象の機器に SSH でつなぎます。
 
-```text
-[Control node]  inventory.ini と show.yml を読む
-      |
-      +-- SSH --> [R1]
-      +-- SSH --> [R2]
-      +-- SSH --> [SW1]     <- 機器には何も入れない(エージェントレス)
-```
-
 ### 3. YAML の基本
 
 ```yaml
@@ -551,6 +543,18 @@ ansible_become_method=enable
       ansible.builtin.debug:
         var: result.stdout_lines
 ```
+
+この show.yml を実行したときの、つなぎ方です。
+
+```text
+[Control node]  inventory.ini とプレイブックを読む
+      |
+      +-- SSH --> [R1]
+      +-- SSH --> [R2]
+      +-- [SW1]     <- show.yml は hosts: routers なので、SW1 にはつながない(SSH の矢印なし)
+```
+
+機器には何も入れません(エージェントレス)。
 
 **設定のコマンドを実行する**
 
@@ -698,12 +702,17 @@ seq no: timestamp: %FACILITY-SEVERITY-MNEMONIC: description
 レベルの並びと、指定したときの対象の範囲です。
 
 ```text
-0:emerg 1:alert 2:crit 3:error 4:warn 5:notice 6:info 7:debug
-|<-------- logging trap 4 --------->|
-|<---------- logging trap informational ----------->|
+0 emergencies
+1 alerts
+2 critical
+3 errors
+4 warnings         <- logging trap 4 はここまで
+5 notifications
+6 informational    <- logging trap informational はここまで
+7 debugging
 ```
 
-数値が小さいほど重大です。指定したレベルより右にあるメッセージは出力されません。
+数値が小さいほど重大です。指定したレベルより下(数値が大きい)のメッセージは出力されません。
 
 ### 3. ファシリティ
 

@@ -22,11 +22,11 @@
 ルートモジュールと子モジュールの置き場所の例を図にします。
 
 ```text
-terraform-project/
-  +-- main.tf            ルートモジュール。module ブロックで子モジュールを呼ぶ
+terraform-project/        このディレクトリがルートモジュール(.tf ファイルすべてが設定)
+  +-- main.tf             module ブロックで子モジュールを呼ぶ
   +-- modules/
-        +-- network/     子モジュール(./modules/network)
-        +-- app/         子モジュール(./modules/app)
+        +-- network/      子モジュール(./modules/network)
+        +-- app/          子モジュール(./modules/app)
 ```
 
 ### 2. source の書き方

@@ -48,15 +48,15 @@
 ```text
 S3 Standard
   |
-  |  30 日後
+  |  作成から 30 日後
   v
 S3 Standard-IA
   |
-  |  90 日後
+  |  作成から 90 日後
   v
 S3 Glacier Flexible Retrieval
   |
-  |  365 日後
+  |  作成から 365 日後
   v
 削除
 ```
@@ -362,7 +362,7 @@ NAT ゲートウェイの配置:
 NAT ゲートウェイの2つの置き方です。
 
 ```text
-(1) 1つを全 AZ で共有する: 安い。AZ-a が止まると、全 AZ の外向きが止まる
+(1) 1つを全 AZ で共有する(ゾーン単位の NAT ゲートウェイの場合): 安い。AZ-a が止まると、全 AZ の外向きが止まる
   [private AZ-a] ----+
                      +--> [NAT GW in AZ-a] --> [IGW]
   [private AZ-c] ----+
