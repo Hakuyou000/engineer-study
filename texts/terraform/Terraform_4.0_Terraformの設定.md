@@ -361,6 +361,20 @@ resource "aws_instance" "web" {
 
 既定の作り直しは「削除してから作成」(`-/+`)です。`create_before_destroy` を付けると「作成してから削除」(`+/-`)になります。
 
+作り直しのときの、新旧のリソースの時間の流れを比べます。左から右へ時間が進みます。
+
+```text
+既定(-/+): 削除してから作成する
+  old: [running]--[destroy]
+  new:                     [create]--[running]
+
+create_before_destroy(+/-): 作成してから削除する
+  new:           [create]--[running]
+  old: [running]---------[destroy]
+```
+
+既定では、旧が消えてから新ができるまで、リソースがない時間ができます。
+
 ## 4.7 カスタム条件で設定を検証する
 
 出題範囲: 変数の `validation`、`precondition`、`postcondition`、`check` ブロック。
@@ -458,6 +472,21 @@ output "db_password" {
 - 機密の値を使った出力には、`sensitive = true` が必要です(ないとエラーになる)。
 - **state には平文で保存されます**。`sensitive` は表示を隠すだけで、暗号化ではありません。
 - `terraform output -json` や `terraform output -raw 名前` では値が表示されます。
+
+秘密情報が、画面と state にどう現れるかを比べます。
+
+```text
+A) sensitive の値を渡したリソースの引数、data で読んだ秘密情報
+  |
+  +-- 画面: (sensitive value) と隠される
+  +-- state: 平文で保存される
+
+B) ephemeral な値、write-only の引数
+  |
+  +-- state と計画のファイル: 保存されない
+```
+
+`sensitive` は画面の表示を隠すだけで、state には平文で入ります。state に残したくない値は、ephemeral な値か write-only の引数にします。
 
 ### 2. ephemeral な値と write-only の引数(state に残さない)
 

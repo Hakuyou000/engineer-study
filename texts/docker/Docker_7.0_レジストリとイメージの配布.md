@@ -28,6 +28,24 @@ docker push registry.example.com/team/myapp:1.0
 docker pull registry.example.com/team/myapp:1.0
 ```
 
+イメージに `docker tag` で名前を付けて、レジストリを通して別のホストに渡す流れです。
+
+```text
+[local: myapp:1.0]
+  |
+  |  docker tag myapp:1.0 registry.example.com/team/myapp:1.0
+  v
+[local: registry.example.com/team/myapp:1.0]    <- 同じイメージに名前を 1 つ足しただけ。myapp:1.0 も残る
+  |
+  |  docker push      <- 名前のホスト名のレジストリに送られる
+  v
+[registry.example.com : team/myapp : 1.0]
+  |
+  |  docker pull
+  v
+[another host]
+```
+
 - push する先は、**イメージの名前で決まります**。レジストリのホスト名を含む名前を `docker tag` で付けてから push します。名前にホスト名がなければ Docker Hub に送られます。
 - push と pull は、層ごとに行われます。すでに相手にある層は送りません。
 
@@ -74,6 +92,17 @@ myapp@sha256:4c3f…e91a
 ### 3. マルチアーキテクチャのイメージ
 
 1 つのタグに、amd64 用と arm64 用など複数のイメージをまとめられます(マニフェストリスト / イメージインデックス)。pull すると、Docker がホストに合うものを自動で選びます。
+
+1 つのタグに、CPU のアーキテクチャごとのイメージが入っている様子です。
+
+```text
+myapp:1.4.2 (tag)
+  |
+  v
+[image index]
+  +-- [image for linux/amd64]
+  `-- [image for linux/arm64]      <- pull すると、Docker がホストに合うものを選ぶ
+```
 
 ## 7.4 イメージの信頼性
 

@@ -66,6 +66,24 @@ terraform {
 - `plan`、`apply`、`destroy` など、state を書き換えうる操作で**自動でロック**します。設定は不要です(バックエンドが対応していれば)。
 - 他の人がロックしていると、エラー(`Error acquiring the state lock`)になり、ロックの ID と持ち主の情報が表示されます。
 
+2 人が同時に `apply` したときの、ロックの働きを図にします。
+
+```text
+Alice: apply を始める
+  |
+  | state のロックを取る(成功)
+  v
+Alice: 実行中。この間、state はロックされている
+  |
+  |  (この間に Bob が apply を始める)
+  |    Bob: ロックを取れず、Error acquiring the state lock で失敗する
+  v
+Alice: apply が終わり、ロックを解く
+  |
+  v
+Bob: もう一度実行すると、ロックを取れる
+```
+
 ### 2. ロックに対応したバックエンド
 
 | バックエンド | ロックの方法 |
@@ -121,6 +139,19 @@ terraform {
 | ロック | 同時の操作を防げる(対応しているもの) |
 | 保護 | 暗号化、アクセス制御、バージョン管理(S3 のバージョニングなど)ができる |
 | 機密情報 | 開発者のパソコンに state を置かなくて済む |
+
+local バックエンドとリモートのバックエンドで、state を使う人がどう変わるかを比べます。
+
+```text
+local バックエンド
+  Alice's PC: terraform.tfstate     自分のパソコンだけにある
+  Bob's PC:   terraform.tfstate     別の state になり、共有できない
+
+リモートのバックエンド
+  Alice's PC --+
+  Bob's PC   --+--> [remote backend]  全員と CI が同じ state を使う
+  CI         --+
+```
 
 ### 3. 部分的な設定(partial configuration)
 
@@ -202,6 +233,26 @@ Note: Objects have changed outside of Terraform
 - `terraform plan -refresh-only`: 実際のインフラを読み取り、state がどう更新されるかだけを表示します。インフラは変えません。
 - `terraform apply -refresh-only`: 確認のうえ、**state だけ**を実際のインフラに合わせて更新します。インフラは変えません。
 - 古い `terraform refresh` コマンドは、確認なしで state を書き換えるので非推奨です。`apply -refresh-only` を使います。
+
+ドリフトに気づいたときの、対応の分かれ道を図にします。
+
+```text
+Drift: 実際のインフラが、Terraform の外で変更された
+  |
+  | terraform plan が、refresh で気づく
+  v
+Q: どちらが正しいか
+  |
+  +-- 設定が正しい
+  |     `-- terraform apply   --> インフラを設定に戻す
+  |
+  +-- 実際が正しい
+  |     `-- 設定をその変更に合わせて書き換えたうえで:
+  |           terraform apply -refresh-only   --> state だけを実際に合わせる
+  |
+  +-- ずっと無視したい属性
+        `-- lifecycle ignore_changes   --> その属性を差分にしない
+```
 
 ### 3. リソースの名前を変える: moved ブロック
 

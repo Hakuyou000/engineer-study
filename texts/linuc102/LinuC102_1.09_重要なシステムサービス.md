@@ -15,6 +15,18 @@
 
 起動するときにハードウェアクロックの時刻をシステムクロックに読み込み、停止するときにシステムクロックの時刻をハードウェアクロックに書き戻します。
 
+```text
+[ハードウェアクロック(RTC)] hwclock で操作する
+|
+|  起動時に読み込む
+v
+[システムクロック] date で操作する。NTP で合わせるのはこちら
+|
+|  停止時に書き戻す
+v
+[ハードウェアクロック(RTC)]
+```
+
 ### 2. date
 
 システムクロックを表示・設定します。
@@ -194,6 +206,22 @@ chronyc makestep    # すぐに時刻を合わせる
 2. `systemd-journald` がそれを受け取り、ジャーナル(バイナリ形式)に保存します。`journalctl` で読みます。
 3. `rsyslog` がジャーナルからログを受け取り、`/var/log/` にテキストのファイルとして保存します。他のサーバーへの転送も行います。
 4. `logrotate` が、古いログファイルを切り替え、圧縮し、削除します。
+
+```text
+kernel, services, logger   ログを出す
+  |
+  v
+systemd-journald           ジャーナル(バイナリ形式)に保存する。journalctl で読む
+  |
+  v
+rsyslog                    /var/log/ にテキストで保存する。他のサーバーへ転送もする
+  |
+  v
+/var/log/messages など
+  |
+  v
+logrotate                  古いログを切り替え、圧縮し、削除する
+```
 
 | 仕組み | 形式 | 読み方 |
 |---|---|---|
@@ -430,6 +458,19 @@ journalctl --vacuum-time=2weeks
 
 切り替えのたびに、`messages` → `messages.1` → `messages.2.gz`(圧縮)と、1世代ずつずれていきます。`rotate` で指定した世代の数を超えた古いものは削除されます。切り替えた後は、空の `messages` が新しく作られます。
 
+```text
+messages          現在のログ
+  |  切り替え
+  v
+messages.1        1 世代前
+  |  切り替え
+  v
+messages.2.gz     2 世代前(圧縮)
+  |  rotate の数を超えたら
+  v
+(削除)
+```
+
 | ファイル | 役割 |
 |---|---|
 | `/etc/logrotate.conf` | 全体の設定 |
@@ -493,6 +534,25 @@ logrotate -f /etc/logrotate.conf
 | MUA | Mail User Agent | メールソフト。メールを書いたり読んだりする |
 | MTA | Mail Transfer Agent | メールを転送する。MTA 同士は SMTP(25 番ポート)で通信する |
 | MDA | Mail Delivery Agent | 届いたメールを、各ユーザーのメールボックスに配る |
+
+メールが送り手から受け手に届くまでの流れを図にします。
+
+```text
+MUA        送り手のメールソフト。メールを書く
+  |
+  v
+MTA 1      送る側の MTA。メールを転送する
+  |
+  |  SMTP(25 番ポート)
+  v
+MTA 2      受ける側の MTA
+  |
+  v
+MDA        ユーザーのメールボックスに配る
+  |
+  v
+mailbox    メールボックス。受け手が MUA で読む
+```
 
 ### 2. 主な MTA
 

@@ -49,6 +49,24 @@ created --start--> running --stop/kill/終了--> exited --rm--> (削除)
 | `docker restart` | stop して start する |
 | `docker pause` | プロセスを一時停止する(cgroups の freezer) |
 
+`docker stop` が止めるまでの流れです。
+
+```text
+docker stop NAME
+  |
+  |  SIGTERM       <- アプリに後片付けの機会を渡す
+  v
+[PID 1]
+  |
+  +-- exits within 10s --> exited
+  |
+  `-- still running after 10s    <- 10 秒は既定の値。-t で変える
+        |
+        |  SIGKILL    <- 強制終了。終了コードは 137
+        v
+      exited
+```
+
 アプリが SIGTERM を受けて後片付けをしてから終わるようにすると、安全に止められます(graceful shutdown)。
 
 ### 3. 終了コード
@@ -119,6 +137,19 @@ HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
 ### 3. PID 1 の問題と --init
 
 PID 1 のプロセスには、シグナルの既定の動きがなく、終わった子プロセス(ゾンビ)を回収する役目もあります。アプリがそれを想定していないと、シグナルで止まらなかったり、ゾンビが溜まったりします。`docker run --init` を付けると、小さな init プロセス(tini)が PID 1 になり、シグナルの転送とゾンビの回収をします。
+
+`--init` の有無で、PID 1 のプロセスがどう変わるかを比べます。
+
+```text
+without --init:
+  [PID 1: app]             <- シグナルの転送も、終わった子プロセスの回収も、アプリが担う
+    +-- [child]
+
+with --init:
+  [PID 1: docker-init (tini)]   <- シグナルを転送し、終わった子プロセス(ゾンビ)を回収する
+    +-- [app]
+          +-- [child]
+```
 
 ### 4. まとめ: よく出る判断
 
