@@ -36,6 +36,29 @@
 | フィードバックループ | 観察 → 判断 → 行動 → 結果の確認を繰り返す |
 | ガードレール | 許可する操作の範囲、承認が必要かどうか、監査のためのログ |
 
+エージェントの動きの流れです。
+
+```text
+Goal       人が目標と制約を与える
+  |
+  v
+[Plan]     目標を手順に分ける
+  |
+  v
+[Act]      ツールを使う(機器の CLI や API、監視システムなど)
+  |
+  v
+[Observe]  結果を見る
+  |
+  v
+[Check]    目標に届いたか
+  |
+  +-- no  --> [Plan] へ戻る
+  +-- yes --> 結果を報告して終わる
+```
+
+大事な操作の前には、ガードレールに従って人が承認します。
+
 いくつものエージェントが役割を分けて協力する構成(マルチエージェント)もあります。
 
 ### 4. ネットワーク運用での役割
@@ -331,6 +354,19 @@ AI を IT の運用に使う考え方を **AIOps** といいます。
 | エージェント(Get / Set を受け取る) | **UDP 161** |
 | マネージャー(Trap / Inform を受け取る) | **UDP 162** |
 
+ポーリングと通知のやり取りです。
+
+```text
+   NMS                          Agent
+    |                             |
+    |- Get ---------------------->|   UDP 161 あて
+    |<- Response -----------------|   値を返す
+    |                             |
+    |<- Trap ---------------------|   UDP 162 あて。確認の応答はない
+    |<- Inform -------------------|   UDP 162 あて
+    |- Response ----------------->|   Inform への確認
+```
+
 | 方式 | 内容 | 特徴 |
 |---|---|---|
 | ポーリング | マネージャーが決まった間隔で Get する | 変化の傾向がつかめる。間隔の間に起きたことは、次の問い合わせまで分からない |
@@ -431,6 +467,16 @@ show snmp host
 | ロール | タスク、変数、テンプレートをまとめて、使い回せるようにしたもの |
 | Ansible Vault | パスワードなどの秘密の情報を暗号化して保存する |
 | ファクト | 相手から集めた情報(`ios_facts`) |
+
+Ansible は、コントロールノードから、管理対象の機器に SSH でつなぎます。
+
+```text
+[Control node]  inventory.ini と show.yml を読む
+      |
+      +-- SSH --> [R1]
+      +-- SSH --> [R2]
+      +-- SSH --> [SW1]     <- 機器には何も入れない(エージェントレス)
+```
 
 ### 3. YAML の基本
 
@@ -541,6 +587,15 @@ ansible_become_method=enable
 | `when` | 条件が合うときだけ実行する |
 | `loop` | 繰り返す |
 
+上の show コマンドのプレイブックを、構成要素に分けて描きます。
+
+```text
+playbook (show.yml)
+`-- play: hosts: routers
+    |-- task: Run show commands   -> module: cisco.ios.ios_command
+    `-- task: Display output      -> module: ansible.builtin.debug
+```
+
 | モジュール | 用途 | 冪等性 |
 |---|---|---|
 | `cisco.ios.ios_command` | EXEC のコマンド(show など)を実行して出力を受け取る | 設定を変えない。いつも `ok` |
@@ -639,6 +694,16 @@ seq no: timestamp: %FACILITY-SEVERITY-MNEMONIC: description
 | `logging trap 4`(warnings) | 0〜4 |
 | `logging trap informational` | 0〜6 |
 | `logging console 7`(debugging) | 0〜7(すべて) |
+
+レベルの並びと、指定したときの対象の範囲です。
+
+```text
+0:emerg 1:alert 2:crit 3:error 4:warn 5:notice 6:info 7:debug
+|<-------- logging trap 4 --------->|
+|<---------- logging trap informational ----------->|
+```
+
+数値が小さいほど重大です。指定したレベルより右にあるメッセージは出力されません。
 
 ### 3. ファシリティ
 
