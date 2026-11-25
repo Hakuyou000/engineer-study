@@ -40,6 +40,20 @@ resource "aws_instance" "web" {
 
 > `ami-0abcdef1234567890` は説明用の架空の ID です。実際の AMI の ID はリージョンと時期で変わるので、そのままでは動きません。実際に使うときは、data ブロックの `aws_ami` で最新の ID を探します(4.1 の「2. data ブロック」)。
 
+宣言的な書き方で、今の状態によって Terraform が何をするかを図にします。
+
+```text
+設定: EC2 を 3 台にする(あるべき状態を書く)
+  |
+  | Terraform が今の状態と比べて、差分を計算する
+  v
+  +-- 今 1 台のとき: 2 台を追加する
+  +-- 今 3 台のとき: 何もしない
+  +-- 今 5 台のとき: 2 台を減らす
+```
+
+書く人は手順を決めず、あるべき状態だけを書きます。
+
 ### 3. Terraform とは
 
 - HashiCorp が開発した IaC のツールです。設定は **HCL(HashiCorp Configuration Language)** という言語で `.tf` ファイルに書きます(JSON でも書けます)。
@@ -105,6 +119,17 @@ Terraform は、管理する対象ごとに**プロバイダー**というプラ
 | オンプレミス・仮想化 | `vmware/vsphere`、`hashicorp/vsphere` |
 | コンテナ | `hashicorp/kubernetes`、`hashicorp/helm`、`kreuzwerker/docker` |
 | SaaS・その他 | `integrations/github`、`DataDog/datadog`、`cloudflare/cloudflare` |
+
+プロバイダーを替えても、書き方と手順は同じであることを図にします。
+
+```text
+terraform init / plan / apply      書き方(HCL)と手順は、どのプロバイダーでも同じ
+  |
+  +-- hashicorp/aws        --> AWS のリソース
+  +-- hashicorp/azurerm    --> Azure のリソース
+  +-- hashicorp/vsphere    --> オンプレミスの vSphere
+  +-- integrations/github  --> GitHub のリポジトリやチーム
+```
 
 ### 2. マルチクラウド
 

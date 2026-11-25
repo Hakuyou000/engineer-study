@@ -31,6 +31,22 @@
 - VCS 駆動では、プルリクエストを作ると **speculative plan**(計画を見るだけの実行。apply はできない)が実行され、結果がプルリクエストに表示されます。
 - CLI 駆動でも、実行は HCP Terraform の環境で行われます。手元のファイルがアップロードされます。
 
+VCS 駆動のワークフローで、プルリクエストとマージが何を起こすかを図にします。
+
+```text
+Pull request を作る
+  |
+  v
+HCP Terraform: speculative plan を実行する(計画を見るだけ。apply はできない)
+  |
+  v
+結果が Pull request に表示される。レビューする
+  |
+  | マージ
+  v
+HCP Terraform: plan を実行し、確認(または auto-apply)のあとで apply する
+```
+
 ### 3. 実行(run)の流れ
 
 ```
@@ -177,6 +193,16 @@ Sentinel の 3 つのレベル(特に soft と hard の違い)がよく問われ
 | **run triggers** | あるワークスペースの apply が成功したら、別のワークスペースの実行を自動で始める(例: ネットワークが変わったらアプリも plan) |
 | `tfe_outputs` データソース / `terraform_remote_state` | 別のワークスペースの出力を読む。`tfe_outputs` は出力だけを読む権限で済む |
 
+run triggers で、ワークスペースの実行がつながる流れを図にします。
+
+```text
+[network-prod] で apply が成功する
+  |
+  | run trigger
+  v
+[app-prod] の実行が自動で始まる(plan から)
+```
+
 ## 8.4 HCP Terraform との連携を設定して使う
 
 出題範囲: `terraform login`、`cloud` ブロック、state の移行、VCS の連携、動的な認証情報。
@@ -187,6 +213,20 @@ Sentinel の 3 つのレベル(特に soft と hard の違い)がよく問われ
 2. 設定に **`cloud` ブロック**を書きます。
 3. **`terraform init`** を実行します。local の state があれば、HCP Terraform に移すか質問されます。
 4. `terraform plan` / `apply` を実行すると、リモートで実行されます。
+
+CLI 駆動で、手元とリモートの間で何が起こるかを図にします。
+
+```text
+local: terraform plan または apply を実行する
+  |
+  | 手元の設定のファイルが、HCP Terraform にアップロードされる
+  v
+HCP Terraform: ワークスペースで plan と apply を実行する(既定の Remote モード)
+  |
+  | 実行の出力が返る
+  v
+local: 結果が手元の画面に表示される
+```
 
 ```hcl
 terraform {
