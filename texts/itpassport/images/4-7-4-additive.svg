@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400" role="img" aria-labelledby="t">
+<title id="t">光の 3 原色の加法混色(RGB)</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="360.0" y="28" font-size="18" text-anchor="middle" font-weight="bold">光の 3 原色の加法混色(RGB)</text>
+<rect x="40" y="50" width="640" height="330" fill="#1c2427" stroke="#5a666b" stroke-width="1"/>
+<defs><clipPath id="c0"><circle cx="285" cy="160" r="85"/></clipPath><clipPath id="c1"><circle cx="385" cy="160" r="85"/></clipPath><clipPath id="c2"><circle cx="335" cy="245" r="85"/></clipPath></defs>
+<circle cx="285" cy="160" r="85" fill="#e5232b"/>
+<circle cx="385" cy="160" r="85" fill="#1aa84a"/>
+<circle cx="335" cy="245" r="85" fill="#2b4fe0"/>
+<g clip-path="url(#c0)"><circle cx="385" cy="160" r="85" fill="#e8d82a" clip-path="url(#c1)"/></g>
+<g clip-path="url(#c0)"><circle cx="335" cy="245" r="85" fill="#e02bd0" clip-path="url(#c2)"/></g>
+<g clip-path="url(#c1)"><circle cx="335" cy="245" r="85" fill="#22d3e6" clip-path="url(#c2)"/></g>
+<g clip-path="url(#c0)"><g clip-path="url(#c1)"><circle cx="335" cy="245" r="85" fill="#ffffff" clip-path="url(#c2)"/></g></g>
+<text x="245" y="130" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">赤(R)</text>
+<text x="421" y="130" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">緑(G)</text>
+<text x="335" y="307" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">青(B)</text>
+<text x="335" y="141" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">黄</text>
+<text x="293" y="231" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">マゼンタ</text>
+<text x="377" y="231" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">シアン</text>
+<text x="335" y="186" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">白</text>
+<text x="585" y="150" text-anchor="middle" font-size="14" fill="#ffffff">重ねるほど明るくなります</text>
+<text x="585" y="174" text-anchor="middle" font-size="14" fill="#ffffff">3 つ全部で白になります</text>
+<text x="585" y="198" text-anchor="middle" font-size="14" fill="#ffffff">(ディスプレイ)</text>
+</g>
+</svg>

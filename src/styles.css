@@ -440,6 +440,8 @@ thead th { border-bottom: 2px solid var(--rule-strong); font-size: var(--fs-sm);
 .text-head-label { font-size: var(--fs-sm); color: var(--sub); font-weight: 700; }
 .prose { overflow-wrap: anywhere; min-width: 0; max-width: var(--measure); line-height: var(--lh-prose); }
 .prose pre { max-width: 100%; }
+.prose img.figure { display: block; max-width: 100%; height: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule-strong); border-radius: 6px; background: #fff; }
+.prose .figure-missing { color: var(--sub); font-size: var(--fs-sm); }
 .prose h1 { font-size: var(--fs-h2); margin: var(--sp-6) 0 var(--sp-3); line-height: var(--lh-head); }
 .prose h2 { font-size: var(--fs-h3); line-height: var(--lh-head); margin: var(--sp-7) 0 var(--sp-3); padding-top: var(--sp-4); border-top: 1px solid var(--rule-strong); scroll-margin-top: 120px; }
 .prose h3 { font-size: var(--fs-lg); line-height: var(--lh-head); margin: var(--sp-6) 0 var(--sp-2); }

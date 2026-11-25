@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { termId } from '../lib/glossary'
 import { LINKER } from '../lib/glossaryData'
+import { imageUrl } from '../lib/texts'
 import { TermLink } from './TermLink'
 
 const PREFIX = '#glossary-'
@@ -40,8 +41,8 @@ function remarkGlossary(options: { exam?: string | null }) {
   }
 }
 
-/** テキスト本文用の Markdown 描画。React.lazy で遅延読み込みする。exam を渡すと、その試験の用語に印を付ける */
-export default function Markdown({ text, exam }: { text: string; exam?: string | null }) {
+/** テキスト本文用の Markdown 描画。React.lazy で遅延読み込みする。exam を渡すと、その試験の用語に印を付ける。textId を渡すと、そのテキストの図の画像を表示する */
+export default function Markdown({ text, exam, textId }: { text: string; exam?: string | null; textId?: string }) {
   return (
     <div className="prose">
       <ReactMarkdown
@@ -52,6 +53,12 @@ export default function Markdown({ text, exam }: { text: string; exam?: string |
               <table {...props} />
             </div>
           ),
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          img: ({ src, alt, node, ...rest }) => {
+            const url = textId && typeof src === 'string' ? imageUrl(textId, src) : undefined
+            if (!url) return <span className="figure-missing">[図: {alt}]</span>
+            return <img {...rest} src={url} alt={alt ?? ''} className="figure" loading="lazy" />
+          },
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           a: ({ href, children, node, ...rest }) => {
             if (href?.startsWith(PREFIX)) {

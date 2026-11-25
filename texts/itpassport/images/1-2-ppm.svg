@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 480" width="680" height="480" role="img" aria-labelledby="t">
+<title id="t">PPM の 4 つの区分</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="340.0" y="28" font-size="18" text-anchor="middle" font-weight="bold">PPM の 4 つの区分</text>
+<rect x="130.0" y="70" width="260" height="150" fill="#e1efec" stroke="#5a666b" stroke-width="1.5"/>
+<text x="260.0" y="110" text-anchor="middle" font-size="20" fill="#0f766e" font-weight="bold">花形</text>
+<text x="260.0" y="145" text-anchor="middle" font-size="14" fill="#1c2427">成長率 高い・シェア 高い</text>
+<text x="260.0" y="178" text-anchor="middle" font-size="14" fill="#1c2427">投資を続けて、地位を守ります</text>
+<rect x="390.0" y="70" width="260" height="150" fill="#fdf3e1" stroke="#5a666b" stroke-width="1.5"/>
+<text x="520.0" y="110" text-anchor="middle" font-size="20" fill="#1c2427" font-weight="bold">問題児</text>
+<text x="520.0" y="145" text-anchor="middle" font-size="14" fill="#1c2427">成長率 高い・シェア 低い</text>
+<text x="520.0" y="178" text-anchor="middle" font-size="14" fill="#1c2427">投資して育てるか、</text>
+<text x="520.0" y="198" text-anchor="middle" font-size="14" fill="#1c2427">やめるかを判断します</text>
+<rect x="130.0" y="220" width="260" height="150" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="260.0" y="260" text-anchor="middle" font-size="20" fill="#0f766e" font-weight="bold">金のなる木</text>
+<text x="260.0" y="295" text-anchor="middle" font-size="14" fill="#1c2427">成長率 低い・シェア 高い</text>
+<text x="260.0" y="322" text-anchor="middle" font-size="14" fill="#1c2427">収益を上げ、</text>
+<text x="260.0" y="342" text-anchor="middle" font-size="14" fill="#1c2427">ほかの事業に資金を回します</text>
+<rect x="390.0" y="220" width="260" height="150" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<text x="520.0" y="260" text-anchor="middle" font-size="20" fill="#1c2427" font-weight="bold">負け犬</text>
+<text x="520.0" y="295" text-anchor="middle" font-size="14" fill="#1c2427">成長率 低い・シェア 低い</text>
+<text x="520.0" y="328" text-anchor="middle" font-size="14" fill="#1c2427">撤退や縮小を考えます</text>
+<text x="116" y="150.0" text-anchor="end" font-size="14" fill="#1c2427">高い</text>
+<text x="116" y="300.0" text-anchor="end" font-size="14" fill="#1c2427">低い</text>
+<text transform="translate(40,220) rotate(-90)" text-anchor="middle" font-size="15" font-weight="bold">市場の成長率</text>
+<text x="260.0" y="392" text-anchor="middle" font-size="14" fill="#1c2427">高い</text>
+<text x="520.0" y="392" text-anchor="middle" font-size="14" fill="#1c2427">低い</text>
+<text x="390" y="418" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">市場での占有率(シェア)</text>
+<text x="390" y="444" text-anchor="middle" font-size="14" fill="#1c2427">(左を高い、右を低いとして描いています)</text>
+</g>
+</svg>

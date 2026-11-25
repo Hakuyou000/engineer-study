@@ -139,3 +139,36 @@ export function lintTextDiagrams(md: string): { line: number; message: string }[
   })
   return out
 }
+
+const IMAGE_REF = /!\[([^\]]*)\]\(([^)\s]*)\)/g
+
+/**
+ * テキストの画像の参照を検査する。参照は `![説明](images/名前.svg)` の形にし、説明を書き、
+ * 同じ試験の `images/` にあるファイルを指す。existing はその試験の images/ のファイル名
+ */
+export function lintTextImages(md: string, existing: ReadonlySet<string>): { line: number; message: string }[] {
+  const out: { line: number; message: string }[] = []
+  let fence = false
+  md.split('\n').forEach((line, i) => {
+    if (line.startsWith('```')) fence = !fence
+    if (fence) return
+    for (const m of line.matchAll(IMAGE_REF)) {
+      const [, alt, src] = m
+      if (!/^images\/[\w.-]+\.svg$/.test(src)) out.push({ line: i + 1, message: `画像は images/名前.svg で参照する: ${src}` })
+      else if (!existing.has(src.slice('images/'.length))) out.push({ line: i + 1, message: `画像のファイルがない: ${src}` })
+      if (alt.trim().length < 10) out.push({ line: i + 1, message: '画像の説明(alt)に、図の内容を文で書く(Project では画像が出ないため)' })
+    }
+  })
+  return out
+}
+
+/** 図の SVG を検査する。外のファイルやスクリプトを読まず、viewBox と title を持つ */
+export function lintSvg(svg: string): string[] {
+  const out: string[] = []
+  if (!/<svg[^>]*\sviewBox="/.test(svg)) out.push('svg に viewBox がない')
+  if (!/<title[^>]*>[^<]+<\/title>/.test(svg)) out.push('svg に title がない')
+  if (/<script|<foreignObject|\son\w+=/i.test(svg)) out.push('script、foreignObject、イベント属性は使わない')
+  if (/(?:xlink:)?href="(?!#)/.test(svg)) out.push('外のファイルを参照しない(href は # で始める)')
+  if (/<image\b/.test(svg)) out.push('svg の中に画像を埋め込まない')
+  return out
+}

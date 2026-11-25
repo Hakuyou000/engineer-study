@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 410" width="720" height="410" role="img" aria-labelledby="t">
+<title id="t">アンダーレイとオーバーレイ</title>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0f766e"/></marker></defs>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="14" fill="#1c2427">
+<rect x="20" y="20" width="540" height="150" rx="10" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="36" y="46" font-size="17" font-weight="bold">オーバーレイ</text>
+<text x="36" y="68">アンダーレイの上に作る仮想的なネットワークです</text>
+<rect x="40" y="96" width="100" height="50" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="2"/>
+<rect x="430" y="96" width="100" height="50" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="2"/>
+<g text-anchor="middle"><text x="90" y="116">トンネルの</text><text x="90" y="136">端点 A</text>
+<text x="480" y="116">トンネルの</text><text x="480" y="136">端点 B</text>
+<text x="285" y="112" font-weight="bold" fill="#0f766e">VXLAN のトンネル</text></g>
+<line x1="142" y1="121" x2="428" y2="121" stroke="#0f766e" stroke-width="3" stroke-dasharray="10 6" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text x="285" y="192" text-anchor="middle" fill="#5a666b" font-weight="bold">点線: 端点は物理機器の上で動きます</text>
+<rect x="20" y="200" width="540" height="190" rx="10" fill="#eef2f7" stroke="#5a666b" stroke-width="2"/>
+<text x="150" y="226" font-size="17" font-weight="bold">アンダーレイ</text>
+<text x="150" y="248">物理的な機器と、その間の IP での到達性</text>
+<text x="150" y="268">(ルーティング)のことです</text>
+<g stroke="#5a666b" stroke-width="3"><line x1="140" y1="315" x2="170" y2="315"/><line x1="270" y1="315" x2="300" y2="315"/><line x1="400" y1="315" x2="430" y2="315"/></g>
+<g fill="#ffffff" stroke="#5a666b" stroke-width="2">
+<rect x="40" y="290" width="100" height="50" rx="8"/><rect x="170" y="290" width="100" height="50" rx="8"/>
+<rect x="300" y="290" width="100" height="50" rx="8"/><rect x="430" y="290" width="100" height="50" rx="8"/></g>
+<g stroke="#5a666b" stroke-width="2" stroke-dasharray="3 5"><line x1="125" y1="146" x2="125" y2="290"/><line x1="465" y1="146" x2="465" y2="290"/></g>
+<g text-anchor="middle"><text x="90" y="320">物理機器 1</text><text x="220" y="320">物理機器 2</text><text x="350" y="320">物理機器 3</text><text x="480" y="320">物理機器 4</text></g>
+<path d="M568 20H578V390H568" fill="none" stroke="#b45309" stroke-width="3"/>
+<g fill="#b45309" font-weight="bold"><text x="588" y="190">ファブリック</text></g>
+<text x="588" y="212">= アンダーレイ</text><text x="588" y="232">+ オーバーレイ</text>
+</g>
+</svg>
