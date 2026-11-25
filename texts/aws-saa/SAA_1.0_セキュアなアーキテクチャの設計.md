@@ -224,15 +224,15 @@ AWS で Microsoft Active Directory(AD)を使うためのサービスです。
 
 典型的な3層構成:
 
-```
+```text
 インターネット
-   │
+   |
  [IGW]
-   │
+   |
  パブリックサブネット(AZ-a / AZ-c)… ALB、NAT ゲートウェイ
-   │
+   |
  プライベートサブネット(AZ-a / AZ-c)… EC2(アプリ)
-   │
+   |
  プライベートサブネット(AZ-a / AZ-c)… RDS(データベース)
 ```
 

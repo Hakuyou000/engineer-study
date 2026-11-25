@@ -653,14 +653,23 @@ IKEv2 は IKEv1 よりやり取りが少なく、NAT を越える機能と EAP �
 | 余分なデータ | 多い | 少ない |
 | 用途 | **サイト間 VPN**、リモートアクセス VPN | ホスト同士、**GRE over IPsec** |
 
-```
-元のパケット:         [IPヘッダ][TCP][データ]
+```text
+元のパケット
+[IP][TCP][DATA]
 
-トランスポート(ESP): [IPヘッダ][ESPヘッダ][TCP][データ][ESPトレーラ][ESP認証]
-                                           └────── 暗号化 ──────┘
+トランスポートモード(ESP)
+[IP][ESP-HDR][TCP][DATA][ESP-TRL][ESP-AUTH]
+             |<---------------->|  暗号化される範囲
 
-トンネル(ESP):       [新IPヘッダ][ESPヘッダ][元IPヘッダ][TCP][データ][ESPトレーラ][ESP認証]
-                                             └──────── 暗号化 ────────┘
+トンネルモード(ESP)
+[NEW-IP][ESP-HDR][IP][TCP][DATA][ESP-TRL][ESP-AUTH]
+                 |<-------------------->|  暗号化される範囲
+
+IP: 元の IP ヘッダ
+NEW-IP: 新しく付ける IP ヘッダ
+ESP-HDR: ESP ヘッダ
+ESP-TRL: ESP トレーラ
+ESP-AUTH: ESP の認証データ
 ```
 
 ### 5. 関係する技術

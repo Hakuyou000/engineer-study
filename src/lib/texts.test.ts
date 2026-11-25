@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import questions from '../data/questions.json'
+import { lintTextDiagrams } from './contentLint'
 import { TEXTS, loadText, parseTextPath, sectionNumbers, splitSections, textFor } from './texts'
 
 describe('parseTextPath', () => {
@@ -51,6 +52,12 @@ describe('同梱のテキスト', () => {
   it('ITパスポート → 基本情報 → LinuC → CCNA → AWS SAA → AWS DOP → Terraform → Docker → K8s の順に並ぶ', () => {
     const exams = [...new Set(TEXTS.map((t) => t.exam))]
     expect(exams).toEqual(['ITPassport', 'FE', 'LinuC101', 'LinuC102', 'CCNA', 'SAA', 'DOP', 'Terraform', 'Docker', 'K8s'])
+  })
+
+  it('図は README の「テキストの追加」の書き方に従う', async () => {
+    const found: string[] = []
+    for (const t of TEXTS) for (const f of lintTextDiagrams(await loadText(t.id))) found.push(`${t.id}:${f.line} ${f.message}`)
+    expect(found).toEqual([])
   })
 
   it('全問題の小項目に、対応するテキストの節がある', async () => {

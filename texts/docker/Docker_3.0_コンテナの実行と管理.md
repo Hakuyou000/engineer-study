@@ -29,11 +29,11 @@ docker run -d --name web -p 8080:80 -e TZ=Asia/Tokyo --restart unless-stopped ng
 
 ### 1. 状態
 
-```
-created ──start──▶ running ──stop/kill/終了──▶ exited ──rm──▶ (削除)
-                    │  ▲
-               pause│  │unpause
-                    ▼  │
+```text
+created --start--> running --stop/kill/終了--> exited --rm--> (削除)
+                    |  ^
+             pause  |  |  unpause
+                    v  |
                    paused
 ```
 
