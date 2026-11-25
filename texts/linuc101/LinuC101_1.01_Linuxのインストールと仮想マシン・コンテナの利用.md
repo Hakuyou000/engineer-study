@@ -58,6 +58,23 @@ ssh-copy-id sato@server1       # 公開鍵をサーバーに登録する
 
 `ssh-copy-id` は、手元の公開鍵をサーバーの `~/.ssh/authorized_keys` に追記します。
 
+鍵の認証で、公開鍵を登録してからログインするまでの流れを図にします。
+
+```text
+client                         server
+  |                              |
+  |  ssh-copy-id                 |
+  |-- id_ed25519.pub ----------->|  公開鍵を authorized_keys に追記する
+  |                              |
+  |  ssh sato@server1            |
+  |----------------------------->|  公開鍵に合う秘密鍵を持っているか確かめる
+  |<-----------------------------|  確かめられたらログインできる
+  |                              |
+```
+
+秘密鍵は手元から出ません。サーバーには公開鍵だけを置きます。
+
+
 ## 1.01.2 仮想マシン・コンテナの概念と利用 (重要度4)
 
 ### 1. 仮想マシンとハイパーバイザー
@@ -68,6 +85,24 @@ ssh-copy-id sato@server1       # 公開鍵をサーバーに登録する
 |---|---|---|
 | ハイパーバイザー型(タイプ 1) | ハードウェアの上で直接動く | KVM、Xen、VMware ESXi、Hyper-V |
 | ホスト型(タイプ 2) | 普通の OS(ホスト OS)の上のアプリとして動く | VirtualBox、VMware Workstation |
+
+2 つの型を、下から重ねて描いた図です。
+
+```text
+Type 1 (KVM, Xen, VMware ESXi, Hyper-V)
+  [VM]   [VM]
+  [Hypervisor]
+  [Hardware]
+
+Type 2 (VirtualBox, VMware Workstation)
+  [VM]   [VM]
+  [Hypervisor]
+  [Host OS]
+  [Hardware]
+```
+
+違いは、間にホスト OS があるかどうかです。
+
 
 - **仮想化支援機能**: CPU の機能で、仮想化を速くします。Intel は **VT-x**、AMD は **AMD-V** です。Linux では `/proc/cpuinfo` の flags に `vmx`(Intel)か `svm`(AMD)があるかで確かめます。
 - **KVM** は Linux のカーネルの機能で、Linux をハイパーバイザーにします。仮想化支援機能が必要です。
@@ -104,6 +139,25 @@ grep -E -c 'vmx|svm' /proc/cpuinfo    # 1 以上なら仮想化支援機能が�
 | 分離の強さ | 強い | VM より弱い |
 | 別の OS | Windows も動かせる | ホストと同じカーネル(Linux の上なら Linux のコンテナ) |
 
+仮想マシンとコンテナの構成の違いを、下から重ねて描いた図です。
+
+```text
+VM
+  [App A]      [App B]
+  [Guest OS]   [Guest OS]      VM ごとにゲスト OS(カーネル)を持つ
+  [Hypervisor]
+  [Hardware]
+
+Container
+  [App A]      [App B]
+  [Runtime]                    docker などの、コンテナを動かす部品
+  [Host OS (Linux kernel)]     カーネルを、すべてのコンテナで共有する
+  [Hardware]
+```
+
+コンテナにはゲスト OS がないので、小さく、速く起動します。
+
+
 Linux のコンテナは、カーネルの **namespace**(見えるものを分ける)と **cgroups**(使える資源を制限する)で作られています。
 
 ### 4. docker の基本の操作
@@ -132,6 +186,25 @@ docker rmi nginx:1.27                      # イメージを消す
 3. **カーネル**が動き、ハードウェアを使えるようにし、initramfs の中の道具でルートファイルシステムをマウントする
 4. カーネルが最初のプロセス(PID 1)として **systemd** を起動する
 5. systemd が、決められた目標(ターゲット)に必要なサービスを起動する
+
+この流れを図にします。
+
+```text
+[UEFI / BIOS]    ハードウェアを確かめ、起動するディスクを選ぶ
+    |
+    v
+[GRUB 2]         カーネルと initramfs を読み込む
+    |
+    v
+[kernel]         ルートファイルシステムをマウントする
+    |
+    v
+[systemd]        PID 1 として起動する
+    |
+    v
+[target]         multi-user.target などに必要なサービスを起動する
+```
+
 
 起動のときのカーネルのメッセージは `dmesg` で、systemd のログを含めた全体は `journalctl -b` で見ます。
 
@@ -200,6 +273,20 @@ root のパスワードを忘れたときや、ファイルシステムを直す
 | `fg %1` | ジョブ 1 をフォアグラウンドに戻す |
 | `Ctrl+C` | 前面のジョブに SIGINT を送って終わらせる |
 
+ジョブの状態の移り変わりを図にします。
+
+```text
+command &     ---> [background]
+command       ---> [foreground]
+
+[foreground] --- Ctrl+Z ---> [stopped]
+[stopped]    --- bg %1  ---> [background]
+[background] --- fg %1  ---> [foreground]
+[stopped]    --- fg %1  ---> [foreground]
+[foreground] --- Ctrl+C ---> 終了
+```
+
+
 ### 2. ログアウトしても動かし続ける
 
 ログアウトすると、シェルから起動したジョブには SIGHUP が送られ、普通は終わります。
@@ -267,6 +354,17 @@ X Window System(X11)は、Linux の GUI の基本の仕組みです。
 | **ターミナルプログラム** | GUI の中で CUI を使うためのアプリ(GNOME Terminal、xterm、Konsole) |
 
 「サーバー」と「クライアント」が、普通の感覚と逆になっている点に注意します。画面を持つ手元の側が X サーバーです。
+
+X クライアントが、画面を持つ X サーバーに表示を頼む様子を図にします。
+
+```text
+[X client]  -------- DISPLAY=host1:0 -------->  [X server]
+  xterm, browser                                   display, keyboard, mouse
+  別のコンピューターで動いてもよい
+```
+
+DISPLAY は、表示先の X サーバーを指します。
+
 
 ### 2. 表示先とアクセスの制御
 
