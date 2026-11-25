@@ -55,6 +55,24 @@ Docker デーモンを root 以外のユーザーで動かす方式です。コ�
 注意: 1024 未満のポートでの待ち受けなど、一部の機能に制限があります。
 関連: root、Docker デーモン
 
+### OverlayFS
+別名: overlay2、ユニオンファイルシステム
+試験: LinuC201、Docker
+要約: 複数の層を重ねて、1 つのファイルシステムに見せる仕組みです。
+読み取り専用の下の層(イメージのレイヤー)と、書き込める上の層を重ねます。Docker の既定の保存の方式(ストレージドライバー)は overlay2 です。下の層のファイルを変えると、上の層にコピーされてから変わります(コピーオンライト)。
+例: `docker info | grep -i 'storage driver'`、`/var/lib/docker/overlay2/`
+注意: コンテナを消すと、上の書き込める層の変更も消えます。
+関連: レイヤー、イメージ、コンテナ
+
+### nsenter
+別名: unshare、lsns
+試験: LinuC201
+要約: 名前空間を調べたり、入ったり、新しく作ったりするコマンドです。
+`lsns` は名前空間の一覧、`nsenter` は動いているプロセスの名前空間に入って実行、`unshare` は新しい名前空間でプログラムを起動します。
+例: `lsns`、`sudo nsenter --target 1234 --net ip addr`、`sudo unshare --uts --fork bash`
+注意: コンテナの中に入れる道具がないときも、`nsenter` ならホスト側から、コンテナの名前空間に入れます。
+関連: namespace、コンテナ
+
 ## Docker
 
 ### Docker
@@ -211,6 +229,75 @@ Docker デーモンを root 以外のユーザーで動かす方式です。コ�
 例: `docker compose up -d`、`docker compose down`、`depends_on`、`develop.watch`
 注意: 先頭の `version:` は不要です。サービス同士はサービス名で通信します。
 関連: Docker、YAML
+
+### docker exec
+別名: docker attach
+試験: LinuC201、Docker
+要約: 動いているコンテナの中で、新しいコマンドを実行します。
+`docker exec -it コンテナ sh` で、コンテナの中のシェルに入れます。`docker attach` は、新しいプロセスを作らず、コンテナの最初のプロセス(PID 1)の入出力につなぎます。
+例: `docker exec -it web sh`、`docker attach web`
+注意: `docker attach` で `Ctrl+C` を押すと、コンテナが止まることがあります。抜けるときは `Ctrl+P`、`Ctrl+Q` です。
+関連: コンテナ、PID 1
+
+### docker stop
+別名: docker kill
+試験: LinuC201、Docker
+要約: 動いているコンテナを止めます。
+`docker stop` は、先に SIGTERM を送り、既定の 10 秒待っても終わらないときに SIGKILL を送ります。`docker kill` は、すぐに SIGKILL を送ります。
+例: `docker stop web`、`docker stop -t 30 web`、`docker kill web`
+注意: SIGKILL は後片付けができないので、ふだんは `docker stop` を使います。
+関連: シグナル、コンテナ
+
+### docker pause
+別名: docker unpause
+試験: LinuC201
+要約: コンテナのプロセスを、メモリを残したまま一時停止します。
+cgroups の freezer の機能で、コンテナ内のすべてのプロセスを止めます。`docker unpause` で再開します。
+例: `docker pause batch`、`docker unpause batch`
+注意: プロセスは終了しないので、`docker stop` とは違います。
+関連: cgroups、コンテナ
+
+### docker stats
+試験: LinuC201、Docker
+要約: コンテナごとの CPU、メモリなどの使用量を、リアルタイムで表示します。
+動いているコンテナごとに、CPU の使用率、メモリの使用量と上限、ネットワークとディスクの入出力を表示します。
+例: `docker stats`、`docker stats --no-stream`
+注意: 止まっているコンテナは表示されません。1 回だけ表示するときは `--no-stream` を付けます。
+関連: cgroups、コンテナ
+
+### docker commit
+試験: LinuC201、Docker
+要約: 動かしたコンテナの今の状態を、新しいイメージにします。
+手作業で変えた内容も含めて、イメージにできます。ただし、何を変えたかが記録に残らず、作り直せません。
+例: `docker commit -m "add config" web web:v2`
+注意: ふつうは、Dockerfile を書いて `docker build` で作ります。
+関連: イメージ、Dockerfile、コンテナ
+
+### docker import
+別名: docker export
+試験: LinuC201、Docker
+要約: tar のファイルから、新しいイメージを作ります。
+`docker export` は、コンテナのファイルシステムを tar にします。`docker import` は、その tar から、1 つのレイヤーのイメージを作ります。
+例: `docker export web > web.tar`、`docker import web.tar myapp:1.0`
+注意: レイヤーの履歴とタグは引き継がれません。引き継ぐには、`docker save` と `docker load` を使います。
+関連: イメージ、レイヤー
+
+### docker save
+別名: docker load
+試験: LinuC201、Docker
+要約: イメージを、レイヤーとタグごと tar のファイルにして、持ち運びます。
+`docker save` は、イメージを tar にします。`docker load` は、その tar からイメージを読み込みます。レジストリを使えない環境に、イメージを渡すときに使います。
+例: `docker save -o app.tar myapp:1.0`、`docker load -i app.tar`
+注意: `docker export` と `docker import` は、コンテナのファイルシステムだけを扱う、別のコマンドです。
+関連: イメージ、レジストリ、レイヤー
+
+### macvlan
+試験: LinuC201、Docker
+要約: コンテナを、ホストと同じ LAN に、専用のアドレスで参加させるネットワークです。
+コンテナごとに、専用の MAC アドレスと IP アドレスを持たせ、ホストの NIC の先の LAN につなぎます。ポートの割り当て(`-p`)は要りません。
+例: `docker network create -d macvlan --subnet 192.168.1.0/24 --gateway 192.168.1.1 -o parent=eth0 lan`
+注意: 既定では、ホスト自身とコンテナは、直接通信できません。
+関連: bridge ネットワーク、ポートの公開、コンテナ
 
 ## イメージの配布と信頼
 
