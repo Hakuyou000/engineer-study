@@ -54,12 +54,19 @@ users
   v
 [ELB] AZ をまたいで振り分ける
   |
-  +--> [AZ-a] EC2 (Auto Scaling グループ) と RDS のプライマリ
-  |                       |
-  |                       |  synchronous replication
-  |                       v
-  +--> [AZ-b] EC2 (Auto Scaling グループ) と RDS のスタンバイ
+  +--> [EC2 in AZ-a] --+
+  |                    |
+  +--> [EC2 in AZ-b] --+
+                       |
+                       v
+            [RDS primary in AZ-a]
+                       |
+                       |  同期レプリケーション
+                       v
+            [RDS standby in AZ-b]
 ```
+
+EC2 は、AZ-a と AZ-b にまたがる 1 つの Auto Scaling グループで動かします。
 
 RDS の Multi-AZ では、障害時にスタンバイが自動でプライマリになります。
 
@@ -100,9 +107,9 @@ Route 53 のフェイルオーバールーティングの流れを図にしま�
 ```text
 users --> [Route 53]
             |
-            +-- health check OK --> [Primary region] プライマリのリージョン
+            +-- OK --> [Primary region] プライマリのヘルスチェックが正常
             |
-            +-- health check NG --> [Secondary region] セカンダリのリージョン
+            +-- NG --> [Secondary region] プライマリのヘルスチェックが異常
 ```
 
 ### まとめ: よく出る判断
@@ -222,27 +229,11 @@ Fan-out (1 つのメッセージを複数の宛先へ配ります)
 | 戦略 | DR リージョンの状態 | RTO・RPO の目安 |
 |---|---|---|
 | バックアップとリストア | バックアップだけ置く。障害時にリソースを作って復元する | 時間単位 |
-| パイロットライト | データは常に複製する。アプリのサーバーは止めておく(または最小) | 数十分〜 |
+| パイロットライト | データは常に複製する。アプリのサーバーは止めておく | 数十分〜 |
 | ウォームスタンバイ | 縮小した完全な構成を常に動かす。障害時に拡大する | 分単位 |
 | マルチサイト(アクティブ/アクティブ) | 全リージョンが本番として動く | ほぼゼロ |
 
 どの戦略でも、切り替えの手順は自動化し、定期的に訓練します。手作業の手順書は、障害時に失敗しやすいためです。
-
-DR の 4 つの戦略を、DR リージョンの状態で比べる図にします。上ほど安く、復旧が遅いです。
-
-```text
-1. Backup and restore
-     DR region: [Backup] バックアップだけ置く
-
-2. Pilot light
-     DR region: [Data] 常に複製する。サーバーは停止、または最小
-
-3. Warm standby
-     DR region: [Data] 常に複製する。縮小した完全な構成を動かす
-
-4. Multi-site active/active
-     Both regions: [Data] [Full stack] どちらも本番として動く
-```
 
 ### 2. AWS Backup
 

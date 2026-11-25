@@ -49,8 +49,10 @@ resource "aws_instance" "web" {
   v
   +-- 今 1 台のとき: 2 台を追加する
   +-- 今 3 台のとき: 何もしない
-  +-- 今 5 台のとき: 2 台を減らす
+  +-- Terraform が管理しているのが 5 台のとき(前に count = 5 だった): 2 台を削除する
 ```
+
+Terraform の外で作られたものは、state にないので数えません。
 
 書く人は手順を決めず、あるべき状態だけを書きます。
 
@@ -127,7 +129,7 @@ terraform init / plan / apply      書き方(HCL)と手順は、どのプロバ�
   |
   +-- hashicorp/aws        --> AWS のリソース
   +-- hashicorp/azurerm    --> Azure のリソース
-  +-- hashicorp/vsphere    --> オンプレミスの vSphere
+  +-- vmware/vsphere       --> オンプレミスの vSphere
   +-- integrations/github  --> GitHub のリポジトリやチーム
 ```
 

@@ -207,8 +207,8 @@ X-Ray が、1 つのリクエストの経路を記録する様子を図にしま
 
 ```text
 users --> [API Gateway] --> [Lambda] --> [DynamoDB]
-               |                |              |
-               +----------------+--------------+
+               |                |
+               +----------------+
                                 |
                                 v
                  [X-Ray trace] 1 つのリクエストの記録にまとめる
@@ -216,6 +216,8 @@ users --> [API Gateway] --> [Lambda] --> [DynamoDB]
                                 v
                  [Service map] 遅延とエラーを図で見る
 ```
+
+DynamoDB の呼び出しは、Lambda がサブセグメント(1 つのサービスの中の、下流の呼び出しの記録)として記録します。
 
 ### 5. リアルタイムのログ分析と、ログの検索
 
@@ -306,8 +308,10 @@ EventBridge が、イベントをルールで選んでターゲットへ送る�
 [Event bus]
   |
   +-- rule --> [Target: Lambda] イベントパターンに一致したものを送る
+  |                |
+  |                +-- 配信に失敗 --> [DLQ (SQS)] ターゲットごとに設定する
+  |
   +-- rule --> [Target: SNS] 同じく、一致したものを送る
-  +-- delivery failed --> [Dead-letter queue (SQS)] 配信に失敗したものを残す
 ```
 
 ### 2. アラームによる通知と動作

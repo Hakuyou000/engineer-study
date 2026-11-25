@@ -83,15 +83,6 @@ DIKW モデルの 4 つの階層を、下から上へ並べた図です。
 - **ETL**: 取り出し(Extract)、変換(Transform)、格納(Load)の順です。
 - **ELT**: 取り出し、格納、変換の順です。先に基盤に入れてから、基盤の中で変換します。データレイクなどで使われます。
 
-ETL と ELT で、処理の順序がどう違うかを並べた図です。
-
-```text
-ETL  [Extract] --> [Transform] --> [Load]
-ELT  [Extract] --> [Load] --> [Transform]
-```
-
-Extract は取り出し、Transform は変換、Load は格納です。ELT では、先に基盤へ入れて、基盤の中で変換します。
-
 ### 2. データの種類と特徴
 
 | 種類 | 内容 |

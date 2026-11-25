@@ -146,8 +146,8 @@ without --init:
     +-- [child]
 
 with --init:
-  [PID 1: tini]            <- シグナルを転送し、終わった子プロセス(ゾンビ)を回収する
-    +-- [PID 2: app]
+  [PID 1: docker-init (tini)]   <- シグナルを転送し、終わった子プロセス(ゾンビ)を回収する
+    +-- [app]
           +-- [child]
 ```
 

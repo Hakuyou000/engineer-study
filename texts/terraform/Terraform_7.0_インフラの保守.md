@@ -16,17 +16,17 @@ import の前と後で、設定、state、実物がどう変わるかを図に�
 
 ```text
 Before apply:
-  config : aws_s3_bucket.logs の resource ブロック(書いた)
+  config : import ブロック(to と id)と resource ブロック(書いた)
   state  : 空(まだ記録がない)
   real   : example-logs-bucket(管理画面で作られた実物)
 
 After apply:
-  config : aws_s3_bucket.logs の resource ブロック
+  config : import ブロックと resource ブロック
   state  : aws_s3_bucket.logs = example-logs-bucket(記録が増える)
-  real   : example-logs-bucket(変わらない)
+  real   : 設定が実物と同じなら変わらない
 ```
 
-実物は作られも変わりもしません。state に記録が増えるだけです。
+設定が実物と一致していれば、実物は変わりません。違う引数があると、同じ apply で実物も設定に合わせて変わります。
 
 ### 2. import ブロック(推奨。1.5〜)
 
@@ -52,21 +52,6 @@ resource "aws_s3_bucket" "logs" {
 2. `terraform plan` で、何が取り込まれるか(`will be imported`)を確認する。
 3. `terraform apply` で state に取り込む。
 4. もう一度 `plan` して、**差分がない**(設定が実物と一致している)ことを確かめる。
-
-import ブロックで取り込む流れを図にします。
-
-```text
-[1] import ブロックを書く(to と id)
-  |
-  v
-[2] terraform plan: will be imported と表示され、取り込む内容を確認できる
-  |
-  v
-[3] terraform apply: 実物を state に記録する
-  |
-  v
-[4] terraform plan: 差分がなければ完了
-```
 
 `import` ブロックの利点:
 

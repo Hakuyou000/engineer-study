@@ -857,6 +857,7 @@ interface GigabitEthernet0/0          ! クライアントがいる側(L3 スイ
 
 - リレーは Discover を **ユニキャスト** に変えて、サーバーへ転送します。
 - そのとき **giaddr**(ゲートウェイの IP アドレス)という欄に、受信したインターフェースのアドレスを入れます。サーバーは giaddr からプールを選び、giaddr あてに返信します。
+- `ip helper-address` は DHCP 以外も転送します。既定では UDP の 37(Time)、49(TACACS)、53(DNS)、67 / 68(DHCP)、69(TFTP)、137 / 138(NetBIOS)です。
 
 リレーエージェントがあるときの流れです。数字は例です。
 
@@ -870,7 +871,6 @@ interface GigabitEthernet0/0          ! クライアントがいる側(L3 スイ
 ```
 
 Request と Ack も、同じようにリレーを通ります。
-- `ip helper-address` は DHCP 以外も転送します。既定では UDP の 37(Time)、49(TACACS)、53(DNS)、67 / 68(DHCP)、69(TFTP)、137 / 138(NetBIOS)です。
 
 > **【ひっかけ】** `ip helper-address` を設定するのは **クライアント側** のインターフェースです。サーバー側ではありません。指定するのはサーバーのアドレスです。
 
