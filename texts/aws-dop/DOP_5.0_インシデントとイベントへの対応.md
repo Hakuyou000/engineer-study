@@ -47,6 +47,22 @@ SQS と Lambda の組み合わせです。
 - 処理に失敗したメッセージは、キューに戻って再試行されます。何度も失敗するものは、**デッドレターキュー** に移します(`maxReceiveCount` で回数を決めます)。
 - バッチの一部だけが失敗したときは、イベントソースマッピングで **部分バッチ応答**(`ReportBatchItemFailures`)を有効にします。失敗したメッセージだけを戻せます。成功した分まで再処理されるのを防げます。
 - DLQ のメッセージは、原因を直したあと **DLQ のリドライブ** で元のキューに戻せます。
+
+SQS と Lambda の組み合わせで、失敗したメッセージが進む流れを図にします。
+
+```text
+[SQS queue] --> [Lambda]
+   ^               |
+   |               +-- success --> メッセージを削除する
+   |               |
+   +---------------+-- failure --> キューに戻って再試行される
+   |
+   +-- over maxReceiveCount --> [Dead-letter queue]
+                                        |
+                                        |  原因を直したあと、リドライブ
+                                        v
+                                    [Original queue] 元のキューへ戻す
+```
 - 可視性タイムアウトは、Lambda の関数のタイムアウトより長くします。
 
 Lambda の非同期呼び出し(EventBridge や SNS からの呼び出し)です。
@@ -132,6 +148,25 @@ Config を使わず EventBridge で作る方法もあります。
 - 「API の呼び出し」や「状態の変化」をイベントで受けて、Lambda や Automation を動かします。
 - 「設定が基準に合っているか」を継続的に評価したいときは Config、「この出来事に反応したい」ときは EventBridge、と使い分けます。
 
+Config が、非準拠のリソースを自動で修復する流れを図にします。
+
+```text
+[Resource] リソースの設定が変わる
+  |
+  v
+[AWS Config] 設定を記録する
+  |
+  v
+[Config rule] 準拠か非準拠かを評価する
+  |
+  +-- compliant --> 何もしない
+  |
+  +-- non-compliant --> [Remediation] Systems Manager Automation のドキュメントを実行
+                   |
+                   v
+                 リソースが直る
+```
+
 ### 3. Auto Scaling とライフサイクルフック
 
 Amazon EC2 Auto Scaling(インスタンスの台数を自動で増減するサービス)の **ライフサイクルフック** は、起動や終了の途中で、インスタンスを待機状態にします。
@@ -146,6 +181,19 @@ Amazon EC2 Auto Scaling(インスタンスの台数を自動で増減するサ�
 - 待機の既定の時間は 1 時間です。処理が長いときは、ハートビートを記録して延ばします。
 - **ウォームプール**: 準備済みのインスタンスをあらかじめ待機させて、スケールアウトを速くします。
 - **インスタンスのリフレッシュ**: 起動テンプレートを変えたあと、インスタンスを順番に入れ替えます。最小の正常率を指定して、ローリングで行います。
+
+Auto Scaling のライフサイクルフックで、インスタンスの状態が移り変わる流れを図にします。
+
+```text
+Launch
+  Pending --> Pending:Wait --> Pending:Proceed --> InService
+                  |
+                  +-- 待機中に Lambda や SSM Automation が処理する
+                      complete-lifecycle-action で CONTINUE か ABANDON を返す
+
+Terminate
+  Terminating --> Terminating:Wait --> Terminating:Proceed --> Terminated
+```
 
 ### 4. CloudFormation を使った構成の変更
 

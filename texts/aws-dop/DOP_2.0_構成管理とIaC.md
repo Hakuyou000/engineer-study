@@ -59,6 +59,27 @@
 - 更新に失敗すると、自動でロールバックします。ロールバックにも失敗すると `UPDATE_ROLLBACK_FAILED` になります。原因(手で消したリソースなど)を直してから、`ContinueUpdateRollback` を実行します。
 - 作成の失敗を調べたいときは、ロールバックを無効にして、失敗したリソースを残します。
 
+変更セットを使った、スタックの更新の流れを図にします。
+
+```text
+[Template] テンプレートを変更する
+  |
+  v
+[Change set] 変更セットを作る(まだ何も変わらない)
+  |
+  v
+[Review] 差分を確認する(追加、変更、削除、置換)
+  |
+  +-- NG --> 変更セットを捨てる
+  |
+  v
+[Execute] 変更セットを実行する
+  |
+  +-- success --> UPDATE_COMPLETE
+  |
+  +-- failure --> UPDATE_ROLLBACK_COMPLETE(自動でロールバックする)
+```
+
 #### ドリフト検出
 
 - **ドリフト**: スタックの外(コンソールなど)でリソースの設定が変えられ、テンプレートとずれた状態。
@@ -95,6 +116,22 @@ CloudFormation が対応していない処理を、Lambda 関数(または SNS)�
 - パスワードの生成は、`AWS::SecretsManager::Secret` の `GenerateSecretString` で自動で作り、動的参照で RDS に渡します。テンプレートにパスワードを書かないためです。
 - テンプレートの検査は、`cfn-lint`(文法やベストプラクティス)と、CloudFormation Guard(ポリシーのルールをコードで検査)を、パイプラインの中で使います。
 
+ネストされたスタックと、クロススタック参照の違いを図にします。
+
+```text
+Nested stacks (親が子を部品として呼ぶ)
+  [Parent stack]
+    +-- [Child stack: VPC]
+    +-- [Child stack: App]
+
+Cross-stack reference (別々のスタックが値を受け渡す)
+  [Network stack] Outputs の Export
+        |
+        |  !ImportValue
+        v
+  [App stack]
+```
+
 ### 4. StackSets(複数のアカウントとリージョンへ展開)
 
 **CloudFormation StackSets**は、1つのテンプレートを、複数のアカウントとリージョンへ、まとめて展開します。
@@ -110,6 +147,17 @@ CloudFormation が対応していない処理を、Lambda 関数(または SNS)�
 - スタックセットの更新は、全スタックインスタンスに反映されます。
 - 自動デプロイでは、アカウントが OU から外れたときに、スタックを削除するか残すか(`RetainStacksOnAccountRemoval`)を選べます。自動デプロイの設定は、スタックセットごとに行います。
 - 組織のメンバーアカウントから StackSets を運用するには、委任された管理者を登録します。
+
+StackSets が、1 つのテンプレートを複数のアカウントとリージョンへ展開する様子を図にします。
+
+```text
+[StackSet] 管理者アカウントのスタックセット(テンプレート 1 つ)
+  |
+  +--> [Account A / Region 1] スタックインスタンス
+  +--> [Account A / Region 2] スタックインスタンス
+  +--> [Account B / Region 1] スタックインスタンス
+  +--> [Account B / Region 2] スタックインスタンス
+```
 
 ### 5. AWS SAM と AWS CDK
 
@@ -208,6 +256,21 @@ SCP の性質です。
 - 許可(`Allow`)だけでは権限を与えません。IAM ポリシーでの許可も必要です。
 - 「このリージョン以外を使わせない」は、`aws:RequestedRegion` 条件キーを使った `Deny` の SCP で書きます。IAM などのグローバルサービスは、`NotAction` で例外にします。
 
+Organizations の階層と、SCP が効く範囲を図にします。
+
+```text
+[Root]
+  +-- [Management account] 管理アカウント(SCP は効かない)
+  +-- [OU: Prod] 本番の OU(SCP を付ける)
+  |     +-- [Member account]
+  |     +-- [Member account]
+  +-- [OU: Dev] 開発の OU(SCP を付ける)
+        +-- [OU: Team A] 入れ子の OU(上の OU の SCP も効く)
+              +-- [Member account]
+```
+
+SCP は権限の上限です。権限を与えるのは IAM ポリシーです。
+
 アカウントの作成は、`CreateAccount` API や、コンソール、Control Tower の Account Factory で自動化できます。作ったアカウントには、既定で `OrganizationAccountAccessRole` という IAM ロールが作られ、管理アカウントからロールを引き受けて操作できます。
 
 ### 3. AWS Control Tower
@@ -228,6 +291,19 @@ SCP の性質です。
 - Control Tower の外から、管理している OU や SCP を変更すると、**ドリフト**が起きます。Control Tower の画面で、検出して修復します。
 - 「新しいアカウントを、標準の設定(ログ、ネットワーク、セキュリティの設定)つきで自動で作る」は、Account Factory(または AFT)と CfCT です。
 - ゼロから自分で作るより、Control Tower が運用の手間は少ない、というのが試験での方向です。
+
+Control Tower のランディングゾーンの構成の例を図にします。OU の名前は例です。
+
+```text
+[Management account] Control Tower と Organizations を動かす
+  |
+  +-- [OU: Security]
+  |     +-- [Log Archive account] CloudTrail と Config のログを集める
+  |     +-- [Audit account] 監査用の読み取り専用のアクセス
+  |
+  +-- [OU: Workloads]
+        +-- [Account] Account Factory で作ったアカウント。コントロールが効く
+```
 
 ### 4. 大規模でのセキュリティとガバナンス
 
