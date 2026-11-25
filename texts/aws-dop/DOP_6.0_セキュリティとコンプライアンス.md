@@ -53,6 +53,21 @@ AWS STS(一時的な認証情報を発行するサービス)の主な API です
 - リソースベースのポリシーが、セッションの ARN を主体として指定しているときは、その許可はセッションポリシーで絞られません。
 - ロールを増やさず、引き受ける人やアプリごとに、権限を絞りたいときに使います。
 
+権限の上限が重なる様子を図にします。実際に使える権限は、すべての上限と許可の共通部分です。
+
+```text
+[SCP] 組織の上限
+  |
+  v
+[Permissions boundary] アクセス許可の境界(ユーザーやロールの上限)
+  |
+  v
+[Session policy] そのセッション限りの絞り込み
+  |
+  v
+[Effective permissions] IAM ポリシーの許可のうち、すべてを通ったものだけが使える
+```
+
 ### 3. 最小権限とアクセス制御のパターン
 
 **ロールベースのアクセス制御(RBAC)**: 職務ごとにロール(権限セット)を作り、人に割り当てます。
@@ -87,6 +102,17 @@ AWS Secrets Manager(秘密情報を保管し、自動でローテーションで
 - RDS などでは、ローテーション用の Lambda 関数のテンプレートが用意されています。一部の秘密情報には、Lambda を使わない **マネージドローテーション** があります。
 - Lambda 関数の手順は、`createSecret` → `setSecret` → `testSecret` → `finishSecret` です。新しい版(`AWSPENDING`)を作り、データベースに設定して、確認してから、現在の版(`AWSCURRENT`)にします。
 - アプリは、キャッシュを使いつつ、取得し直す設計にします。
+
+Secrets Manager のローテーションで、Lambda 関数が実行する 4 つの手順を図にします。
+
+```text
+createSecret --> setSecret --> testSecret --> finishSecret
+     |               |              |               |
+     |               |              |               +-- AWSPENDING を AWSCURRENT にする
+     |               |              +-- 新しい認証情報で接続できるか確認する
+     |               +-- データベースに新しい認証情報を設定する
+     +-- 新しい版(AWSPENDING)を作る
+```
 
 | 項目 | Secrets Manager | Systems Manager Parameter Store |
 |---|---|---|
@@ -191,6 +217,21 @@ AWS Secrets Manager(秘密情報を保管し、自動でローテーションで
 - キーを使えるかどうかは、まずキーポリシーで決まります。キーポリシーが IAM ポリシーでの許可を有効にしているときだけ、IAM ポリシーで許可できます。既定のキーポリシーは、これを有効にしています。
 - S3 の SSE-KMS では、S3 バケットキーで、KMS の呼び出しを減らせます。
 
+エンベロープ暗号化の流れを図にします。
+
+```text
+[KMS key]
+  |
+  |  GenerateDataKey
+  v
+[Data key (plaintext)] + [Data key (encrypted)]
+  |                              |
+  v                              |
+[Encrypted data] <---------------+
+```
+
+平文のデータキーでデータを暗号化し、平文のデータキーは捨てます。暗号化したデータと、暗号化済みのデータキーを一緒に保存します。
+
 **AWS CloudHSM**(専用のハードウェアでキーを管理するサービス)は、鍵の管理をすべて自分で行いたいとき、規制で専用のハードウェアが必要なときに使います。
 
 ### 5. まとめ: よく出る判断
@@ -239,6 +280,16 @@ VPC フローログです。
 - 出力先は、CloudWatch Logs、S3、Amazon Data Firehose(旧 Kinesis Data Firehose) です。
 - S3 に出力して、Amazon Athena(S3 のデータを SQL で調べるサービス)で分析できます。
 - パケットの中身は記録されません。
+
+監査のためのログを、組織で集める構成を図にします。
+
+```text
+[CloudTrail org trail] ----+
+[VPC Flow Logs] -----------+--> [S3 bucket in log account] KMS で暗号化したログ用のバケット
+[AWS Config] --------------+          |
+                                      +--> Athena で SQL の分析
+                                      +--> CloudWatch Logs --> metric filter --> alarm
+```
 
 CloudFormation の **ドリフト検出** は、スタックのリソースが、テンプレートの定義と違う状態になっていないか(手作業の変更がないか)を検出します。
 

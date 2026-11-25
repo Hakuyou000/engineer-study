@@ -46,6 +46,23 @@
 - **Amazon EC2 Auto Scaling グループ** を複数の AZ のサブネットにまたがらせます。1 つの AZ が使えなくなると、残りの AZ でインスタンスを起動して台数を保ちます。
 - ヘルスチェックの種類を ELB にすると、アプリケーションの応答がないインスタンスも置き換えます(既定の EC2 ヘルスチェックは、インスタンスの状態だけを見ます)。
 
+複数の AZ に構成を分けた、可用性の高い構成の例を図にします。
+
+```text
+users
+  |
+  v
+[ELB] AZ をまたいで振り分ける
+  |
+  +--> [AZ-a] EC2 (Auto Scaling グループ) と RDS のプライマリ
+  |                       |
+  |                       |  synchronous replication
+  |                       v
+  +--> [AZ-b] EC2 (Auto Scaling グループ) と RDS のスタンバイ
+```
+
+RDS の Multi-AZ では、障害時にスタンバイが自動でプライマリになります。
+
 ### 4. データ層の高可用性
 
 | サービス | 同じリージョン内の可用性 | 複数リージョン |
@@ -77,6 +94,16 @@ DNS で切り替える方法と、エッジで切り替える方法がありま�
 | AWS Global Accelerator | 固定の Anycast IP を使い、正常なエンドポイントへルーティングする。DNS キャッシュの影響を受けない |
 
 DNS の切り替えは、TTL の長さの分だけ遅れます。早く切り替えたいときは TTL を短くします。
+
+Route 53 のフェイルオーバールーティングの流れを図にします。
+
+```text
+users --> [Route 53]
+            |
+            +-- health check OK --> [Primary region] プライマリのリージョン
+            |
+            +-- health check NG --> [Secondary region] セカンダリのリージョン
+```
 
 ### まとめ: よく出る判断
 
@@ -129,6 +156,20 @@ SQS のキューの長さ(`ApproximateNumberOfMessagesVisible`)だけを指標�
 | Amazon SNS | 1 つのメッセージを複数の宛先へ配る(ファンアウト) |
 | Amazon EventBridge | イベントをルールで振り分ける |
 | AWS Step Functions | 複数の処理の順序とエラー処理を管理する |
+
+キューを間に置いて疎結合にする構成と、SNS によるファンアウトを図にします。
+
+```text
+Direct (受け手が遅いと、送り手も待たされます)
+  [Sender] --> [Receiver]
+
+Queue (受け手が自分のペースで取り出します)
+  [Sender] --> [SQS queue] --> [Receiver]
+
+Fan-out (1 つのメッセージを複数の宛先へ配ります)
+  [Sender] --> [SNS topic] --+--> [SQS queue A] --> [Receiver A]
+                             +--> [SQS queue B] --> [Receiver B]
+```
 
 ### 4. サーバーレスとコンテナ
 
@@ -186,6 +227,22 @@ SQS のキューの長さ(`ApproximateNumberOfMessagesVisible`)だけを指標�
 | マルチサイト(アクティブ/アクティブ) | 全リージョンが本番として動く | ほぼゼロ |
 
 どの戦略でも、切り替えの手順は自動化し、定期的に訓練します。手作業の手順書は、障害時に失敗しやすいためです。
+
+DR の 4 つの戦略を、DR リージョンの状態で比べる図にします。上ほど安く、復旧が遅いです。
+
+```text
+1. Backup and restore
+     DR region: [Backup] バックアップだけ置く
+
+2. Pilot light
+     DR region: [Data] 常に複製する。サーバーは停止、または最小
+
+3. Warm standby
+     DR region: [Data] 常に複製する。縮小した完全な構成を動かす
+
+4. Multi-site active/active
+     Both regions: [Data] [Full stack] どちらも本番として動く
+```
 
 ### 2. AWS Backup
 

@@ -22,6 +22,20 @@ CI/CD のパイプラインは、次の段を自動でつなぎます。
 
 これらを順に流す役が **AWS CodePipeline**(パイプラインを組み立てて実行するサービス)です。
 
+パイプラインの段が、順に流れる様子を図にします。
+
+```text
+[Source] ---> [Build] ---> [Test] ---> [Approval] ---> [Deploy]
+   |              |            |             |               |
+   |              |            |             |               +-- CodeDeploy、ECS など
+   |              |            |             +-- 人が確認する(手動承認アクション)
+   |              |            +-- 結合テスト、受け入れテスト
+   |              +-- CodeBuild(コンパイル、単体テスト、パッケージ化)
+   +-- CodeCommit、外部の Git、S3、ECR(変更を検知して始まる)
+```
+
+どれかの段が失敗すると、次の段には進みません。
+
 ### 2. CodePipeline の仕組み
 
 | 用語 | 意味 |
@@ -36,6 +50,22 @@ CI/CD のパイプラインは、次の段を自動でつなぎます。
 - パイプラインには V1 と V2 の種類があります。V2 は、Git のブランチ、タグ、プルリクエスト、ファイルパスで起動を絞るトリガー、パイプラインの変数、実行モード(キュー、並列)、ステージのロールバックなどに対応します。
 - 手動承認アクションは、承認の依頼を SNS で通知できます。承認されないと、次のステージに進みません。
 - パイプラインの実行は、失敗したステージから再実行できます。
+
+ステージ、アクション、アーティファクトの関係を図にします。アクションは、アーティファクトストア(S3)を通して成果物を渡します。
+
+```text
+[Source stage]
+  +-- [Source action]
+        |  output: SourceArtifact (S3 のアーティファクトストアに置かれる)
+        v
+[Build stage]
+  +-- [CodeBuild action]
+        |  input: SourceArtifact
+        |  output: BuildArtifact
+        v
+[Deploy stage]
+  +-- [CodeDeploy action]
+```
 
 ### 3. リポジトリ
 
@@ -135,6 +165,20 @@ cache:
 
 - 別のリージョンにデプロイするアクションには、そのリージョンのアーティファクト用のバケットが要ります。CodePipeline が、リージョンごとにバケットを用意して成果物を複製します。
 - デプロイを管理するアカウントを分ける目的は、本番の権限を絞ることです。ビルドの権限と、本番に触る権限を分けます。
+
+マルチアカウントのパイプラインの構成を図にします。
+
+```text
+[Tools account] ツール用アカウント(CodePipeline と、S3 のアーティファクトバケットを置く)
+  |
+  |  AssumeRole (デプロイ先のロールを引き受ける)
+  |
+  +--> [Dev account] 開発アカウント(デプロイ用の IAM ロール)
+  +--> [Staging account] ステージングアカウント(デプロイ用の IAM ロール)
+  +--> [Prod account] 本番アカウント(デプロイ用の IAM ロール)
+```
+
+デプロイ先のロールが成果物を読めるように、バケットポリシーとキーポリシーで許可します。
 
 ### 7. まとめ: よく出る判断
 
@@ -250,6 +294,25 @@ EC2 Image Builder は、AMI やコンテナイメージの作成、テスト、�
 | パイプライン | スケジュールや、ベースのイメージの更新をきっかけに自動で実行する |
 
 - 「ゴールデン AMI を毎月自動で作り直して、複数のリージョンに配る」は Image Builder の典型の場面です。
+
+Image Builder のパイプラインが、イメージを作って配るまでの流れを図にします。
+
+```text
+[Base image] ベースのイメージ
+  |
+  v
+[Build components] ビルドのコンポーネントを順に実行
+  |
+  v
+[Test components] テストのコンポーネントで確認
+  |
+  v
+[Distribution settings] 配布設定に従って配る
+  |
+  +--> Region A の AMI
+  +--> Region B の AMI
+  +--> 別のアカウントへ共有
+```
 - セキュリティパッチの入った新しい AMI を、起動テンプレートに自動で反映させ、Auto Scaling グループのインスタンスの更新(1.4)につなげます。
 
 ### 5. S3 でのアーティファクト管理
@@ -301,6 +364,18 @@ EC2 Image Builder は、AMI やコンテナイメージの作成、テスト、�
 - **イミュータブル**: 動いているサーバーは書き換えず、新しいものと入れ替えます。ブルー/グリーンとイミュータブルがこちらです。
 - 「ダウンタイムなしで、問題があればすぐに切り戻したい」→ ブルー/グリーン。「一部の利用者だけで先に確かめたい」→ カナリア。
 
+ブルー/グリーンとカナリアで、トラフィックの流れがどう違うかを図にします。
+
+```text
+Blue/Green
+  users --> [Load balancer] --+--> [Blue] 旧版(切り替え前に使う)
+                              +--> [Green] 新版(切り替え後は、全部がこちらへ向く)
+
+Canary
+  users --> [Load balancer] --+--> [Old] 旧版(大部分)
+                              +--> [New] 新版(少量。問題がなければ全部へ広げる)
+```
+
 ### 2. AWS CodeDeploy
 
 AWS CodeDeploy は、EC2 とオンプレミスのサーバー、Lambda、ECS に、アプリケーションのデプロイを自動化するサービスです。
@@ -335,6 +410,30 @@ EC2 のインプレースデプロイの段階の順序です。
 | 7 | `ValidateService` | 動作の確認。ここで失敗するとデプロイが失敗する |
 
 - Lambda のフックは `BeforeAllowTraffic` と `AfterAllowTraffic` の 2 つです。それぞれ、検証用の Lambda 関数を指定します。
+
+EC2 のインプレースデプロイで、エージェントがフックを順に実行する流れを図にします。
+
+```text
+ApplicationStop
+  |
+  v
+DownloadBundle
+  |
+  v
+BeforeInstall
+  |
+  v
+Install
+  |
+  v
+AfterInstall
+  |
+  v
+ApplicationStart
+  |
+  v
+ValidateService (ここで失敗するとデプロイが失敗します)
+```
 - ECS のフックには、`BeforeInstall`、`AfterInstall`、`AfterAllowTestTraffic`、`BeforeAllowTraffic`、`AfterAllowTraffic` があります。
 - フックのスクリプトが 0 以外の終了コードで終わると、そのデプロイは失敗します。
 
@@ -389,6 +488,18 @@ Elastic Beanstalk は、アプリのコードを渡すと、EC2、Auto Scaling�
 ### 6. Lambda とサーバーレスのデプロイ
 
 - Lambda は、**バージョン**(変更できない版)と**エイリアス**(版を指す名前)を使います。エイリアスに 2 つの版と重みを設定すると、トラフィックを分けられます。
+
+Lambda のエイリアスで、トラフィックを 2 つの版に分ける様子を図にします。
+
+```text
+caller --> [Alias: prod]
+              |
+              +-- weight 90% --> [Version 1] 旧版
+              |
+              +-- weight 10% --> [Version 2] 新版
+```
+
+CodeDeploy が、この重みを少しずつ変えて、新しい版へ移します。
 - **AWS SAM**(サーバーレス向けの CloudFormation の拡張)では、`AutoPublishAlias` と `DeploymentPreference` を書くと、CodeDeploy を使った段階的なデプロイ(カナリア、リニア)と、アラームによる自動ロールバックを設定できます。
 - API Gateway には、ステージのカナリアリリースの機能があります。
 
