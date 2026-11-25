@@ -132,6 +132,7 @@ export const STAGES: RoadmapStage[] = [
 export const OPTIONAL_CERTS: RoadmapCert[] = [
   { cert: 'cloudops', note: '旧 SysOps Administrator。AWS の運用に寄った資格' },
   { cert: 'linuc2', note: 'Linux をさらに深く学ぶとき' },
+  { cert: 'linuc3', note: 'LinuC レベル2 の後に。仮想化と高可用性(3PS)か、セキュリティ(3SS)を深く学ぶとき' },
   { cert: 'itpassport', note: 'IT とビジネスの基礎を、技術の前に広く学ぶとき' },
   { cert: 'ipa', note: 'コンピューターサイエンスの基礎をまとめて学ぶとき' },
   { cert: 'gcp-devops', note: 'SRE の考え方が出題範囲。Google Cloud を使う職場向け' },
