@@ -65,6 +65,143 @@ Linux のカーネルの機能で、Linux をハイパーバイザーにして�
 注意: ハードウェアの上で直接動くのがタイプ 1、OS の上のアプリとして動くのがタイプ 2 です。
 関連: 仮想マシン
 
+### bzImage
+別名: vmlinuz
+試験: LinuC201
+要約: x86 の Linux で標準の、大きなカーネルも入る圧縮されたカーネルのイメージです。
+`/boot/vmlinuz-<版>` の実体は、多くの場合 `bzImage` です。圧縮していない本体は `vmlinux` です。
+例: `file /boot/vmlinuz-$(uname -r)`
+注意: `bz` は bzip2 の意味ではなく、big zImage の略です。
+関連: カーネル、initramfs
+
+### DKMS
+別名: Dynamic Kernel Module Support
+試験: LinuC201
+要約: カーネルの外にあるモジュールを、カーネルの更新のたびに自動でビルドし直す仕組みです。
+ソースを `/usr/src/<名前>-<版>/` に置き、`dkms.conf` に作り方を書きます。`dkms add`、`build`、`install` で使います。
+例: `dkms status`
+注意: ビルドに、`kernel-devel` や `linux-headers` のパッケージが必要です。
+関連: カーネルモジュール、カーネル
+
+### dracut
+別名: mkinitramfs、mkinitrd
+試験: LinuC201
+要約: initramfs を作る道具です。Red Hat 系は dracut、Debian 系は mkinitramfs を使います。
+カーネルの版ごとに、起動に必要なドライバーを入れた initramfs を作ります。
+例: `sudo dracut -f`(Red Hat 系)、`sudo update-initramfs -u`(Debian 系)
+注意: ストレージのドライバーの設定を変えたら、initramfs を作り直します。
+関連: initramfs、カーネルモジュール
+
+### /proc と /sys
+別名: procfs、sysfs
+試験: LinuC201
+要約: カーネルの状態を、ファイルのように見せる仮想のファイルシステムです。
+`/proc` はプロセスとカーネルの状態、`/sys`(sysfs)はデバイスとドライバーの情報を見せます。ディスクには保存されていません。
+例: `cat /proc/cpuinfo`、`ls /sys/module/`
+注意: `/proc/sys/` の値は、`sysctl` でも読み書きできます。
+関連: カーネル、sysctl
+
+### dmesg
+別名: カーネルリングバッファ
+試験: LinuC201
+要約: カーネルが出したメッセージ(デバイスの認識やエラー)を表示するコマンドです。
+起動のときと動作中のカーネルのメッセージを読みます。`-T` で時刻を読める形にします。
+例: `sudo dmesg -T --level=err,warn`
+注意: 再起動すると消えます。前回の起動の分は `journalctl -b -1` で見ます。
+関連: journald、カーネル
+
+### kdump
+別名: kexec、カーネルダンプ
+試験: LinuC201
+要約: カーネルパニックのときに、メモリの内容を保存する仕組みです。
+あらかじめ確保したメモリのダンプ用カーネルに kexec で切り替え、メモリの内容を `vmcore` に保存します。
+例: `crashkernel=` のカーネルのオプションで、メモリを確保する
+注意: 試験では設定ではなく、仕組みの考え方が問われます。
+関連: カーネル
+
+### QEMU
+試験: LinuC201
+要約: 仮想のハードウェアをまねて、仮想マシンを動かすソフトウェアです。
+仮想のディスク、ネットワークカード、画面などをソフトウェアでまねます。KVM と組み合わせると、CPU の命令を物理 CPU の速さで実行できます。ふつうは、VM 1 台につき QEMU のプロセスが 1 つ動きます。
+例: `ps aux | grep qemu`、`qemu-img create -f qcow2 disk.qcow2 20G`
+注意: KVM は CPU の仮想化を、QEMU は周りのハードウェアを受け持ちます。
+関連: KVM、仮想マシン、libvirt
+
+### Xen
+試験: LinuC201
+要約: ハードウェアの上で直接動く、オープンソースのハイパーバイザーです。
+最初に起動する管理用の VM(dom0)から、ほかの VM(domU)を作って管理します。準仮想化の考え方を、早くから取り入れました。
+例: `xl list`、`xl create guest.cfg`
+注意: Linux のカーネルに組み込まれる KVM とは別の仕組みです。
+関連: ハイパーバイザー、準仮想化、KVM
+
+### ハードウェア支援仮想化
+別名: VT-x、AMD-V
+試験: LinuC201
+要約: CPU に備わった、仮想マシンを速く動かすための機能です。
+Intel の CPU では VT-x(フラグは vmx)、AMD の CPU では AMD-V(フラグは svm)と呼びます。KVM を使うには、この機能が必要です。
+例: `grep -E -c '(vmx|svm)' /proc/cpuinfo`、`lscpu | grep -i virtualization`
+注意: CPU が対応していても、BIOS や UEFI で無効になっていることがあります。
+関連: KVM、仮想マシン
+
+### 完全仮想化
+試験: LinuC201
+要約: ゲスト OS を変えずに、ハードウェアを全部まねて動かす方式です。
+ゲスト OS は、仮想環境だと気づかずに動きます。どの OS でも動かせますが、ハードウェアをまねる分、ディスクやネットワークは遅くなりやすいです。
+例: IDE のディスク、e1000 のネットワークカードをまねた VM
+注意: 準仮想化と反対の考え方で、ゲスト OS を変えない代わりに遅くなりやすいです。
+関連: 準仮想化、virtio、QEMU
+
+### 準仮想化
+試験: LinuC201
+要約: ゲスト OS が仮想環境だと知った上で、ハイパーバイザーと直接やり取りして速くする方式です。
+ハードウェアをまねる手間が減るので、速くなります。ゲスト OS に、専用のドライバーが必要です。
+例: virtio、Xen の準仮想化ドライバー
+注意: ゲスト OS を変える必要があります。Linux は、virtio のドライバーを最初から持っています。
+関連: 完全仮想化、virtio、Xen
+
+### virtio
+別名: virtio-net、virtio-blk
+試験: LinuC201
+要約: 仮想マシン専用の、軽いディスクやネットワークカードのドライバーです。
+準仮想化の仕組みで、ゲスト OS のドライバーとホスト側が直接やり取りします。ディスクは virtio-blk、ネットワークカードは virtio-net です。
+例: `virt-install --disk size=20,bus=virtio --network model=virtio`
+注意: Windows のゲストには、virtio-win のドライバーを別に入れます。
+関連: 準仮想化、QEMU、KVM
+
+### libvirt
+別名: libvirtd
+試験: LinuC201
+要約: KVM などの仮想マシンを、共通の方法で管理する仕組みです。
+管理用のサービス(libvirtd)と、`virsh`、`virt-install`、`virt-manager` などの道具をまとめたものです。VM の定義は XML で、`/etc/libvirt/qemu/` に置かれます。
+例: `systemctl enable --now libvirtd`、`virsh -c qemu:///system list --all`
+注意: RHEL 9 系では、機能ごとに分かれたデーモン(virtqemud など)が既定です【要確認】。
+関連: virsh、virt-install、virt-manager、QEMU
+
+### virsh
+試験: LinuC201
+要約: libvirt の仮想マシンを、コマンドで操作する道具です。
+一覧、起動、停止、一時停止、定義の編集、情報の表示などを行います。VM は「ドメイン」と呼ばれます。
+例: `virsh list --all`、`virsh start vm1`、`virsh shutdown vm1`、`virsh destroy vm1`
+注意: `virsh destroy` は、VM の電源を強制的に切るだけで、VM は消えません(消すのは `undefine`)。
+関連: libvirt、virt-install、仮想マシン
+
+### virt-install
+試験: LinuC201
+要約: コマンドの引数で、仮想マシンを作る道具です。
+名前、メモリ、仮想 CPU の数、ディスク、インストール用の ISO などを引数で指定して、VM を作ります。画面のないサーバーでも使えます。
+例: `virt-install --name vm1 --memory 2048 --vcpus 2 --disk size=20 --cdrom ubuntu.iso --os-variant ubuntu24.04`
+注意: `--memory` の単位は MiB です。Debian 系では、`virtinst` パッケージに入っています。
+関連: virsh、libvirt、virt-manager
+
+### virt-manager
+試験: LinuC201
+要約: 仮想マシンを、画面で作る、管理する道具です。
+libvirt につないで、VM の作成、起動、停止、設定の変更、コンソールの表示を、ウィンドウの操作で行います。
+例: `virt-manager`、`virt-manager --connect qemu:///system`
+注意: RHEL 9 では、非推奨です(後継は Web 画面の Cockpit)【要確認】。
+関連: libvirt、virt-install、virsh
+
 ## 起動とサービス
 
 ### UEFI
@@ -168,6 +305,41 @@ systemd のログを集めて保存する仕組みです。`journalctl -u サー
 例: `timedatectl set-timezone Asia/Tokyo`、`/etc/localtime`
 注意: サーバーは UTC にそろえ、表示のときに変える運用もよくあります。
 関連: NTP、ロケール
+
+### ESP
+別名: EFI システムパーティション
+試験: LinuC201
+要約: UEFI が起動のときに読む、ブートローダーを置く専用のパーティションです。
+UEFI の PC で、ブートローダーの実行ファイル(`.efi`)を置くパーティションです。ふつう FAT32 で作り、`/boot/efi` にマウントします。
+例: `/boot/efi/EFI/ubuntu/grubx64.efi`
+注意: ext4 や XFS では作れません(UEFI が読めるのは FAT 系です)。
+関連: UEFI、ブートローダー、パーティション
+
+### efibootmgr
+試験: LinuC201
+要約: UEFI の起動の項目と順番を、Linux から見たり変えたりするコマンドです。
+UEFI のブートエントリを、OS が動いたまま操作します。`-v` で一覧、`-o` で BootOrder を変えます。
+例: `sudo efibootmgr -v`
+注意: BIOS の PC では使えません。
+関連: UEFI、ESP
+
+### ターゲット(systemd)
+別名: systemd ターゲット、default.target
+試験: LinuC201
+要約: systemd のユニットをまとめた、起動のゴールとなる状態です。
+昔のランレベルにあたります。`multi-user.target`(画面なし)、`graphical.target`(画面あり)、`rescue.target`、`emergency.target` などがあります。
+例: `systemctl set-default multi-user.target`
+注意: `isolate` は今すぐ移るだけで、既定のターゲットは変えません。
+関連: systemd、PID 1
+
+### マスク(systemd)
+別名: systemctl mask
+試験: LinuC201
+要約: ユニットを `/dev/null` へのリンクにして、手動でも依存からも起動できなくすることです。
+`systemctl mask` で設定し、`unmask` で戻します。`disable` は自動の起動をやめるだけで、手動の起動はできます。
+例: `sudo systemctl mask foo.service`
+注意: マスクしたユニットは、`systemctl start` でも起動しません。
+関連: systemd、ターゲット(systemd)
 
 ## シェルとコマンド
 
@@ -315,6 +487,23 @@ systemd のログを集めて保存する仕組みです。`journalctl -u サー
 注意: スワップが増えると処理が遅くなります。Kubernetes の kubelet は既定でスワップのあるノードでは起動しません。
 関連: カーネル
 
+### sar
+別名: sysstat
+試験: LinuC201
+要約: CPU、メモリ、ディスク、ネットワークの使用状況を、時間を追って記録し、見るコマンドです。
+sysstat パッケージに入っています。過去の記録を、あとから見られるのが特徴です。
+例: `sar -u 1 3`、`sar -r`、`sar -d`、`sar -n DEV`、`sar -f /var/log/sa/sa24`
+注意: 記録を取るには、sysstat の収集を有効にします。記録の場所は、Red Hat 系が `/var/log/sa/`、Debian 系が `/var/log/sysstat/` です。
+関連: メトリクス、監視
+
+### OOM Killer
+試験: LinuC201
+要約: メモリが足りなくなったとき、カーネルがプロセスを強制終了する仕組みです。
+メモリを多く使っているプロセスを選んで、終了させます。ログに `Out of memory: Killed process` と残ります。
+例: `dmesg -T | grep -i "out of memory"`、`journalctl -k | grep -i "killed process"`
+注意: 終了させられるプロセスは、いちばん大事なものとは限りません。
+関連: OOMKilled、スワップ
+
 ## ユーザーと権限
 
 ### root
@@ -367,6 +556,23 @@ systemd のログを集めて保存する仕組みです。`journalctl -u サー
 例: `/usr/bin/passwd` の `-rwsr-xr-x`、`find / -perm -4000`
 注意: SGID(2000)とスティッキービット(1000)もあり、`ls -l` では `s` や `t` で表示されます。
 関連: パーミッション、root
+
+### motd
+別名: /etc/motd
+試験: LinuC201
+要約: ログインのときに利用者へ見せる、お知らせのメッセージです。
+`/etc/motd` は、ログインに成功した後に表示されます。ログインの前に表示するのは、`/etc/issue`(コンソール)と `/etc/issue.net`(ネットワーク経由)です。
+例: `/etc/motd`、`/etc/issue.net`、`Banner /etc/issue.net`(sshd_config)
+注意: ssh でログインの前に表示するには、`sshd_config` に `Banner` の設定が要ります。
+関連: SSH
+
+### wall
+試験: LinuC201
+要約: ログインしているすべての利用者に、メッセージを送るコマンドです。
+保守の予告などに使います。`shutdown` で時刻を予約すると、同じように全員に予告が出ます。
+例: `wall "22:00 から保守のため再起動します"`、`sudo shutdown -h +10 "10 分後に停止します"`
+注意: 1 人だけに送るなら `write` です。`wall` は全員に届きます。
+関連: motd
 
 ## ファイルとディスク
 
@@ -479,6 +685,128 @@ Linux で使われる主なファイルシステムの名前です。ext4 は広
 注意: デバイスの名前を固定したいときは、udev の規則でシンボリックリンクを作ります。
 関連: デバイスファイル
 
+### mount ユニット
+別名: .mount ユニット
+試験: LinuC201
+要約: fstab の 1 行ごとに systemd が作る、マウントを管理する単位です。
+fstab に書いたマウントを、systemd は起動のときに `〜.mount` というユニットに変えて管理します。名前は、マウントポイントの `/` を `-` に変えたものです。
+例: `systemctl status data.mount`、`systemd-escape -p --suffix=mount /var/lib/app`
+注意: fstab を書き換えたら、`systemctl daemon-reload` で systemd に読み直させます。
+関連: fstab、マウント、systemd
+
+### スーパーブロック
+別名: superblock
+試験: LinuC201
+要約: ファイルシステム全体の情報(ブロックの大きさ、空き、UUID など)を持つ場所です。
+ファイルシステムの先頭近くにあり、ブロックの大きさ、空きの数、UUID、ラベル、機能の一覧を持ちます。壊れるとマウントできなくなるので、ext4 は予備の写しを持っています。
+例: `tune2fs -l /dev/sdb1`、`dumpe2fs -h /dev/sdb1`
+注意: 予備の写しがあっても、mkfs を実行すると中身ごと消えます。
+関連: ext4、UUID
+
+### Copy-on-Write
+別名: CoW、コピーオンライト
+試験: LinuC201
+要約: 書き換えるとき、元のデータを上書きせずに、別の場所へ書く仕組みです。
+Btrfs や LVM のスナップショットが使います。スナップショットを作る時点ではデータをコピーせず、書き換えが起きたときに必要な分だけを書き分けるので、作るのが一瞬で終わります。
+例: `btrfs subvolume snapshot /mnt/pool/data /mnt/pool/snap`
+注意: 変更が増えると、保存する領域の使用量も増えます。
+関連: Btrfs サブボリューム、LVM スナップショット
+
+### Btrfs サブボリューム
+別名: subvolume
+試験: LinuC201
+要約: Btrfs の中にある、ディレクトリのように見える独立した領域です。
+別々にマウントしたり、スナップショットを取ったりできます。スナップショットも、サブボリュームの一種です。
+例: `btrfs subvolume create /mnt/pool/data`、`btrfs subvolume list /mnt/pool`、`mount -o subvol=data /dev/sdb3 /data`
+注意: Btrfs のスナップショットは同じファイルシステムの中にあるので、ディスクが壊れたときの備えにはなりません。
+関連: Copy-on-Write、ext4
+
+### LVM スナップショット
+別名: lvcreate -s
+試験: LinuC201
+要約: 論理ボリュームのある時点の姿を、別の論理ボリュームとして見られるようにしたものです。
+元の論理ボリュームの変更前のブロックを、作るときに決めた大きさの領域に保存します。バックアップを取る間の固定や、作業前の保険に使います。
+例: `lvcreate -s -n snap1 -L 2G /dev/vg01/lv_data`、`lvconvert --merge vg01/snap1`
+注意: 保存する領域がいっぱいになると、スナップショットは使えなくなります。
+関連: LVM、Copy-on-Write
+
+### 物理エクステント
+別名: PE、physical extent
+試験: LinuC201
+要約: LVM が、ボリュームグループの容量を区切る単位です。
+既定は 4 MiB です。論理ボリュームの大きさは、この単位の整数倍になります。
+例: `vgdisplay vg01`、`vgcreate -s 8M vg01 /dev/sdb1`
+注意: 論理ボリュームの大きさに端数を指定すると、エクステントの単位に丸められます。
+関連: LVM
+
+### SMART
+別名: S.M.A.R.T.、smartctl、smartd
+試験: LinuC201
+要約: HDD や SSD が自分の状態を記録する仕組みです。
+壊れる前の兆候(悪くなった領域の数、温度、電源を入れていた時間など)を記録します。smartmontools の `smartctl` で手で調べ、`smartd` で常に見張ります。
+例: `smartctl -H /dev/sda`、`smartctl -a /dev/sda`、`smartctl -t short /dev/sda`
+注意: 「PASSED」でも安心できません。属性の増え方を見ます。SMART は故障を防ぐものではありません。
+関連: ファイルシステム
+
+### fsck
+別名: e2fsck、xfs_repair
+試験: LinuC201
+要約: ファイルシステムを調べて、壊れていれば直す道具です。
+`fsck` は、種類ごとの `fsck.ext4` などを呼び出します。ext 系は `e2fsck`、XFS は `xfs_repair` を使います。
+例: `fsck -f /dev/sdb1`、`e2fsck -f /dev/sdb1`、`xfs_repair -n /dev/sdb2`
+注意: マウントしている間は実行しません。XFS の `fsck.xfs` は何もしません。
+関連: ファイルシステム、ジャーナル
+
+### スワップファイル
+別名: swapfile
+試験: LinuC201
+要約: ファイルを、スワップの領域として使うものです。
+パーティションを作らずに、スワップを増やせます。`mkswap` と `swapon` で使い始め、権限は 600 にします。
+例: `fallocate -l 2G /swapfile`、`chmod 600 /swapfile`、`mkswap /swapfile`、`swapon /swapfile`
+注意: 穴(未割り当ての範囲)があるファイルはスワップにできません。Btrfs では特別な作り方が要ります。
+関連: スワップ、fstab
+
+### tar
+別名: アーカイブ、tarball
+試験: LinuC201
+要約: 複数のファイルやディレクトリを、1 つのファイルにまとめるコマンドです。
+まとめたファイルを「アーカイブ」と呼びます。`gzip` や `xz` と組み合わせて圧縮します(`.tar.gz`、`.tar.xz`)。バックアップや、ソースコードの配布に使われます。
+例: `tar -czf etc.tar.gz /etc`、`tar -tf etc.tar.gz`、`tar -xf etc.tar.gz -C /tmp`
+注意: `tar` 自体は圧縮をしません。圧縮は `-z`(gzip)、`-j`(bzip2)、`-J`(xz)で指定します。
+関連: バックアップ、rsync
+
+### rsync
+試験: LinuC201
+要約: 変わった部分だけを、コピー先と同期するコマンドです。
+元とコピー先を比べて、違うところだけを送ります。ssh 越しにも使えます。バックアップや、ファイルの配布に使います。
+例: `rsync -av /home/ /backup/home/`、`rsync -av --delete /src/ host:/dst/`、`rsync -avn /src/ /dst/`
+注意: パスの末尾の `/` で意味が変わります。`/home/` は中身、`/home` はディレクトリそのものを渡します。
+関連: バックアップ、tar、SSH
+
+### 差分バックアップ
+試験: LinuC201
+要約: 最後のフルバックアップから変わったものを、取る方法です。
+フルバックアップの後は、日がたつほど量が増えます。戻すときは、フルバックアップと、最新の差分の 2 つで足ります。
+例: 日曜にフル、月曜から土曜は差分(水曜の差分は、日曜からの変更をすべて含む)
+注意: 前回との違いだけを取るのは、差分ではなく増分です。
+関連: 増分バックアップ、バックアップ
+
+### 増分バックアップ
+試験: LinuC201
+要約: 前回のバックアップから変わったものだけを、取る方法です。
+取る量が少なく、速く終わります。戻すときは、フルバックアップと、その後の増分をすべて、順に使います。
+例: 日曜にフル、月曜から土曜は増分(戻すには、日曜のフルと、月曜からの増分を順に重ねる)
+注意: 途中の増分が 1 つ欠けると、それ以降を戻せません。
+関連: 差分バックアップ、バックアップ
+
+### qcow2
+試験: LinuC201
+要約: 仮想マシンのディスクイメージの形式のひとつで、必要な分だけ大きくなります。
+QEMU の形式で、スナップショットや圧縮が使えます。`raw` の形式は、単純で速い代わりに、最初から全体の大きさを使います。
+例: `qemu-img create -f qcow2 disk.qcow2 20G`、`qemu-img info disk.qcow2`
+注意: ファイルの大きさは、ゲストから見えるディスクの大きさより小さいことがあります。
+関連: QEMU、仮想マシン
+
 ## パッケージと配布
 
 ### パッケージ
@@ -572,7 +900,7 @@ Red Hat 系(RHEL、AlmaLinux)のパッケージを管理するコマンドです
 ## データの形式と開発
 
 ### YAML
-試験: Docker、K8s、CCNA
+試験: Docker、K8s、CCNA、LinuC201
 要約: インデントで入れ子を表す、人が読み書きしやすいデータの書き方です。
 インデント(字下げ)で構造を表す、設定ファイルの書き方です。Kubernetes のマニフェスト、Compose、Ansible で使います。字下げの空白の数を間違えると、意味が変わったりエラーになったりします。
 例: Kubernetes のマニフェスト、Ansible の playbook、`docker compose` の設定

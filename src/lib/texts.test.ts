@@ -52,7 +52,7 @@ describe('同梱のテキスト', () => {
 
   it('ITパスポート → 基本情報 → LinuC → CCNA → AWS SAA → AWS DOP → Terraform → Docker → K8s の順に並ぶ', () => {
     const exams = [...new Set(TEXTS.map((t) => t.exam))]
-    expect(exams).toEqual(['ITPassport', 'FE', 'LinuC101', 'LinuC102', 'CCNA', 'SAA', 'DOP', 'Terraform', 'Docker', 'K8s'])
+    expect(exams).toEqual(['ITPassport', 'FE', 'LinuC101', 'LinuC102', 'LinuC201', 'CCNA', 'SAA', 'DOP', 'Terraform', 'Docker', 'K8s'])
   })
 
   it('図は README の「テキストの追加」の書き方に従う', async () => {
