@@ -165,6 +165,50 @@ Linux、Apache HTTP Server、MySQL(または MariaDB)、PHP の頭文字です�
 注意: 1 台にすべてを入れると、その 1 台が単一障害点になります。
 関連: 3 層構成、単一障害点
 
+### フェンシング
+別名: STONITH
+試験: LinuC3PS
+要約: 故障や孤立が疑われるノードを、電源を切るなどして、確実に止める仕組みです。
+2 つのノードが、同時に同じデータに書いてしまうこと(スプリットブレイン)を防ぎます。クラスタの管理ソフト(Pacemaker など)が行います。
+例: IPMI で、相手のサーバーの電源を切る
+注意: 相手が本当に止まったことを確かめてから、引き継ぎます。
+関連: スプリットブレイン、Pacemaker
+
+### 仮想 IP アドレス
+別名: VIP
+試験: LinuC3PS
+要約: 複数の機器で共有し、持っている機器が入れ替わる IP アドレスです。
+利用者はいつも同じアドレスへ接続し、そのアドレスを持つ機器が故障すると、別の機器がアドレスを引き継ぎます。keepalived(VRRP)や Pacemaker の `IPaddr2` で付け替えます。
+例: `192.0.2.100/24` を lb1 と lb2 で共有する
+注意: 引き継いだあと、周りの機器が古い MAC アドレスを覚えていると、つながりません。付け替えのときに、ARP でお知らせ(GARP)を出します。
+関連: HSRP、フェイルオーバー、冗長化
+
+### keepalived
+試験: LinuC3PS
+要約: VRRP で仮想 IP アドレスを持ち回り、IPVS の設定とヘルスチェックもできるソフトです。
+`/etc/keepalived/keepalived.conf` に、`vrrp_instance` で VRRP のグループを、`vrrp_script` で動作の確認を、`virtual_server` で IPVS の設定を書きます。優先度が最も高い機器が MASTER になり、仮想 IP アドレスを持ちます。
+例: `systemctl enable --now keepalived`、`journalctl -u keepalived`
+注意: `vrrp_script` の `weight` が小さすぎると、失敗しても優先度が相手より下がらず、切り替わりません。
+関連: 仮想 IP アドレス、HSRP、IPVS
+
+### クォーラム
+別名: quorum
+試験: LinuC3PS
+要約: クラスタが動いてよいと決める、過半数の票です。
+N 台のクラスタで、過半数(N ÷ 2 の切り上げ。3 台なら 2、5 台なら 3)の票が見えるノードだけが、リソースを動かせます。分断されたとき、片方だけが動くので、スプリットブレインを防げます。
+例: 5 台が 3 台と 2 台に分かれると、3 台の側だけが動く
+注意: 2 台のクラスタは、1 台が見えなくなると過半数に届きません。`two_node: 1` で特別に扱い、STONITH を併用します。
+関連: スプリットブレイン、Corosync、Pacemaker
+
+### リソースエージェント
+別名: OCF、resource agent
+試験: LinuC3PS
+要約: Pacemaker が、サービスの起動、停止、確認をするための、決まった形のスクリプトです。
+`標準:提供元:名前` の形で指定します。仮想 IP アドレスは `ocf:heartbeat:IPaddr2`、ファイルシステムは `ocf:heartbeat:Filesystem`、PostgreSQL は `ocf:heartbeat:pgsql` です。systemd のサービスは `systemd:httpd` のように指定します。
+例: `pcs resource create vip ocf:heartbeat:IPaddr2 ip=192.0.2.100 cidr_netmask=24`
+注意: パラメータは、エージェントごとに違います。`pcs resource describe ocf:heartbeat:IPaddr2` で確かめます。
+関連: Pacemaker、仮想 IP アドレス
+
 ## 監視と可観測性
 
 ### 監視
@@ -261,6 +305,15 @@ CPU の使用率、リクエストの数、エラーの率、遅延のような�
 例: `ping` の応答の確認、HTTP が 200 を返すかの確認
 注意: 動いていることと、正しく動いていることは違います。中身を確かめる監視も要ります。
 関連: 監視、ヘルスチェック
+
+### ローレベルディスカバリ
+別名: LLD、Low-Level Discovery
+試験: LinuC3PS
+要約: Zabbix で、ホストの中にある数が決まっていないものを、自動で見つけて監視を作る機能です。
+ファイルシステムやネットワークインターフェースなどを見つけ、アイテムとトリガーのプロトタイプから、見つかった数だけ作ります。`{#FSNAME}` のようなマクロに名前が入ります。
+例: `vfs.fs.discovery`、`net.if.discovery`
+注意: ホストそのものを見つけるのは、ネットワークディスカバリと自動登録です。
+関連: Zabbix、監視
 
 ## 障害対応
 

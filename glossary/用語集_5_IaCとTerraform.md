@@ -178,6 +178,15 @@ sensitive は、値を画面に表示しないための印です。state には�
 注意: 表示で隠すだけで、state には平文で保存されます。
 関連: state、秘密情報
 
+### OpenTofu
+別名: tofu
+試験: LinuC3PS
+要約: Terraform から分かれた、オープンソースの IaC の道具です。コマンドは `tofu` です。
+Linux Foundation の下で開発されています。書き方(HCL)と考え方は Terraform とほぼ同じで、`terraform` を `tofu` に置き換えて使います。state の暗号化など、独自の機能もあります。
+例: `tofu init`、`tofu plan`、`tofu apply`
+注意: 設定の中のブロックの名前は、OpenTofu でも `terraform` のままです。
+関連: Terraform、IaC、state、バックエンド
+
 ## state
 
 ### state
@@ -316,3 +325,12 @@ HashiCorp のクラウドのサービスで、state の保管、リモートで�
 例: GitHub Actions でプルリクエストに plan、マージで apply
 注意: 本番への apply は、人の承認を挟むことが多いです。
 関連: プルリクエスト、GitOps
+
+### InSpec
+別名: Chef InSpec
+試験: LinuC3PS
+要約: サーバーがあるべき状態になっているかを、コードで検査する道具です。
+設定を変えず、調べて合否を出します。`describe package("nginx")` のように書き、`inspec exec` で、SSH の先などを調べます。
+例: `inspec exec web-profile -t ssh://ops@192.0.2.10`
+注意: 適用のあとに動かすと、「適用したつもり」ではなく、実際に狙いどおりかが分かります。
+関連: Ansible、CI/CD、IaC
