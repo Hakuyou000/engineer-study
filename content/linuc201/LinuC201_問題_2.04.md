@@ -206,7 +206,7 @@
 - C. `iotop`
 - D. `iptraf-ng`
 
-**問32** `LinuC201-2.04-032` `iostat -x 1` の出力で、あるディスクの `%util` が 100% 近い状態が続いている。分かることはどれか。
+**問32** `LinuC201-2.04-032` `iostat -x 1` の出力で、1 台の HDD `/dev/sdb` の `%util` が 100% 近い状態が続いている。分かることはどれか。
 
 - A. そのディスクは、空き容量がほとんどない。
 - B. そのディスクの転送速度は、ネットワークの速度と同じである。
@@ -250,7 +250,7 @@
 - C. BackupPC
 - D. Zabbix
 
-**問38** `LinuC201-2.04-038` Nagios から分かれて開発された、監視ツールはどれか。
+**問38** `LinuC201-2.04-038` Nagios から分かれた Icinga を、作り直した監視ツールはどれか。
 
 - A. Cacti
 - B. Icinga2
@@ -296,7 +296,7 @@
 
 **問44** `LinuC201-2.04-044` インベントリ `inventory.ini` のすべてのホストに、接続できるかを確かめる。`ansible all -i inventory.ini -m ____` の空欄に入るモジュール名を答えよ。
 
-**問45** `LinuC201-2.04-045` 【YAML の穴埋め】Ubuntu 24.04 のホストに、Debian 系の `apt` を使ってパッケージ `nginx` を入れる playbook を書く。空欄に入るモジュール名を答えよ(`ansible.builtin.` の後ろだけ)。
+**問45** `LinuC201-2.04-045` 【YAML の穴埋め】Ubuntu 24.04 のホストに、Debian 系の apt に専用のモジュールで、パッケージ `nginx` を入れる playbook を書く。空欄に入るモジュール名を答えよ(`ansible.builtin.` の後ろだけ)。
 
 ```yaml
 - name: Web サーバーを整える
@@ -329,7 +329,7 @@
 - C. `ansible-playbook --check` は、設定を変えずに、何が変わるかを確かめる。
 - D. インベントリは、`/etc/ansible/hosts` 以外の場所には置けない。
 
-**問48** `LinuC201-2.04-048` 同じ playbook を 2 回続けて実行した。2 回目の結果が `changed=0` だった。これが示すものはどれか。
+**問48** `LinuC201-2.04-048` 同じ playbook を 2 回続けて実行した。2 回目の PLAY RECAP が `ok=3 changed=0 unreachable=0 failed=0` だった。これが示すものはどれか。
 
 - A. 2 回目は、すべてのタスクが失敗した。
 - B. 対象のサーバーに、接続できなかった。
@@ -406,9 +406,9 @@ GNU tar は、展開のときに圧縮の形式を自動で見分けるので、
 
 ### 問7 `LinuC201-2.04-007`
 
-**正解**: `bunzip2`、`bzip2 -d`、`bzip2 --decompress`
+**正解**: `bunzip2`、`bzip2 -d`、`bzip2 --decompress`、`bunzip2 -k`、`bzip2 -dk`、`bzip2 -kd`、`bzip2 -d -k`
 
-`bunzip2` は、`bzip2 -d` と同じです。gzip なら `gunzip`(`gzip -d`)、xz なら `unxz`(`xz -d`)、zip の形式なら `unzip` で展開します。
+`bunzip2` は、`bzip2 -d` と同じです。`-k`(`--keep`)を付けると、元の `.bz2` のファイルを消さずに残します。gzip なら `gunzip`(`gzip -d`)、xz なら `unxz`(`xz -d`)、zip の形式なら `unzip` で展開します。
 
 ### 問8 `LinuC201-2.04-008`
 
@@ -441,13 +441,13 @@ GNU tar は、展開のときに圧縮の形式を自動で見分けるので、
 
 ### 問11 `LinuC201-2.04-011`
 
-**正解**: `rewind`、`rew`
+**正解**: `rewind`
 
-`mt -f /dev/nst0 rewind` で、テープを先頭に巻き戻します。`mt -f /dev/nst0 status` で状態、`fsf 1` で 1 つ先へ進める、`eject` で取り出すことができます。
+`mt -f /dev/nst0 rewind` で、テープを先頭に巻き戻します。`mt -f /dev/nst0 status` で状態、`fsf 1` で 1 つ先へ進める、`eject` で取り出すことができます。mt-st の `mt` では、`rew` と略すと、`rewind` と `rewoffl` のどちらか決まらないので、エラーになります。
 
 ### 問12 `LinuC201-2.04-012`
 
-**正解**: `--delete`、`--delete-before`、`--delete-during`、`--delete-after`、`--del`
+**正解**: `--delete`、`--delete-before`、`--delete-during`、`--delete-delay`、`--delete-after`、`--del`
 
 `rsync -a --delete 元/ 先/` で、元で消えたファイルを、先でも消して、そろえます。消してよいか不安なときは、`-n`(`--dry-run`)を付けて、何が起きるかを先に確かめます。
 
@@ -589,9 +589,9 @@ Bareos は、Bacula から分かれて(フォークして)開発されている�
 
 ### 問27 `LinuC201-2.04-027`
 
-**正解**: `lsof -i :80`、`lsof -i:80`、`lsof -i tcp:80`、`lsof -i TCP:80`
+**正解**: `lsof -i :80`、`lsof -i:80`、`lsof -i tcp:80`、`lsof -i TCP:80`、`lsof -i :http`、`lsof -nP -i :80`、`lsof -P -i :80`、`sudo lsof -i :80`、`sudo lsof -i:80`、`sudo lsof -i tcp:80`、`sudo lsof -i :http`、`sudo lsof -nP -i :80`
 
-`lsof -i :80` は、ポート 80 を使っている接続と、そのプロセスを表示します。他の利用者のプロセスは、`sudo` で調べます。`lsof -p PID` は、そのプロセスが開いているファイルを調べます。
+`lsof -i :80` は、ポート 80 を使っている接続と、そのプロセスを表示します。ポートは、`:http` のようにサービス名でも書けます。`-n` と `-P` を付けると、ホスト名やサービス名を引かずに、数字のまま表示します。他の利用者のプロセスは、`sudo` で調べます。`lsof -p PID` は、そのプロセスが開いているファイルを調べます。
 
 ### 問28 `LinuC201-2.04-028`
 
@@ -636,7 +636,7 @@ Bareos は、Bacula から分かれて(フォークして)開発されている�
 
 **正解**: C
 
-`%util` は、その装置が、I/O の処理で忙しかった時間の割合です。100% に近いと、飽和していて、これ以上さばけない状態です。`await` も、あわせて見ます。
+`%util` は、その装置が、I/O の処理で忙しかった時間の割合です。1 台の HDD は要求を 1 つずつさばくので、100% に近いと、飽和していて、これ以上さばけない状態です。SSD や RAID は要求を並列にさばくので、100% でも飽和とは限りません。`await` や `aqu-sz` も、あわせて見ます。
 
 - A. 空き容量は、`df` で調べます。
 - B. ネットワークの速度とは、関係がありません。
@@ -696,7 +696,7 @@ Zabbix は、エージェントや SNMP で集め、データベースに溜め�
 
 **正解**: B
 
-Icinga2 は、Nagios から分かれたもので、設定や Web の画面などを作り直しています。しきい値を超えたときに通知する、という考え方は共通です。
+Icinga は、Nagios から分かれた(フォークした)ものです。Icinga2 は、それを作り直した版で、設定や Web の画面、分散構成が新しくなっています。しきい値を超えたときに通知する、という考え方は共通です。
 
 - A. Cacti は、SNMP などの値を、グラフにするツールです。
 - C. MRTG は、通信量のグラフのツールです。
@@ -749,7 +749,7 @@ Ansible は、コントロールノードから、対象に SSH でつないで�
 playbook の実行は `ansible-playbook` です。`-i` で、インベントリを指定します。
 
 - A. `ansible` は、モジュールを 1 回だけ実行するコマンドです。第 1 引数は、ホストのパターンです。
-- C. オプションの順序が正しくありません。
+- C. `-i` の後ろにインベントリの名前がないので、エラーになります。`hosts.ini` は、インベントリとしては扱われません。
 - D. `ansible-inventory` は、インベントリの内容を表示するコマンドです。
 
 ### 問44 `LinuC201-2.04-044`
@@ -762,7 +762,7 @@ playbook の実行は `ansible-playbook` です。`-i` で、インベントリ�
 
 **正解**: `apt`
 
-`ansible.builtin.apt` は、Debian 系で、apt でパッケージを入れるモジュールです。Red Hat 系は `ansible.builtin.dnf` を使います。`state: present` で、入っている状態にします。
+`ansible.builtin.apt` は、Debian 系で、apt でパッケージを入れるモジュールです。Red Hat 系は `ansible.builtin.dnf` を使います。`ansible.builtin.package` は、パッケージ管理の道具を選ばずに書ける汎用のモジュールで、Ubuntu では裏で apt を使います。`state: present` で、入っている状態にします。
 
 ### 問46 `LinuC201-2.04-046`
 
@@ -783,7 +783,7 @@ playbook は YAML で書きます。`--check` で、変えずに、何が変わ�
 
 **正解**: D
 
-`changed=0` は、変えたタスクがないということです。すでに望む状態だったので、何も変えませんでした。冪等に書けている印です。
+`unreachable=0` と `failed=0` なので、接続でき、失敗もありません。そのうえで `changed=0` は、変えたタスクがないということです。すでに望む状態だったので、何も変えませんでした。冪等に書けている印です。
 
 - A. 失敗は、`failed` の数で表れます。
 - B. 接続できないときは、`unreachable` になります。

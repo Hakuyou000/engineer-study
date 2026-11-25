@@ -91,7 +91,7 @@ default via 192.168.10.1 dev eth0
 - C. `/etc/sysctl.d/99-forward.conf` に `net.ipv4.ip_forward = 1` を書き、読み込む
 - D. `ip route add forward 1` を実行する
 
-**問13** `LinuC201-2.03-013` `/etc/sysctl.conf` を編集した。再起動せずに、このファイルの設定を読み込み直すコマンドを答えよ(sudo は不要。ファイル名は不要)。
+**問13** `LinuC201-2.03-013` `/etc/sysctl.conf` を編集した。再起動せずに、このファイル**だけ**を読み込み直すコマンドを答えよ(sudo は不要。ファイル名は不要)。
 
 **問14** `LinuC201-2.03-014` インターフェース eth0 で、ポート 53 の通信だけを、ホスト名やポート名に変換せずに、10 個取り込んで止めたい。正しいコマンドはどれか。
 
@@ -285,9 +285,9 @@ Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfa
 
 ### 問8 `LinuC201-2.03-008`
 
-**正解**: `ip link set eth0 up`、`ip link set dev eth0 up`
+**正解**: `ip link set eth0 up`、`ip link set dev eth0 up`、`ip link set up dev eth0`、`ip link set up eth0`
 
-`ip link set` で、インターフェースの状態を変えます。`up` で有効、`down` で無効です。`dev` は省略できます。`ifconfig eth0 up` や `ifup eth0` でも有効にできますが、問題は `ip` コマンドを求めています。
+`ip link set` で、インターフェースの状態を変えます。`up` で有効、`down` で無効です。`dev` は省略できます。`up` と `dev eth0` の順番は入れ替えてもかまいません。`ifconfig eth0 up` や `ifup eth0` でも有効にできますが、問題は `ip` コマンドを求めています。
 
 ### 問9 `LinuC201-2.03-009`
 
@@ -329,7 +329,7 @@ Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfa
 
 **正解**: `sysctl -p`、`sysctl --load`
 
-`sysctl -p` は、ファイルを指定しなければ `/etc/sysctl.conf` を読み込みます。`sysctl --system` は、`/etc/sysctl.d/` などもすべて読み込むので、別のコマンドです。
+`sysctl -p` は、ファイルを指定しなければ `/etc/sysctl.conf` を読み込みます。`sysctl --system` は、`/etc/sysctl.d/` などのほかのファイルもすべて読み込むので、このファイルだけを読む答えにはなりません。
 
 ### 問14 `LinuC201-2.03-014`
 
@@ -376,13 +376,13 @@ nmap の `filtered` は、ファイアウォールなどが探査のパケット
 
 eth0 にはパケットが届き、eth1 から出ていないので、ルーターが転送していません。標準では `net.ipv4.ip_forward` が 0 で、転送は無効です。1 にすると転送が始まります。
 
-- B. NIC の故障なら、PC2 に届かないだけです。ルーターの eth1 には、エコー要求が出るはずです。
+- B. PC2 の NIC の故障なら、ルーターは PC2 の MAC アドレスを ARP で問い合わせるので、eth1 には ARP の要求が見えるはずです。何も見えないので、ルーターが転送していません。
 - C. ping で IP アドレスを直接指定しているので、DNS は関係ありません。
 - D. `/etc/hosts` は名前を解決するためのファイルで、パケットの転送には使われません。
 
 ### 問19 `LinuC201-2.03-019`
 
-**正解**: `nc -l 9000`、`nc -l -p 9000`、`nc -lp 9000`、`ncat -l 9000`、`ncat -l -p 9000`、`ncat -lp 9000`、`netcat -l 9000`
+**正解**: `nc -l 9000`、`nc -l -p 9000`、`nc -lp 9000`、`ncat -l 9000`、`ncat -l -p 9000`、`ncat -lp 9000`、`netcat -l 9000`、`netcat -l -p 9000`、`netcat -lp 9000`
 
 `-l` で待ち受けます(listen)。`nc` の版によって、ポートの前に `-p` が要るものと、要らないものがあります。
 
@@ -410,7 +410,7 @@ Red Hat 系では、rsyslog が一般のログを `/var/log/messages` に書き�
 
 **正解**: `journalctl -k`、`journalctl --dmesg`
 
-`-k`(`--dmesg`)で、カーネルのメッセージだけを表示します。`dmesg` と同じ内容を、ジャーナルから見られます。`-b` を付けると、今回の起動のものに絞れます。
+`-k`(`--dmesg`)で、カーネルのメッセージだけを表示します。`dmesg` と同じ内容を、ジャーナルから見られます。`-k` は `-b` を含むので、今回の起動からのカーネルのメッセージが出ます。前回の起動のものは `-k -b -1` で見ます。
 
 ### 問23 `LinuC201-2.03-023`
 

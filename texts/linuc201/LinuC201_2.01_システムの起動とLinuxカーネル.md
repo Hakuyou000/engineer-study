@@ -49,7 +49,7 @@
   510 - 511    署名(0x55AA)
 ```
 
-BIOS は、ここのブートコードを読んで実行します。ブートコードは入りきらないので、GRUB は後ろの部分(core.img)を MBR の後ろの空き(最初のパーティションの手前)に置いて読み込みます。
+BIOS は、ここのブートコードを読んで実行します。ブートコードは入りきらないので、GRUB は後ろの部分(core.img)を MBR の後ろの空き(最初のパーティションの手前)に置いて読み込みます。これは MBR のパーティション表の場合です。BIOS で GPT のディスクを使うときは、core.img を **BIOS boot パーティション**(1 MiB ほどの専用のパーティション)に置きます。
 
 ### 4. ESP と UEFI シェル
 
@@ -85,9 +85,11 @@ sudo efibootmgr -c -d /dev/sda -p 1 -L "Linux" -l '\EFI\linux\grubx64.efi'   # �
 | ユーザーが書く設定 | `/etc/default/grub` | `/etc/default/grub` |
 | メニューの部品 | `/etc/grub.d/` の下のスクリプト | 同じ |
 
+- RHEL 9 系の UEFI では、`grub2-install` を使いません(EFI では使えないようにされています。Secure Boot に対応しないためです)。ブートローダーは `dnf reinstall grub2-efi shim` で入れ直します。`grub2-install` は BIOS 用です。
+
 - `grub.cfg` は **自動で作られるファイル** で、直接は編集しません。`/etc/default/grub` や `/etc/grub.d/` を変えて、`grub-mkconfig` で作り直します。
-- Red Hat 系で UEFI の場合、`/boot/efi/EFI/almalinux/grub.cfg` は小さな案内で、本体は `/boot/grub2/grub.cfg` を使います【要確認: 版により異なる。RHEL 8 までは ESP の中の grub.cfg が本体】。
-- RHEL 9 系では、メニューの項目に BLS(`/boot/loader/entries/`)という形式も使います【要確認】。
+- RHEL 9 系では、UEFI でも本体は `/boot/grub2/grub.cfg` です。ESP の中の `/boot/efi/EFI/almalinux/grub.cfg` は、本体を読み込むだけの小さな案内です(RHEL 8 までは ESP の中の `grub.cfg` が本体でした)。
+- RHEL 8 以降の Red Hat 系では、メニューの項目を BLS(Boot Loader Specification)の形で持ちます。`/boot/loader/entries/` に 1 項目 1 ファイルで置き、`grubby` で変えます。
 
 ```bash
 sudo grub-install /dev/sda                                   # BIOS。ディスクを指定する(パーティションではない)
@@ -121,9 +123,9 @@ GRUB のシェルでは、手でカーネルを読み込んで起動できます
 
 ```text
 grub> ls                                   パーティションの一覧(例 (hd0,gpt2))
-grub> set root=(hd0,gpt2)                  /boot のあるパーティションを選ぶ
-grub> linux /vmlinuz root=/dev/sda2        カーネルと、ルートのデバイスを指定
-grub> initrd /initrd.img                   initramfs を指定
+grub> set root=(hd0,gpt2)                  ルートファイルシステム(/boot を含む)のパーティションを選ぶ
+grub> linux /boot/vmlinuz-<version> root=/dev/sda2   カーネルと、ルートのデバイスを指定
+grub> initrd /boot/initrd.img-<version>         initramfs を指定(Debian 系の名前)
 grub> boot                                 起動する
 ```
 
@@ -271,7 +273,7 @@ mount -o remount,rw /
 | longterm(LTS) | 長い期間、修正を続ける版。サーバーやディストリビューションが好んで使う |
 | linux-next | 次の版に入る予定の変更を集めたもの(開発者向け) |
 
-- 版の番号は `6.8.12` のように、メジャー、マイナー、パッチの順です。昔(2.6 の頃まで)は奇数が開発版でしたが、今はその決まりはありません。
+- 版の番号は `6.8.12` のように、メジャー、マイナー、パッチの順です。昔(2.5 まで)は、2 番目の数が奇数の版が開発版でした(2.4 が安定版、2.5 が開発版)。2.6 からは、その決まりはありません。
 - 差分の**パッチ**で、版を上げることができます。展開したソースの中で `xz -dc patch-6.8.12.xz | patch -p1` のように当てます。
 
 ### 3. ソースとドキュメント
@@ -336,6 +338,8 @@ mount -o remount,rw /
 | `make clean` | 生成物は消すが、`.config` は残す |
 
 - 今動いているカーネルの設定を引き継ぐには、`cp /boot/config-$(uname -r) .config` の後で、`make oldconfig` を使います。
+- `make modules_install` は、モジュールを `/lib/modules/<版>/` に入れます。この版の名前は `make kernelrelease` の値で、ソースの版に `CONFIG_LOCALVERSION` を付けたものです。下の手順では `LOCALVERSION` に `-custom` を設定して、`6.8.12-custom` にしています。
+- Ubuntu や RHEL の config は、`CONFIG_SYSTEM_TRUSTED_KEYS` に配布元の証明書のファイルを指定しています。素のソースにはそのファイルがないので、ビルドが止まります。`scripts/config` で空にしてからビルドします。
 - ビルドには、`gcc`、`make`、`flex`、`bison`、`libelf` と `libssl` の開発用ファイル、(menuconfig なら)ncurses の開発用ファイルが要ります。
 
 ### 3. ビルドとインストール
@@ -355,12 +359,16 @@ cd /usr/src/linux
 sudo make mrproper
 cp /boot/config-$(uname -r) .config
 make oldconfig
+scripts/config --set-str LOCALVERSION "-custom"     # 版の名前に -custom を付ける
+scripts/config --set-str SYSTEM_TRUSTED_KEYS ""     # 配布元の証明書を指す設定を外す
+scripts/config --set-str SYSTEM_REVOCATION_KEYS ""
+make olddefconfig
+make kernelrelease                              # 版の名前を確かめる(6.8.12-custom)
 make -j"$(nproc)"
 sudo make modules_install
 sudo cp arch/x86/boot/bzImage /boot/vmlinuz-6.8.12-custom
 sudo cp System.map /boot/System.map-6.8.12-custom
 sudo cp .config /boot/config-6.8.12-custom
-sudo depmod 6.8.12-custom                       # モジュールの依存関係を作る
 sudo mkinitramfs -o /boot/initrd.img-6.8.12-custom 6.8.12-custom     # Debian 系
 sudo dracut /boot/initramfs-6.8.12-custom.img 6.8.12-custom          # Red Hat 系
 sudo grub-mkconfig -o /boot/grub/grub.cfg       # Red Hat 系は grub2-mkconfig -o /boot/grub2/grub.cfg
@@ -384,7 +392,7 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg       # Red Hat 系は grub2-mkconfig 
 
 ### 5. モジュールの設定と DKMS
 
-- `make modules_install` の後は、`depmod` でモジュールの依存関係の一覧(`modules.dep`)を作ります。
+- `make modules_install` は、最後に `depmod` も実行して、モジュールの依存関係の一覧(`modules.dep`)を作ります。手でモジュールを置いたときは、`depmod` を実行します。
 - モジュールの動きの設定は、`/etc/modprobe.d/*.conf` に書きます(2.01.5 で詳しく扱います)。
 - **DKMS**(Dynamic Kernel Module Support)は、カーネルの外にあるモジュール(ドライバーなど)を、**カーネルが更新されるたびに自動でビルドし直す**仕組みです。
 
@@ -427,7 +435,7 @@ modprobe e1000e
 | `lsmod` | 読み込まれているモジュールの一覧(名前、大きさ、使われている数 `Used by`)。`/proc/modules` の整形 |
 | `modinfo e1000e` | モジュールの情報(ファイル、説明、依存、**パラメーター**(`parm`)) |
 | `modprobe e1000e` | モジュールを、**依存するものも含めて**読み込む。名前だけ指定(パスは不要) |
-| `modprobe -r e1000e` | 取り外す。依存して使っているものがあれば、一緒に外す |
+| `modprobe -r e1000e` | 取り外す。e1000e が依存しているモジュールも、ほかに使われていなければ一緒に外す |
 | `insmod /path/e1000e.ko` | **ファイルのパスを指定して**読み込む。依存関係は解決しない |
 | `rmmod e1000e` | 取り外す。依存関係は考えない。使われていると外せない |
 | `depmod -a` | `/lib/modules/<版>/modules.dep` を作り直す |
@@ -442,11 +450,17 @@ modprobe e1000e
 
 ```text
 # /etc/modprobe.d/example.conf
-options snd_hda_intel index=1          # 読み込むときのパラメーターを決める
-alias eth-fast e1000e                  # 別名を付ける(modprobe eth-fast で読み込める)
-blacklist nouveau                      # 自動では読み込まない(手動なら読める)
-install usb-storage /bin/false         # 読み込みの代わりにコマンドを実行する(実質的な禁止)
+# 読み込むときのパラメーターを決める
+options snd_hda_intel index=1
+# 別名を付ける(modprobe eth-fast で読み込める)
+alias eth-fast e1000e
+# 自動では読み込まない(手動なら読める)
+blacklist nouveau
+# 読み込みの代わりにコマンドを実行する(実質的な禁止)
+install usb-storage /bin/false
 ```
+
+- コメントは、行の先頭の `#` だけです。行の途中に `#` を書くと、その後ろも設定の一部として読まれます。
 
 - `blacklist` は、デバイスを見つけたときの**自動の読み込み**を止めるだけです。別のモジュールの依存や、手での `modprobe` で読み込まれることはあります。完全に止めるには `install モジュール /bin/false` を使います。
 - 設定を変えた後、initramfs の中のモジュールにも関わるときは、initramfs を作り直します(`dracut -f`、`update-initramfs -u`)。
@@ -475,7 +489,7 @@ sudo sysctl -p                               # /etc/sysctl.conf を読み込む
 sudo sysctl --system                         # /etc/sysctl.d/*.conf などもすべて読み込む
 ```
 
-再起動しても残すには、`/etc/sysctl.conf` か `/etc/sysctl.d/*.conf` に、`net.ipv4.ip_forward = 1` の形で書きます。
+再起動しても残すには、`/etc/sysctl.d/*.conf` に、`net.ipv4.ip_forward = 1` の形で書きます。`/etc/sysctl.conf` も Red Hat 系や Ubuntu では起動のときに読まれますが、Debian 13 では読まれません。
 
 ### 5. ハードウェアとログを調べる
 
@@ -491,7 +505,7 @@ sudo sysctl --system                         # /etc/sysctl.d/*.conf などもす
 | `journalctl -p err` | エラー以上だけ |
 
 - Ubuntu では、一般ユーザーが `dmesg` を使えないことがあります(`sudo` が要る)。
-- 再起動すると `dmesg` の内容は消えます。前回の起動のログを見るには、ジャーナルを永続化(`/var/log/journal/` を作る)して、`journalctl -b -1` を使います。
+- 再起動すると `dmesg` の内容は消えます。前回の起動のログを見るには、ジャーナルを永続化して、`journalctl -b -1` を使います。`/var/log/journal/` がなければ作ります(ディストリビューションによっては最初からあります)。
 
 ### 6. udev
 

@@ -93,7 +93,7 @@ docker run --memory 256m ...
 - **イメージ**は、コンテナを作る元になる、読み取り専用のひな形です。アプリ、ライブラリ、設定を含みます。
 - イメージは、複数の**レイヤー**(層)を重ねてできています。各レイヤーは、前のレイヤーとの差分です。
 - コンテナを起動すると、イメージのレイヤーの上に、書き込める層が 1 つ作られます。コンテナの中の変更は、この層に入ります。
-- 重ねて 1 つのファイルシステムに見せる仕組みを、**ユニオンファイルシステム**と呼びます。Docker の既定は **overlay2**(OverlayFS)です。
+- 重ねて 1 つのファイルシステムに見せる仕組みを、**ユニオンファイルシステム**と呼びます。Linux では、**OverlayFS** を使います。
 - 読み取り専用のレイヤーのファイルを変更すると、書き込める層にコピーされてから変わります(コピーオンライト)。
 
 ```text
@@ -106,7 +106,9 @@ Container
 
 - 同じイメージから作ったコンテナは、読み取り専用のレイヤーを共有するので、ディスクを節約できます。
 - 消えては困るデータは、ボリュームなど、コンテナの外に置きます。
-- Docker は、レイヤーを `/var/lib/docker/overlay2/` に置きます(root で動かした場合)。
+- Docker Engine 28 までの既定のストレージドライバーは **overlay2** で、レイヤーは `/var/lib/docker/overlay2/` にあります(root で動かした場合)。29 より前から上げてきた環境も、設定を変えるまでは overlay2 のままです。
+- Docker Engine 29 を新しく入れた環境では、**containerd のイメージストア**が既定です。レイヤーは containerd が管理し(既定は overlayfs の snapshotter)、Docker のデータのディレクトリとは別の場所に置かれます。
+- どちらで動いているかは、`docker info` で確かめます。containerd のイメージストアなら、`docker info -f '{{ .DriverStatus }}'` が `[[driver-type io.containerd.snapshotter.v1]]` を表示します。
 
 ## 2.06.2 Docker コンテナとコンテナイメージの管理 (重要度3)
 
@@ -180,7 +182,7 @@ docker create       docker start
 | `docker restart コンテナ` | 止めてから、起動し直す |
 | `docker pause コンテナ` | コンテナのプロセスを一時停止する(cgroups の freezer を使う)。メモリは残る |
 | `docker unpause コンテナ` | 一時停止を解く |
-| `docker stop コンテナ` | プロセスに SIGTERM を送り、10 秒(`-t` で変えられる)待っても終わらなければ SIGKILL を送る |
+| `docker stop コンテナ` | プロセスに停止の信号(既定は SIGTERM。`STOPSIGNAL` で変えられる)を送り、10 秒(`-t` で変えられる)待っても終わらなければ SIGKILL を送る |
 | `docker kill コンテナ` | すぐに SIGKILL を送る。`-s` で別の信号も送れる |
 | `docker rm コンテナ` | 止まっているコンテナを消す。動いているものは、`-f` を付けると消せる |
 
@@ -219,7 +221,7 @@ docker attach web                   # PID 1 の画面につなぐ
 ```
 
 - `docker exec -it コンテナ sh` で開いたシェルを `exit` で終えても、コンテナは止まりません。
-- `docker attach` では、`Ctrl+C` を押すと PID 1 に信号が届いて、コンテナが止まることがあります。抜けるときは、`Ctrl+P`、`Ctrl+Q` の順に押します(コンテナは動いたまま)。
+- `docker attach` では、`Ctrl+C` を押すと PID 1 に信号が届いて(`--sig-proxy` が既定の true のとき)、コンテナが止まることがあります。抜けるときは、`Ctrl+P`、`Ctrl+Q` の順に押します(`-it` で起動したコンテナのとき。コンテナは動いたまま)。
 
 ### 6. イメージを管理する
 
@@ -255,9 +257,9 @@ docker run -d -p 8080:80 mynginx:1.0
 
 ```text
 Dockerfile --docker build--> image --docker run--> container --docker commit--> image
-                               ^
-                               |
-              registry --docker pull / docker push--+
+
+registry --docker pull--> image
+image --docker push--> registry
 ```
 
 - `docker rmi` が消すのはイメージで、`docker rm` が消すのはコンテナです。間違えやすいので、気をつけます。

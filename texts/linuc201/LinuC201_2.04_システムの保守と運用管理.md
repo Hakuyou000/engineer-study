@@ -238,11 +238,12 @@ sudo shutdown -h now                           # すぐ停止する
 |---|---|
 | `wall` | ログインしている全員の端末にメッセージを出す(write all) |
 | `shutdown` | 時刻の予約と、全員への予告をして、止める |
-| `shutdown -h` / `-r` / `-P` | 停止 / 再起動 / 電源を切る |
+| `shutdown -h` / `-r` / `-H` | 停止(systemd では電源も切る)/ 再起動 / 電源を切らずに止める |
 | `shutdown --no-wall` | 予告のメッセージを出さない |
 | `systemctl poweroff` | すぐ電源を切る(systemd) |
 | `systemctl reboot` | すぐ再起動する(systemd) |
 
+- systemd の `shutdown` では、`-h` は `-P`(`--poweroff`)と同じで、電源まで切ります。電源を切らずに止める(halt)のは `-H` です。
 - systemd の環境でも `shutdown` は使えます。何分後、何時に、と時刻を予約して止めるのは `shutdown` です。`systemctl poweroff` と `systemctl reboot` は、予約せずに、すぐ実行します。
 - 止める前には、`wall` や `shutdown` の予告で、作業を保存する時間を渡します。
 
@@ -335,7 +336,7 @@ sudo iotop -o        # I/O をしているプロセスだけを表示(root が�
 |---|---|
 | `r/s`、`w/s` | 1 秒あたりの読み、書きの回数 |
 | `await` | 1 回の処理にかかった平均の時間(待ちを含む)。sysstat の版によって、`r_await` と `w_await`(読みと書き)に分かれる |
-| `%util` | その装置が処理で忙しかった割合。100% に近いと、飽和している |
+| `%util` | その装置が処理で忙しかった割合。100% に近いと、飽和している(1 台の HDD の場合。SSD や RAID は要求を並列にさばくので、100% でも余裕があることがある) |
 
 - `iostat` は、どのディスクが忙しいかを見ます。`iotop` は、**どのプロセス**が I/O を多く使っているかを見ます。
 
@@ -415,7 +416,7 @@ journalctl -k | grep -i "killed process"
 | ツール | 特徴 |
 |---|---|
 | Nagios | 古くからある死活監視の定番。プラグインで確かめ、しきい値で通知する |
-| Icinga2 | Nagios から分かれたもの。設定、Web の画面、分散構成を作り直した |
+| Icinga2 | Nagios から分かれた Icinga を、作り直した版。設定、Web の画面、分散構成が新しい |
 | Zabbix | エージェントや SNMP で集め、データベースに溜める。Web の画面で、グラフ、アラートまで 1 つで扱う |
 | collectd | 数値を集める常駐のプログラム。プラグインで多くの項目を取り、ほかのツールに渡す |
 | MRTG | SNMP でネットワーク機器の通信量を集め、グラフにする。5 分おきが標準 |

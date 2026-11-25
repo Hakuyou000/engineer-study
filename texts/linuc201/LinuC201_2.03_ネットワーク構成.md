@@ -6,12 +6,12 @@ LinuC 102 の 1.07 で学んだ、ネットワークの基礎の続きです。2
 
 ### 1. 新旧のコマンドの対応
 
-ネットワークの設定には、古い道具(**net-tools**)と新しい道具(**iproute2**)があります。新しい Linux では、`ip` が標準です。古いコマンドは、パッケージを入れないと使えないことがあります。
+ネットワークの設定には、古い道具(**net-tools**)と新しい道具(**iproute2**)があります。新しい Linux では、`ip` が標準です。古いコマンドは、パッケージを入れないと使えないことがあります。なお、`ifup` も NIC を有効にしますが、net-tools ではなく、ifupdown(Debian)や network-scripts(古い Red Hat 系)のコマンドです。
 
 | 用途 | 新しいコマンド(iproute2) | 古いコマンド(net-tools) |
 |---|---|---|
 | アドレスの表示と設定 | `ip addr` | `ifconfig` |
-| NIC の有効・無効 | `ip link set eth0 up` | `ifconfig eth0 up`、`ifup` |
+| NIC の有効・無効 | `ip link set eth0 up` | `ifconfig eth0 up` |
 | 経路の表示と設定 | `ip route` | `route` |
 | 近くの機器の MAC アドレス(ARP の表) | `ip neigh` | `arp` |
 | 待ち受けと接続の表示 | `ss` | `netstat` |
@@ -48,7 +48,8 @@ sudo route add default gw 192.168.10.1
 > **【ひっかけ】** デフォルトゲートウェイの指定は、`ip route` では `via`、`route` では `gw` です。
 
 - `ip` の設定は、再起動や接続のやり直しで消えます。残すには設定ファイルか `nmcli` を使います(4 の nmcli)。
-- `ip link` の `state UP` は、NIC が有効という意味です。`LOWER_UP` は、ケーブルがつながり、リンクが上がっているという意味です。`NO-CARRIER` は、ケーブルや相手の機器につながっていません。
+- `ip link` の `<BROADCAST,MULTICAST,UP,LOWER_UP>` の `UP` は、NIC が有効(`ip link set up` 済み)という意味です。`LOWER_UP` は、ケーブルがつながり、リンクが上がっているという意味です。`NO-CARRIER` は、ケーブルや相手の機器につながっていません。
+- `state UP` は、実際に通信できる状態という意味です(運用の状態)。`NO-CARRIER` のときは、`<...>` の中に `UP` があっても `state DOWN` になります。
 
 ### 3. ネットワークの設定を保存する場所
 
@@ -171,7 +172,7 @@ sudo route del -net 10.20.0.0 netmask 255.255.0.0
 ```
 
 - あて先に当てはまる経路が複数あるときは、**プレフィックス長が長い**(範囲が狭い)ものが優先されます(ロンゲストマッチ)。当てはまるものがなければ、デフォルトルートを使います。
-- `via` に書くゲートウェイは、自分が**直接届く**ネットワークの中の機器でなければなりません。そうでないと `Network is unreachable` になります。
+- `via` に書くゲートウェイは、自分が**直接届く**ネットワークの中の機器でなければなりません。そうでないと、`Error: Nexthop has invalid gateway.` のようなエラーになります(古い環境では `Network is unreachable`)。【要確認】
 - `ip route add` の設定も、再起動で消えます。残すには、設定ファイル(`ipv4.routes` を `nmcli` で設定する、`/etc/network/interfaces` の `up ip route add ...`、netplan の `routes:` など)に書きます。
 
 ### 2. IP 転送(Linux をルーターにする)
@@ -245,13 +246,14 @@ ping6 2001:db8::1                   # IPv6(古い書き方)
 
 ```bash
 nc -zv 192.168.20.10 22          # 22 番に接続できるか(データは送らない)
-nc -zv 192.168.20.10 20-25       # ポートの範囲
+nc -zv 192.168.20.10 20-25       # ポートの範囲(netcat-openbsd。ncat では使えない)
 nc -zvu 192.168.20.10 53         # UDP
 nc -l 9000                       # 9000 番で待ち受ける(受け取った文字を表示する)
 nc 192.168.20.10 9000            # 接続して、入力した文字を送る
 nc -w 3 -zv 192.168.20.10 80     # 3 秒で諦める
 ```
 
+- AlmaLinux 9 の `nc` は ncat です。ncat はポートの範囲を受け付けないので、範囲を調べるときは `nmap -p 20-25 192.168.20.10` を使います。
 - 経路やファイアウォールの調査で、片側で `nc -l`、もう片側で `nc` を実行すると、「そのポートで通信できるか」を試せます。
 
 ### 6. tcpdump(パケットの解析)
@@ -292,7 +294,7 @@ nmap 192.168.20.10                   # よく使うポート 1000 個を調べ�
 nmap -p 22,80,443 192.168.20.10      # ポートを指定する
 nmap -p 1-65535 192.168.20.10        # すべてのポート
 sudo nmap -sS 192.168.20.10          # SYN スキャン(root が必要)
-nmap -sU -p 53 192.168.20.10         # UDP
+sudo nmap -sU -p 53 192.168.20.10    # UDP(root が必要)
 nmap -sV 192.168.20.10               # サービスの版も調べる
 nmap -sn 192.168.20.0/24             # ポートは調べず、生きているホストだけ探す
 ```
@@ -420,7 +422,7 @@ me --TTL=3--> [target]     返事を返す。到着
 traceroute 10.20.1.5          # 経路を表示する
 traceroute -n 10.20.1.5       # 名前に変換しない(速い)
 traceroute -I 10.20.1.5       # ICMP を使う(標準は UDP)
-traceroute -T -p 443 10.20.1.5   # TCP の 443 番を使う
+sudo traceroute -T -p 443 10.20.1.5   # TCP の 443 番を使う(root が必要)
 traceroute6 2001:db8::1       # IPv6(traceroute -6 と同じ)
 mtr -rn -c 10 10.20.1.5       # 10 回ずつ測り、各ルーターの損失率と遅延を表にする
 ```
@@ -436,7 +438,7 @@ NIC を OS が認識したか、ドライバーが読み込まれたか、リン
 | 見るもの | 内容 |
 |---|---|
 | `dmesg` | カーネルのメッセージ(起動時から)。`dmesg -T` で時刻を人が読める形にする |
-| `journalctl -k` | カーネルのメッセージ(systemd のジャーナル) |
+| `journalctl -k` | カーネルのメッセージ(systemd のジャーナル。今回の起動から) |
 | `journalctl -b` | 今回の起動からのすべてのログ |
 | `journalctl -u NetworkManager` | NetworkManager のログ |
 | `/var/log/messages` | 一般のログ(Red Hat 系。rsyslog が書く) |
@@ -444,7 +446,7 @@ NIC を OS が認識したか、ドライバーが読み込まれたか、リン
 
 ```bash
 sudo dmesg -T | grep -i -E 'eth|enp|link'
-sudo journalctl -k -b | grep -i -E 'eth|enp|link'
+sudo journalctl -k | grep -i -E 'eth|enp|link'
 sudo journalctl -u NetworkManager --since "10 minutes ago"
 sudo tail -f /var/log/messages          # Debian 系は /var/log/syslog
 lspci | grep -i ethernet                # PCI の NIC を OS が見つけたか
@@ -454,7 +456,7 @@ ip link                                 # インターフェースとして出�
 
 - `lspci` には出るのに `ip link` に出ないときは、ドライバーが読み込まれていないことを疑います。`dmesg` に、ドライバーのエラーが出ていないかを見ます。
 - `journalctl` のログは、設定によっては再起動で消えます。残すには `/var/log/journal/` を作るか、`Storage=persistent` にします。
-- Debian 12 の新しい導入では、rsyslog が入っておらず `/var/log/syslog` がないことがあります。【要確認】そのときは `journalctl` で見ます。
+- Debian 12 では、rsyslog は既定では入りません(ジャーナルは `/var/log/journal/` に残ります)。`/var/log/syslog` がないときは、`journalctl` で見ます。
 
 ### 5. NetworkManager が設定に与える影響
 
