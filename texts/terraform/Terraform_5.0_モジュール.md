@@ -19,6 +19,16 @@
 
 つまり、Terraform の設定はすべて何かのモジュールです。
 
+ルートモジュールと子モジュールの置き場所の例を図にします。
+
+```text
+terraform-project/
+  +-- main.tf            ルートモジュール。module ブロックで子モジュールを呼ぶ
+  +-- modules/
+        +-- network/     子モジュール(./modules/network)
+        +-- app/         子モジュール(./modules/app)
+```
+
 ### 2. source の書き方
 
 `module` ブロックの **`source`** で、モジュールをどこから取得するかを書きます。
@@ -93,6 +103,22 @@ module "app" {
   subnet_id = module.network.subnet_id # 兄弟の値は親を通して渡す
 }
 ```
+
+兄弟のモジュールの間で、値が親を通って渡る流れを図にします。
+
+```text
+[module.network]
+  |
+  | output "subnet_id"
+  v
+[root]  module.network.subnet_id を読む
+  |
+  | subnet_id = module.network.subnet_id
+  v
+[module.app]
+```
+
+兄弟のモジュールは、直接はつながりません。必ず親(ルートモジュール)を通ります。
 
 ### 2. 入力変数の必須と省略
 
