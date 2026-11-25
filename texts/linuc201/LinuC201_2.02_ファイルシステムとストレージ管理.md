@@ -21,7 +21,7 @@ mount ユニット: /data は data.mount、/var/lib/app は var-lib-app.mount
 マウントされる: 失敗すると、nofail がない限り緊急モードになる
 ```
 
-- mount ユニットの名前は、マウントポイントの `/` を `-` に変えたものです。`systemd-escape -p --suffix=mount /var/lib/app` で作れます。
+- mount ユニットの名前は、マウントポイントの先頭の `/` を取り、残りの `/` を `-` に変えたものです。パスの中の `-` などの記号は `\x2d` のように書き換えられます(`/mnt/my-disk` は `mnt-my\x2ddisk.mount`)。`systemd-escape -p --suffix=mount /var/lib/app` で作るのが確かです。
 - fstab を書き換えたら、`systemctl daemon-reload` で systemd に読み直させます。
 - `mount` コマンドで手でマウントしても、mount ユニットに状態が現れます(`systemctl status data.mount`)。
 
@@ -97,7 +97,7 @@ mount -o remount,rw /data                     # マウントしたまま、オ�
 mount --bind /data/www /srv/www               # 同じディレクトリを別の場所にも見せる
 mount -a                                      # fstab のもの(noauto 以外)をマウントする
 umount /data                                  # 外す(umount /dev/sdb1 でもよい)
-umount -l /data                               # lazy。使い終わった後で外す
+umount -l /data                               # lazy。すぐに木から外し、使い終わったら後片付けする
 ```
 
 - 使用中の `umount` は `target is busy` で失敗します。`lsof /data` や `fuser -vm /data` で使っているプロセスを探して止めます。
@@ -131,7 +131,7 @@ sudo swapon -a                             # fstab の swap をすべて有効�
 - fstab には `UUID=… none swap defaults 0 0`(パーティション)や `/swapfile none swap defaults 0 0`(ファイル)と書きます。
 - 優先度は `pri=` のオプションで決めます(`defaults,pri=10`)。大きいほうが先に使われます。
 - `swapoff` は、スワップの中身をメモリに戻すので、メモリが足りないと失敗したり、とても時間がかかったりします。
-- ファイルのスワップは、穴(未割り当ての範囲)があってはいけません。XFS と ext4 では `fallocate` で作れます。Btrfs では特別な作り方が要ります(`btrfs filesystem mkswapfile`。使えるバージョンは【要確認】)。
+- ファイルのスワップは、穴(未割り当ての範囲)があってはいけません。XFS と ext4 では `fallocate` で作れます。Btrfs では特別な作り方が要ります(`btrfs filesystem mkswapfile`。btrfs-progs 6.1 以降)。
 
 ## 2.02.2 ファイルシステムの管理 (重要度4)
 
@@ -152,7 +152,7 @@ sudo swapon -a                             # fstab の swap をすべて有効�
 ```bash
 sudo mkfs.ext4 -L data /dev/sdb1          # LABEL を付けて作る
 sudo tune2fs -l /dev/sdb1                 # スーパーブロック(ファイルシステムの設定)を見る
-sudo dumpe2fs -h /dev/sdb1                # 同じ内容を、見出しだけ詳しく(-h)
+sudo dumpe2fs -h /dev/sdb1                # 同じ内容(スーパーブロックだけ。-h を付けないとブロックグループの詳細も出る)
 sudo tune2fs -L backup /dev/sdb1          # LABEL を変える
 sudo tune2fs -U random /dev/sdb1          # UUID を付け直す
 sudo tune2fs -m 1 /dev/sdb1               # root 用の予約ブロックを 1 % にする(既定は 5 %)
@@ -228,7 +228,7 @@ sudo btrfs scrub start /mnt/pool                                 # チェック�
 ```
 
 - Btrfs の通常のスナップショットは、**同じ Btrfs の中**にあります。ディスクが壊れたときの備えには、別のディスクにコピーしてください(`btrfs send` と `btrfs receive`)。
-- Btrfs には、通常の `fsck` に当たるものはありません。`btrfs check`(マウントを外して実行)は、**最後の手段**です。
+- Btrfs には、通常の `fsck` に当たるものはありません。`btrfs check`(マウントを外して実行)は、読むだけで調べます。直す `btrfs check --repair` は、**最後の手段**です。
 
 ### 5. ext4 から Btrfs に変換する
 
@@ -326,6 +326,7 @@ sudo mount /dev/vg01/lv_data /data
 sudo pvs; sudo vgs; sudo lvs                       # それぞれの一覧
 ```
 
+- `vgcreate` に PV でないデバイスを渡すと、`vgcreate` が自動で PV にします。ただし基本の順番は `pvcreate` が先です。
 - fstab には `/dev/vg01/lv_data /data xfs defaults 0 0` と書きます。LV の名前は変わらないので、UUID にしなくてもかまいません(UUID でも書けます)。
 
 ### 3. VG と LV を変える
@@ -406,7 +407,7 @@ sudo lvconvert --merge vg01/snap1                      # 元の LV を、スナ�
 ```
 
 - `lvconvert --merge` を実行した後、スナップショットは消えます。**元の LV に、その後に書いた変更は失われます**。
-- スナップショットは、元の LV と**同じ VG の中**にあり、**バックアップの代わりではありません**。ディスクが壊れたら、元もスナップショットも失われます。
+- スナップショットは、変更されたブロックの元の中身しか持たず、残りは元の LV から読みます。そのため**バックアップの代わりではありません**。元の LV が壊れたら、スナップショットも使えません。
 
 ### 6. LVM の設定ファイル
 

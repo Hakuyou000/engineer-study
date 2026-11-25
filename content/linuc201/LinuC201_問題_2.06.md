@@ -8,7 +8,7 @@
 
 ### 2.06.1 コンテナの仕組み
 
-**問1** `LinuC201-2.06-001` Linux のホストで動くコンテナと、仮想マシンの違いについて、正しいものはどれか。
+**問1** `LinuC201-2.06-001` Docker の標準のランタイム(runc)で動く Linux のコンテナと、仮想マシンの違いについて、正しいものはどれか。
 
 - A. コンテナは、コンテナごとに専用のゲスト OS(カーネル)を起動する
 - B. コンテナはホストのカーネルを共有し、仮想マシンは仮想マシンごとにゲスト OS のカーネルを持つ
@@ -29,7 +29,7 @@
 - A. イメージは、読み取り専用のレイヤーを重ねてできている
 - B. コンテナでファイルを書き換えると、イメージのレイヤーが直接書き換わる
 - C. 同じイメージから作ったコンテナは、読み取り専用のレイヤーを共有する
-- D. コンテナを削除しても、コンテナが書き込んだ内容は自動で残る
+- D. コンテナを削除しても、コンテナの書き込める層に書いた内容は自動で残る
 
 **問5** `LinuC201-2.06-005` コンテナごとに、別々の IP アドレスとポート番号の空間を持たせる名前空間はどれか。
 
@@ -54,7 +54,7 @@
 - C. `docker kill web`
 - D. `docker pause web`
 
-**問8** `LinuC201-2.06-008` `docker stop` について、正しいものを**2つ**選べ。
+**問8** `LinuC201-2.06-008` イメージや `docker run` で停止の信号と待ち時間を変えていない Linux のコンテナがある。このコンテナに対する `docker stop` について、正しいものを**2つ**選べ。
 
 - A. 最初から SIGKILL を送って、すぐに止める
 - B. 最初に SIGTERM を送って、プロセスに終了の準備をさせる
@@ -136,7 +136,7 @@
 
 **正解**: B
 
-コンテナは、ホストのカーネルの上で動く、分離されたプロセスです。仮想マシンは、ハイパーバイザーの上で、仮想マシンごとにゲスト OS(カーネル)を起動します。このため、コンテナのほうが軽くて速く起動します。
+コンテナは、ホストのカーネルの上で動く、分離されたプロセスです。仮想マシンは、ハイパーバイザーの上で、仮想マシンごとにゲスト OS(カーネル)を起動します。このため、コンテナのほうが軽くて速く起動します。なお、Kata Containers のように、コンテナごとに軽い VM を起動するランタイムもあります。この問題は、標準の runc の場合を問うています。
 
 - A. コンテナは、ゲスト OS のカーネルを持ちません。
 - C. 仮想マシンとコンテナの説明が逆です。
@@ -154,7 +154,7 @@
 
 ### 問3 `LinuC201-2.06-003`
 
-**正解**: `cgroups`、`cgroup`、`control groups`
+**正解**: `cgroups`、`cgroup`、`control groups`、`control group`、`コントロールグループ`
 
 cgroups(コントロールグループ)は、プロセスをグループにまとめ、CPU、メモリ、プロセスの数、ディスクの I/O を制限したり、集計したりします。メモリの上限を超えると、カーネルが OOM killer でプロセスを強制終了することがあります。
 
@@ -165,7 +165,7 @@ cgroups(コントロールグループ)は、プロセスをグループにま�
 イメージは、読み取り専用のレイヤーを重ねたものです。コンテナを起動すると、その上に書き込める層が 1 つ加わります。同じイメージから作ったコンテナは、読み取り専用のレイヤーを共有するので、ディスクを節約できます。
 
 - B. 書き込みは、コンテナ専用の書き込める層に入ります。イメージのレイヤーは変わりません。
-- D. 書き込める層は、コンテナを削除すると一緒に消えます。残したいデータは、ボリュームなど、コンテナの外に置きます。
+- D. コンテナの書き込める層は、コンテナを削除すると一緒に消えます。残したいデータは、ボリュームなど、コンテナの外に置きます。
 
 ### 問5 `LinuC201-2.06-005`
 
@@ -193,7 +193,7 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 `docker kill` は、既定で SIGKILL を、すぐ送ります。プロセスは、後始末をせずに終了させられます。
 
-- A. `docker stop` は、先に SIGTERM を送り、10 秒(既定)待ってから SIGKILL を送ります。
+- A. `docker stop` は、先に停止の信号(既定は SIGTERM)を送り、10 秒(既定)待ってから SIGKILL を送ります。
 - B. `docker restart` は、止めてから起動し直します。止めるときは、`stop` と同じ手順です。
 - D. `docker pause` は、プロセスを一時停止するだけです。終了はしません。
 
@@ -201,14 +201,14 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: B、D
 
-`docker stop` は、プロセスに SIGTERM を送って、終了の準備(ファイルの書き出しなど)をする時間を与えます。既定の 10 秒(`-t` で変更)待っても終わらないときは、SIGKILL を送って強制的に止めます。
+`docker stop` は、プロセスに SIGTERM を送って、終了の準備(ファイルの書き出しなど)をする時間を与えます。既定の 10 秒(`-t` で変更)待っても終わらないときは、SIGKILL を送って強制的に止めます。最初に送る信号は、Dockerfile の `STOPSIGNAL` や、`docker run` の `--stop-signal` で変えられます。
 
 - A. 最初から SIGKILL を送るのは、`docker kill` です。
 - C. 止めるだけで、削除はしません。削除するのは `docker rm` です。
 
 ### 問9 `LinuC201-2.06-009`
 
-**正解**: `docker exec -it web sh`、`docker exec -ti web sh`、`docker exec -i -t web sh`、`docker exec -it web /bin/sh`、`docker exec --interactive --tty web sh`
+**正解**: `docker exec -it web sh`、`docker exec -ti web sh`、`docker exec -i -t web sh`、`docker exec -t -i web sh`、`docker exec -it web /bin/sh`、`docker exec -ti web /bin/sh`、`docker exec -i -t web /bin/sh`、`docker exec --interactive --tty web sh`、`docker exec --tty --interactive web sh`、`docker exec --interactive --tty web /bin/sh`、`docker container exec -it web sh`
 
 `docker exec` は、動いているコンテナの中で、新しいプロセスとしてコマンドを実行します。`-i` は標準入力を開けておくこと、`-t` は端末を割り当てることです。シェルを使うときは、`-it` を付けます。
 
@@ -224,7 +224,7 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 ### 問11 `LinuC201-2.06-011`
 
-**正解**: `docker ps -a`、`docker ps --all`、`docker container ls -a`、`docker container ls --all`
+**正解**: `docker ps -a`、`docker ps --all`、`docker container ls -a`、`docker container ls --all`、`docker container list -a`、`docker container list --all`、`docker container ps -a`、`docker container ps --all`
 
 `docker ps` は、動いているコンテナだけを表示します。`-a`(`--all`)を付けると、止まっているものも表示します。
 
@@ -260,9 +260,9 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 ### 問15 `LinuC201-2.06-015`
 
-**正解**: `docker build -t myapp:1.0 .`、`docker build --tag myapp:1.0 .`、`docker image build -t myapp:1.0 .`
+**正解**: `docker build -t myapp:1.0 .`、`docker build --tag myapp:1.0 .`、`docker build --tag=myapp:1.0 .`、`docker build . -t myapp:1.0`、`docker image build -t myapp:1.0 .`、`docker image build --tag myapp:1.0 .`、`docker buildx build -t myapp:1.0 .`、`docker builder build -t myapp:1.0 .`
 
-`docker build` は、Dockerfile を読んで、命令ごとにレイヤーを作り、イメージにします。`-t` で名前とタグを付けます。最後の `.` は、ファイルを渡すディレクトリ(ビルドコンテキスト)で、ここでは、カレントディレクトリです。
+`docker build` は、Dockerfile を読んで、命令ごとにレイヤーを作り、イメージにします。`-t` で名前とタグを付けます。最後の `.` は、ファイルを渡すディレクトリ(ビルドコンテキスト)で、ここでは、カレントディレクトリです。Docker 29 では、`docker build` は `docker buildx build` の別名で、`docker image build` や `docker builder build` でも同じ動きになります。
 
 ### 問16 `LinuC201-2.06-016`
 

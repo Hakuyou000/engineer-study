@@ -79,7 +79,7 @@ ls -l /dev/kvm                           # KVM の入り口のデバイスファ
 
 | 部品 | 役割 |
 |---|---|
-| `qemu-kvm` | QEMU(KVM を使う版) |
+| `qemu-kvm`(Debian 系は `qemu-system-x86`) | QEMU(KVM を使う版) |
 | `libvirtd` | VM を管理するサービス。`virsh` などの道具から呼ばれる |
 | `virt-install` | コマンドで VM を作る |
 | `virt-manager` | 画面(GUI)で VM を作る、管理する |
@@ -87,16 +87,17 @@ ls -l /dev/kvm                           # KVM の入り口のデバイスファ
 
 ```bash
 # Ubuntu 24.04 / Debian 12
-sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager
+sudo apt install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager
+sudo systemctl enable --now libvirtd     # 自動で起動し、いま起動する
 
 # AlmaLinux / RHEL 9
 sudo dnf install qemu-kvm libvirt virt-install virt-manager
-
-sudo systemctl enable --now libvirtd     # 自動で起動し、いま起動する
+sudo systemctl enable --now virtqemud.socket     # VM を管理するデーモン(virtqemud)を、つながれたら起動するようにする
 ```
 
 - Debian 系では、`virt-install` は `virtinst` パッケージに入っています。
-- RHEL 9 系の libvirt は、機能ごとに分かれたデーモン(`virtqemud` など)が既定です。`libvirtd` も使えます。【要確認】
+- Ubuntu 24.04 の `qemu-kvm` は、`qemu-system-x86` が提供する仮想のパッケージです。`apt install qemu-kvm` と書いても、`qemu-system-x86` が入ります。
+- RHEL 9 を新しく入れたホストの libvirt は、機能ごとに分かれたデーモン(VM は `virtqemud`、仮想のネットワークは `virtnetworkd` など)が既定です。1 つにまとまった `libvirtd` は非推奨で、RHEL 8 から上げたホストでは引き続き使われます。機能ごとのデーモンを有効にする手順の全体は、Red Hat の文書「libvirt デーモンの最適化」にあります。
 - RHEL 9 では、virt-manager は非推奨です(後継は Web 画面の Cockpit)。【要確認】
 - root 以外のユーザーが `virsh` で VM を管理するには、`libvirt` グループに入れます。
 
@@ -177,12 +178,12 @@ sudo virt-install \
 | `--vcpus` | 仮想 CPU の数 |
 | `--disk size=20` | 新しいディスクを作る(GiB)。`--disk path=…` で既存のファイルも指定できる |
 | `--cdrom` / `--location` | インストール用の ISO。`--location` は URL やディレクトリを指定でき、`--extra-args` でカーネルの引数を渡せる |
-| `--os-variant` | ゲスト OS の種類。性能の良い設定が選ばれる。`virt-install --osinfo list` で一覧が見られる(古い版では `osinfo-query os`)【要確認】 |
+| `--os-variant` | ゲスト OS の種類。性能の良い設定が選ばれる。`--osinfo` は `--os-variant` の新しい名前(どちらも使える)。`virt-install --osinfo list` で一覧が見られる(古い版では `osinfo-query os`) |
 | `--network` | つなぐネットワーク。`network=default`(NAT)や `bridge=br0` |
 | `--import` | インストールをせず、既存のディスクイメージから作る |
 | `--graphics none --console pty,target_type=serial` | 画面なしで、シリアルコンソールで操作する |
 
-- 画面のあるサーバーなら、`virt-manager` で「新しい仮想マシン」から、同じ内容を選べます。`virt-manager` は、`virt-viewer` で VM の画面を表示します。
+- 画面のあるサーバーなら、`virt-manager` で「新しい仮想マシン」から、同じ内容を選べます。`virt-manager` は、自分のウィンドウの中に VM の画面を表示します。画面だけを開きたいときは、別の道具の `virt-viewer` を使います。
 - ふつうは、作った VM はそのまま起動し、インストールが始まります。
 
 ### 3. virsh で管理する

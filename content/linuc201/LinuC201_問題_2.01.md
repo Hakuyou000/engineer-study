@@ -270,7 +270,7 @@ Red Hat 系では、コマンド名に `2` が付き、`grub2-mkconfig -o /boot/
 
 **正解**: `grub-install`、`grub2-install`
 
-GRUB をディスク(BIOS では MBR とその後ろの空き)や、ESP(UEFI)に書き込むコマンドです。Debian 系は `grub-install`、Red Hat 系は `grub2-install` です。設定ファイルを作る `grub-mkconfig` とは別のコマンドです。
+GRUB をディスク(BIOS では MBR とその後ろの空き)や、ESP(UEFI)に書き込むコマンドです。Debian 系は `grub-install`、Red Hat 系は `grub2-install` です。ただし RHEL 9 系の UEFI では `grub2-install` は使わず、`dnf reinstall grub2-efi shim` でブートローダーを入れ直します。BIOS で GPT のディスクでは、MBR の後ろの空きではなく BIOS boot パーティションに書き込みます。設定ファイルを作る `grub-mkconfig` とは別のコマンドです。
 
 ### 問6 `LinuC201-2.01-006`
 
@@ -486,7 +486,7 @@ DKMS は、カーネルの外にあるモジュールのソース(`/usr/src/<名
 
 **正解**: A
 
-再起動の後も残すには、`/etc/sysctl.conf` か `/etc/sysctl.d/*.conf` に書きます。起動のときに読み込まれます。すぐに反映するには、`sysctl --system`(`sysctl -p` は `/etc/sysctl.conf`)を使います。
+再起動の後も残すには、`/etc/sysctl.d/*.conf` に書きます(`/etc/sysctl.conf` は、Debian 13 では起動のときに読まれません)。起動のときに読み込まれます。すぐに反映するには、`sysctl --system`(`sysctl -p` は `/etc/sysctl.conf`)を使います。
 
 - B. `sysctl -w` は、今の動きを変えるだけで、再起動すると元に戻ります。
 - C. `/proc/sys` に書く方法も、今の動きだけを変え、再起動で戻ります。
@@ -527,13 +527,13 @@ DKMS は、カーネルの外にあるモジュールのソース(`/usr/src/<名
 - A. `lsmod` は、読み込まれているモジュールの一覧で、メッセージではありません。
 - B. `lspci -k` は、PCI のデバイスと、使っているドライバーを表示します。メッセージではありません(USB なら `lsusb`)。
 - C. `dmesg` で見られます(`-T` で時刻を読める形にできます)。
-- D. `journalctl -k` で見られます(`-b -1` で前回の起動のログも見られます)。
+- D. `journalctl -k` で見られます(ジャーナルを永続化していれば、`-b -1` で前回の起動のログも見られます)。
 
 ### 問33 `LinuC201-2.01-033`
 
-**正解**: `uname -r`、`uname --kernel-release`
+**正解**: `uname -r`、`uname --kernel-release`、`uname --release`、`cat /proc/sys/kernel/osrelease`、`sysctl -n kernel.osrelease`
 
-`uname -r` は、カーネルのリリース(版)だけを表示します。`uname -a` は、すべての情報を表示します。
+`uname -r` は、カーネルのリリース(版)だけを表示します。`uname -a` は、すべての情報を表示します。`/proc/sys/kernel/osrelease` にも、同じ文字列が入っています。
 
 ### 問34 `LinuC201-2.01-034`
 

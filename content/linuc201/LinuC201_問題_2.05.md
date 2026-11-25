@@ -217,7 +217,7 @@ virtio は、KVM などで使う準仮想化のドライバーです。ディス
 
 ### 問13 `LinuC201-2.05-013`
 
-**正解**: `virsh list --all`
+**正解**: `virsh list --all`、`virsh -c qemu:///system list --all`、`virsh --connect qemu:///system list --all`
 
 `virsh list` は、動いている VM だけを表示します。`--all` を付けると、止まっている VM も表示します。`--inactive` を付けると、止まっている VM だけを表示します。
 
@@ -242,6 +242,6 @@ virtio は準仮想化のドライバーです。Linux のカーネルには最�
 
 ### 問16 `LinuC201-2.05-016`
 
-**正解**: `virsh dominfo vm1`
+**正解**: `virsh dominfo vm1`、`virsh dominfo --domain vm1`
 
 `virsh dominfo` は、VM(ドメイン)の状態、メモリ、仮想 CPU の数などを表示します。CPU の時間やディスクの数値まで見たいときは、`virsh domstats vm1` を使います。
