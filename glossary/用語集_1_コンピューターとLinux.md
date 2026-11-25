@@ -574,6 +574,15 @@ sysstat パッケージに入っています。過去の記録を、あとから
 注意: 1 人だけに送るなら `write` です。`wall` は全員に届きます。
 関連: motd
 
+### POSIX ACL
+別名: ファイル ACL、getfacl、setfacl
+試験: LinuC202
+要約: ユーザーやグループごとに、ファイルの権限を細かく決める仕組みです。
+所有者、グループ、その他の 3 つに加えて、ユーザーやグループごとに、ファイルの権限を決める仕組みです。`setfacl` で設定し、`getfacl` で見ます。
+例: `setfacl -m u:bob:rwx /srv/share`、`getfacl /srv/share`、`setfacl -d -m g:staff:rwx dir`
+注意: ネットワーク機器の ACL(パケットの許可、拒否)とは別のものです。
+関連: Samba
+
 ## ファイルとディスク
 
 ### ファイルシステム
