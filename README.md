@@ -1,6 +1,6 @@
 # sre-drill
 
-資格試験(LinuC 101、LinuC 102、CCNA、AWS SAA、AWS DevOps Engineer – Professional、Terraform Associate、CKA)と SRE の基礎知識(Docker、Kubernetes など)を身につけるための学習アプリです。ブラウザだけで動く静的な SPA で、サーバーは必要ありません。解答の履歴は、使っているブラウザの中に保存されます。
+資格試験(ITパスポート、基本情報技術者、LinuC 101、LinuC 102、CCNA、AWS SAA、AWS DevOps Engineer – Professional、Terraform Associate、CKA)と SRE の基礎知識(Docker、Kubernetes など)を身につけるための学習アプリです。ブラウザだけで動く静的な SPA で、サーバーは必要ありません。解答の履歴は、使っているブラウザの中に保存されます。
 
 AI に作業させるときのルールは [CLAUDE.md](CLAUDE.md) にあります。
 
@@ -8,7 +8,7 @@ AI に作業させるときのルールは [CLAUDE.md](CLAUDE.md) にありま�
 
 - 画面: 上の帯で試験を切り替え、目次・問題演習・計算ドリル・テキスト・成績を開きます。スマホでは、この 5 つのタブが画面の下に並びます。分野ごとの学習の状態は 4 色のランプ(未着手、学習中、要復習あり、定着)で表示します
 
-- 目次: 試験(LinuC 101、LinuC 102、CCNA、AWS SAA、AWS DOP、Terraform、Docker、K8s、すべて)を選び、問題演習・計算ドリル・テキスト・成績を開きます。起動したときは目次から始まります。選んだ試験は次回も引き継がれ、目次で「選択中」と表示されます。画面を移ると履歴に残るので、左上の「戻る」やブラウザの戻る(スマホのスワイプ)で前の画面に戻れます
+- 目次: 試験(ITパスポート、基本情報、LinuC 101、LinuC 102、CCNA、AWS SAA、AWS DOP、Terraform、Docker、K8s、すべて)を選び、問題演習・計算ドリル・テキスト・成績を開きます。起動したときは目次から始まります。選んだ試験は次回も引き継がれ、目次で「選択中」と表示されます。画面を移ると履歴に残るので、左上の「戻る」やブラウザの戻る(スマホのスワイプ)で前の画面に戻れます
 - ロードマップ: SRE を目指す学習の段階(Linux → ネットワーク → クラウド → コンテナと IaC → Kubernetes と監視 → SRE の実践)と、段階ごとのチェックリスト、資格、おすすめの本を表示します。チェックはブラウザに保存されます。アプリで学べる試験は、進み具合と問題演習へのボタンも表示します
 - 資格の表紙: ロードマップに載せた資格ごとに、試験の概要、出題範囲と割合、勉強の進め方、公式サイトをまとめたページです。ロードマップの資格名から開き、表紙からロードマップの段階に戻れます。アプリで学べる試験は、問題演習・テキスト・計算ドリル・成績へのボタンと進み具合も表示します
 - 問題演習: 4 択と複数選択。出題範囲は分野ごとに選べます
@@ -56,6 +56,7 @@ macOS では、`start.command` をダブルクリックすると起動できま�
 | `npm run triage -- <バックアップ>` | エクスポートした履歴から、指摘のある問題と正答率の低い問題を一覧にする |
 | `npm run metrics` | 改善ループの指標を `docs/指標.md` に記録する |
 | `npm run check` | lint、テスト、網羅性の検査、ビルドをまとめて実行する(CI と同じ) |
+| `npm run check-chapter -- <問題> <テキスト> [用語の表.json]` | 1 章ぶんの問題とテキストだけを検査する(内容の検査、テキストの節との対応、正解の位置、用語の出現)。教材を章ごとに書くときに使う |
 
 `dev`、`test`、`build`、`coverage`、`triage`、`metrics` は、実行する前に `gen` を自動で呼びます。
 
@@ -175,7 +176,7 @@ src/lib/texts.ts    テキストの一覧と節の切り出し
 src/lib/glossary.ts 用語集の解析と、本文の用語の検出
 src/lib/roadmap.ts  ロードマップの内容
 src/lib/certs.ts    資格の表紙の内容
-src/lib/order.ts    試験の表示順(LinuC → CCNA → AWS SAA → AWS DOP → Terraform → Docker → K8s)
+src/lib/order.ts    試験の表示順(ITパスポート → 基本情報 → LinuC → CCNA → AWS SAA → AWS DOP → Terraform → Docker → K8s)
 src/lib/drills/     計算ドリルの生成と採点
 src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴、問題への指摘)
 src/components/     画面
