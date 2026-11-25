@@ -74,6 +74,16 @@ export function loadText(id: string): Promise<string> {
   return e ? e.load() : Promise.reject(new Error(`テキストがない: ${id}`))
 }
 
+// 図の画像(texts/<試験>/images/*.svg)。本文からは `![説明](images/名前.svg)` で参照する
+const images = import.meta.glob<string>('../../texts/*/images/*.svg', { query: '?url', import: 'default', eager: true })
+
+/** 本文の画像の参照(`images/名前.svg`)を、テキストの id(`ccna/CCNA_1.0_…`)から URL にする。なければ undefined */
+export function imageUrl(textId: string, src: string): string | undefined {
+  const dir = textId.split('/')[0]
+  if (!/^images\/[\w.-]+\.svg$/.test(src)) return undefined
+  return images[`../../texts/${dir}/${src}`]
+}
+
 /** 問題の試験名と分野番号に対応するテキスト。 */
 export function textFor(exam: string, domain: string): TextInfo | undefined {
   return TEXTS.find((t) => t.exam.toLowerCase() === exam.toLowerCase() && t.number === domain)

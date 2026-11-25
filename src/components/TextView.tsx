@@ -108,7 +108,7 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
             </nav>
           )}
           <Suspense fallback={<p className="meta">読み込み中</p>}>
-            <Markdown text={intro} exam={textExam} />
+            <Markdown text={intro} exam={textExam} textId={id} />
             {sections.map((s, i) => (
               <section
                 key={`${id}-${i}`}
@@ -116,7 +116,7 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
                   refs.current[i] = el
                 }}
               >
-                <Markdown text={s.body} exam={textExam} />
+                <Markdown text={s.body} exam={textExam} textId={id} />
               </section>
             ))}
           </Suspense>
