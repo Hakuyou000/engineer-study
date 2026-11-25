@@ -45,14 +45,18 @@ Windows や Mac の Docker Desktop は、内部で小さな Linux の VM を動�
 
 ### 1. 全体の構成
 
-```
-docker(CLI)  ──REST API──▶  dockerd(Docker デーモン)
-                                  │
-                                  ▼
-                              containerd(コンテナの管理)
-                                  │
-                                  ▼
-                              runc(コンテナを実際に作る。OCI の実装)
+```text
+docker(CLI)
+  |
+  |  REST API
+  v
+dockerd(Docker デーモン)
+  |
+  v
+containerd(コンテナの管理)
+  |
+  v
+runc(コンテナを実際に作る。OCI の実装)
 ```
 
 | 部品 | 役割 |

@@ -185,12 +185,16 @@ AI を IT の運用に使う考え方を **AIOps** といいます。
 
 コントローラーが、たくさんの機器をまとめて管理します。SDN(Software-Defined Networking)の考え方では、コントロールプレーンの働き(の一部)をコントローラーに集めます。
 
-```
-        [アプリケーション / スクリプト]
-                  │  ノースバウンド API(REST)
-            [ コントローラー ]
-                  │  サウスバウンド API(NETCONF、RESTCONF、SNMP、SSH/CLI、OpenFlow)
-     [スイッチ] [ルーター] [AP] …
+```text
+[アプリケーション / スクリプト]
+   |
+   |  ノースバウンド API(REST)
+   |
+[コントローラー]
+   |
+   |  サウスバウンド API(NETCONF、RESTCONF、SNMP、SSH/CLI、OpenFlow)
+   |
+[スイッチ] [ルーター] [AP] …
 ```
 
 | インターフェース | 向き | 用途 | 例 |

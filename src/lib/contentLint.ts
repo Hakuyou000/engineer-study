@@ -113,3 +113,29 @@ export function countByRule(fs: readonly Finding[]): Record<string, number> {
   for (const f of fs) out[f.rule] = (out[f.rule] ?? 0) + 1
   return out
 }
+
+// テキストの図(2026-11-25)。アプリ、Obsidian、claude.ai の Project で同じに見えるように、文字の図の書き方を決めた。
+// 罫線(─│┌ など)と三角の矢印(▲▼▶◀)は、フォントによって幅が 1 文字にも 2 文字にもなり、桁がずれる
+const WIDE_DRAWING = /[─-╿▲-◅]/
+// 日本語などの全角の文字の幅は、フォントによって半角 2 文字ぶんにならない。その後ろで空白を 2 つ以上並べて桁をそろえると、ずれる
+const NON_ASCII = /[^\t\x20-\x7e]/
+const ALIGN_AFTER = /\S {2,}\S/
+
+/** テキストのコードブロックの中の図の書き方を検査する。見つかった行の番号(1 から)と理由を返す */
+export function lintTextDiagrams(md: string): { line: number; message: string }[] {
+  const out: { line: number; message: string }[] = []
+  let fence: string | null = null
+  md.split('\n').forEach((l, i) => {
+    if (l.startsWith('```')) {
+      fence = fence === null ? l.slice(3).trim() : null
+      return
+    }
+    if (fence === null) return
+    if (WIDE_DRAWING.test(l)) out.push({ line: i + 1, message: '罫線や三角の矢印は使わず、ASCII(| + - ` v ^ > <)で描く' })
+    if (fence === 'text') {
+      const m = NON_ASCII.exec(l)
+      if (m && ALIGN_AFTER.test(l.slice(m.index))) out.push({ line: i + 1, message: '日本語の後ろで、空白を並べて桁をそろえない(日本語は行の最後に置く)' })
+    }
+  })
+  return out
+}

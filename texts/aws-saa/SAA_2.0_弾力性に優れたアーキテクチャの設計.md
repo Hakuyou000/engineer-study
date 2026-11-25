@@ -193,9 +193,14 @@ API を作成・公開・管理するサービスです。バックエンドに 
 
 Web 層、アプリケーション層、データ層に分ける構成です。各層を独立してスケールでき、層ごとにセキュリティグループで通信を制限できます。
 
-```
-CloudFront → ALB → EC2(Auto Scaling, 複数 AZ)→ RDS(Multi-AZ)
-                                 └→ ElastiCache(セッション、キャッシュ)
+```text
+CloudFront --> ALB --> EC2 --> RDS
+                        |
+                        +----> ElastiCache
+
+EC2: Auto Scaling で、複数の AZ に置く
+RDS: Multi-AZ にする
+ElastiCache: セッションとキャッシュを置く
 ```
 
 ### 12. ストレージの種類

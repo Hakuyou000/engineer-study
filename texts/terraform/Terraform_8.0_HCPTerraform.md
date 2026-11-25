@@ -149,14 +149,14 @@ Sentinel の 3 つのレベル(特に soft と hard の違い)がよく問われ
 
 **プロジェクト**は、関係するワークスペースをまとめるフォルダーのようなものです。
 
-```
+```text
 組織(example-org)
-├── プロジェクト: networking
-│   ├── network-dev
-│   └── network-prod
-└── プロジェクト: payments
-    ├── payments-api-dev
-    └── payments-api-prod
++-- プロジェクト: networking
+|   +-- network-dev
+|   +-- network-prod
++-- プロジェクト: payments
+    +-- payments-api-dev
+    +-- payments-api-prod
 ```
 
 - チームの権限を**プロジェクトの単位**で与えられます。新しいワークスペースを追加しても、権限を一つずつ設定しなくて済みます。

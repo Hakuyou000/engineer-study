@@ -60,17 +60,19 @@ module "vpc" {
 
 モジュールの中と外は、**入力変数と出力だけでつながります**。
 
-```
+```text
 呼び出し元(ルートモジュール)
-  │  module "network" { cidr = "10.0.0.0/16" }   ← 引数で入力変数に渡す
-  ▼
+  |
+  |  module "network" { cidr = "10.0.0.0/16" }      <- 引数で入力変数に渡す
+  v
 子モジュール(./modules/network)
-  variable "cidr" {}                               ← 受け取る
+  variable "cidr" {}                                 <- 受け取る
   resource "aws_vpc" "this" { cidr_block = var.cidr }
-  output "vpc_id" { value = aws_vpc.this.id }     ← 公開する
-  │
-  ▼
-呼び出し元: module.network.vpc_id                   ← 出力だけを参照できる
+  output "vpc_id" { value = aws_vpc.this.id }        <- 公開する
+  |
+  v
+呼び出し元
+  module.network.vpc_id                              <- 出力だけを参照できる
 ```
 
 | ルール | 内容 |
