@@ -22,7 +22,8 @@
     "metrics": "tsx scripts/metrics.ts",
     "pretriage": "npm run gen",
     "triage": "tsx scripts/triage.ts",
-    "check": "npm run lint && npm test && npm run coverage -- --check && npm run build"
+    "check": "npm run lint && npm test && npm run coverage -- --check && npm run build",
+    "check-chapter": "tsx scripts/check-chapter.ts"
   },
   "dependencies": {
     "idb": "^8.0.4",
