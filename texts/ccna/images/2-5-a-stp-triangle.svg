@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 520" width="700" height="520" role="img" aria-labelledby="t">
+<title id="t">STP の三角形の構成(ルートブリッジ、ルートポート、指定ポート、代替ポート)</title>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5a666b"/></marker></defs>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="14" fill="#1c2427">
+<text x="20" y="28">すべてのリンクは 1 Gbps(コスト 4)です。ブリッジ ID は SW1、SW2、SW3 の順に小さくなります(例)。</text>
+<text x="20" y="52" font-weight="bold">凡例: Root = ルートポート、Desg = 指定ポート、Altn = 代替ポート</text>
+<g stroke="#0f766e" stroke-width="3"><line x1="310" y1="128" x2="180" y2="302"/><line x1="390" y1="128" x2="520" y2="302"/></g>
+<line x1="222" y1="330" x2="478" y2="330" stroke="#b45309" stroke-width="3"/>
+<g stroke="#b45309" stroke-width="4"><line x1="452" y1="318" x2="466" y2="342"/><line x1="466" y1="318" x2="452" y2="342"/></g>
+<rect x="280" y="62" width="140" height="66" rx="8" fill="#e1efec" stroke="#0f766e" stroke-width="3"/>
+<rect x="80" y="302" width="140" height="56" rx="8" fill="#eef2f7" stroke="#5a666b" stroke-width="2"/>
+<rect x="480" y="302" width="140" height="56" rx="8" fill="#eef2f7" stroke="#5a666b" stroke-width="2"/>
+<g text-anchor="middle"><text x="350" y="90" font-size="16" font-weight="bold">SW1</text><text x="350" y="112">ルートブリッジ</text>
+<text x="150" y="326" font-size="16" font-weight="bold">SW2</text><text x="150" y="346">ブリッジ ID 中</text>
+<text x="550" y="326" font-size="16" font-weight="bold">SW3</text><text x="550" y="346">ブリッジ ID 大</text></g>
+<g font-weight="bold" fill="#0f766e">
+<text x="280" y="152" text-anchor="end">Gi0/1 Desg</text><text x="420" y="152">Gi0/2 Desg</text>
+<text x="170" y="290" text-anchor="end">Gi0/1 Root</text><text x="530" y="290">Gi0/1 Root</text>
+<text x="230" y="320">Gi0/2 Desg</text></g>
+<text x="472" y="372" text-anchor="end" font-weight="bold" fill="#b45309">Gi0/2 Altn(ブロック)</text>
+<g text-anchor="end"><text x="232" y="206">コスト 4</text></g><text x="470" y="206">コスト 4</text>
+<text x="350" y="322" text-anchor="middle">コスト 4</text>
+<rect x="20" y="395" width="660" height="110" rx="8" fill="#fdf3e1" stroke="#b45309"/>
+<text x="36" y="420">ルートブリッジ: ブリッジ ID が最も小さい SW1 です。SW1 のポートはすべて指定ポートです。</text>
+<text x="36" y="444">ルートポート: SW2 と SW3 で、SW1 に直接つながるポートです(ルートまでのコスト 4)。</text>
+<text x="36" y="468">SW2 と SW3 の間: どちらもルートまでのコストは 4 で、同じです。そこでブリッジ ID の小さい</text>
+<text x="36" y="490">SW2 側が指定ポート、SW3 側が代替ポートになり、ブロックされます。</text>
+</g>
+</svg>

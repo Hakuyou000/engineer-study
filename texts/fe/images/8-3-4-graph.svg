@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="700" height="380" role="img" aria-labelledby="t">
+<title id="t">グラフ(頂点と辺)</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="350" y="28" font-size="18" font-weight="bold" text-anchor="middle">グラフ(頂点と辺)</text>
+<rect x="20" y="45" width="660" height="250" rx="8" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<line x1="270" y1="120" x2="420" y2="95" stroke="#5a666b" stroke-width="2.5"/>
+<line x1="420" y1="95" x2="570" y2="130" stroke="#5a666b" stroke-width="2.5"/>
+<line x1="270" y1="120" x2="340" y2="235" stroke="#5a666b" stroke-width="2.5"/>
+<line x1="420" y1="95" x2="340" y2="235" stroke="#5a666b" stroke-width="2.5"/>
+<line x1="420" y1="95" x2="520" y2="240" stroke="#5a666b" stroke-width="2.5"/>
+<line x1="570" y1="130" x2="520" y2="240" stroke="#5a666b" stroke-width="2.5"/>
+<line x1="340" y1="235" x2="520" y2="240" stroke="#5a666b" stroke-width="2.5"/>
+<circle cx="270" cy="120" r="20" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="270" y="125" text-anchor="middle" font-size="16" fill="#1c2427" font-weight="bold">A</text>
+<circle cx="420" cy="95" r="20" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="420" y="100" text-anchor="middle" font-size="16" fill="#1c2427" font-weight="bold">B</text>
+<circle cx="570" cy="130" r="20" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="570" y="135" text-anchor="middle" font-size="16" fill="#1c2427" font-weight="bold">C</text>
+<circle cx="340" cy="235" r="20" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="340" y="240" text-anchor="middle" font-size="16" fill="#1c2427" font-weight="bold">D</text>
+<circle cx="520" cy="240" r="20" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="520" y="245" text-anchor="middle" font-size="16" fill="#1c2427" font-weight="bold">E</text>
+<text x="270" y="80" text-anchor="end" font-size="15" fill="#b45309" font-weight="bold">頂点</text>
+<line x1="280" y1="76" x2="252" y2="104" stroke="#b45309" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="605.0" y="185.0" text-anchor="start" font-size="15" fill="#b45309" font-weight="bold">辺</text>
+<line x1="600.0" y1="180.0" x2="551.0" y2="180.0" stroke="#b45309" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="350" y="325" text-anchor="middle" font-size="14" fill="#1c2427">頂点どうしをつなぐ線が辺です。道路網や、人のつながりを表せます。</text>
+<text x="350" y="350" text-anchor="middle" font-size="14" fill="#1c2427">頂点の名前(A から E)は例です。</text>
+</g>
+</svg>

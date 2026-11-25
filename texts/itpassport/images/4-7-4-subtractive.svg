@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400" role="img" aria-labelledby="t">
+<title id="t">色の 3 原色の減法混色(CMY)</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="360.0" y="28" font-size="18" text-anchor="middle" font-weight="bold">色の 3 原色の減法混色(CMY)</text>
+<rect x="40" y="50" width="640" height="330" fill="#ffffff" stroke="#5a666b" stroke-width="1"/>
+<defs><clipPath id="c0"><circle cx="285" cy="160" r="85"/></clipPath><clipPath id="c1"><circle cx="385" cy="160" r="85"/></clipPath><clipPath id="c2"><circle cx="335" cy="245" r="85"/></clipPath></defs>
+<circle cx="285" cy="160" r="85" fill="#00aeef"/>
+<circle cx="385" cy="160" r="85" fill="#ec008c"/>
+<circle cx="335" cy="245" r="85" fill="#ffe600"/>
+<g clip-path="url(#c0)"><circle cx="385" cy="160" r="85" fill="#2e3192" clip-path="url(#c1)"/></g>
+<g clip-path="url(#c0)"><circle cx="335" cy="245" r="85" fill="#00a651" clip-path="url(#c2)"/></g>
+<g clip-path="url(#c1)"><circle cx="335" cy="245" r="85" fill="#ed1c24" clip-path="url(#c2)"/></g>
+<g clip-path="url(#c0)"><g clip-path="url(#c1)"><circle cx="335" cy="245" r="85" fill="#111111" clip-path="url(#c2)"/></g></g>
+<text x="245" y="130" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">シアン(C)</text>
+<text x="421" y="130" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">マゼンタ(M)</text>
+<text x="335" y="307" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">イエロー(Y)</text>
+<text x="335" y="141" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">青</text>
+<text x="293" y="231" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">緑</text>
+<text x="377" y="231" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">赤</text>
+<text x="335" y="186" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">黒</text>
+<text x="585" y="150" text-anchor="middle" font-size="14" fill="#1c2427">重ねるほど暗くなります</text>
+<text x="585" y="174" text-anchor="middle" font-size="14" fill="#1c2427">3 つ全部で黒になります</text>
+<text x="585" y="198" text-anchor="middle" font-size="14" fill="#1c2427">(印刷。実際は黒(K)を</text>
+<text x="585" y="222" text-anchor="middle" font-size="14" fill="#1c2427">加えた CMYK を使います)</text>
+</g>
+</svg>

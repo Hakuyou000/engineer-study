@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countByRule, lintQuestions, lintTextDiagrams } from './contentLint'
+import { countByRule, lintQuestions, lintSvg, lintTextDiagrams, lintTextImages } from './contentLint'
 import type { Question } from './types'
 
 let n = 0
@@ -102,5 +102,20 @@ describe('lintTextDiagrams', () => {
   it('text のブロックで、日本語の後ろの桁そろえを見つける', () => {
     const md = ['```text', '/dev/sda      ディスク', '[PV]  物理    ボリューム', 'カーネル: 読み込む。/sys に出る', '```', '```', '日本語    # コメント', '```'].join('\n')
     expect(lintTextDiagrams(md).map((f) => f.line)).toEqual([3])
+  })
+})
+
+describe('lintTextImages', () => {
+  it('参照の形、ファイルの有無、説明の長さを確かめる', () => {
+    const md = ['![損益分岐点のグラフ。売上高と総費用の交点](images/a.svg)', '![図](images/b.svg)', '![外の画像を指す参照の例です](https://example.com/c.png)', '```', '![コードの中は見ない](x.png)', '```'].join('\n')
+    const f = lintTextImages(md, new Set(['a.svg']))
+    expect(f.map((x) => x.line)).toEqual([2, 2, 3])
+  })
+})
+
+describe('lintSvg', () => {
+  it('viewBox と title を求め、script と外の参照を禁じる', () => {
+    expect(lintSvg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><title>図</title><use href="#a"/></svg>')).toEqual([])
+    expect(lintSvg('<svg><script>x</script><image href="a.png"/></svg>')).toHaveLength(5)
   })
 })

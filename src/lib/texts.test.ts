@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import questions from '../data/questions.json'
-import { lintTextDiagrams } from './contentLint'
+import { readFileSync, readdirSync, existsSync } from 'node:fs'
+import { lintSvg, lintTextDiagrams, lintTextImages } from './contentLint'
 import { TEXTS, loadText, parseTextPath, sectionNumbers, splitSections, textFor } from './texts'
 
 describe('parseTextPath', () => {
@@ -57,6 +58,29 @@ describe('同梱のテキスト', () => {
   it('図は README の「テキストの追加」の書き方に従う', async () => {
     const found: string[] = []
     for (const t of TEXTS) for (const f of lintTextDiagrams(await loadText(t.id))) found.push(`${t.id}:${f.line} ${f.message}`)
+    expect(found).toEqual([])
+  })
+
+  it('図の画像は texts/<試験>/images/ にあり、本文から参照され、検査を通る', async () => {
+    const found: string[] = []
+    const used = new Set<string>()
+    for (const t of TEXTS) {
+      const dir = t.id.split('/')[0]
+      const imgDir = `texts/${dir}/images`
+      const files = new Set(existsSync(imgDir) ? readdirSync(imgDir) : [])
+      const md = await loadText(t.id)
+      for (const f of lintTextImages(md, files)) found.push(`${t.id}:${f.line} ${f.message}`)
+      for (const m of md.matchAll(/!\[[^\]]*\]\(images\/([^)]+)\)/g)) used.add(`${dir}/${m[1]}`)
+    }
+    for (const dir of readdirSync('texts')) {
+      const imgDir = `texts/${dir}/images`
+      if (!existsSync(imgDir)) continue
+      for (const f of readdirSync(imgDir)) {
+        if (!f.endsWith('.svg')) found.push(`${imgDir}/${f}: 画像は SVG にする`)
+        else for (const e of lintSvg(readFileSync(`${imgDir}/${f}`, 'utf8'))) found.push(`${imgDir}/${f}: ${e}`)
+        if (!used.has(`${dir}/${f}`)) found.push(`${imgDir}/${f}: どのテキストからも参照されていない`)
+      }
+    }
     expect(found).toEqual([])
   })
 

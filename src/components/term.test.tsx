@@ -17,3 +17,11 @@ describe('本文の用語の印', () => {
     expect(html).toContain('<code>UDP')
   })
 })
+
+describe('Markdown の画像', () => {
+  it('見つからない画像は、説明の文を出す', () => {
+    const html = renderToStaticMarkup(<Markdown text={'![損益分岐点のグラフ](images/none.svg)'} textId="itpassport/x" />)
+    expect(html).toContain('[図: 損益分岐点のグラフ]')
+    expect(html).not.toContain('<img')
+  })
+})

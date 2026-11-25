@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" width="700" height="460" role="img" aria-labelledby="t">
+<title id="t">マトリックス組織</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="350" y="28" font-size="18" font-weight="bold" text-anchor="middle">マトリックス組織</text>
+<rect x="20" y="50" width="140" height="48" rx="6" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<text x="90" y="70" text-anchor="middle" font-size="14" fill="#1c2427">行: 職能の部門</text>
+<text x="90" y="88" text-anchor="middle" font-size="14" fill="#1c2427">列: プロジェクト</text>
+<rect x="170" y="58" width="160" height="40" rx="6" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="250" y="84" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">プロジェクト A</text>
+<rect x="340" y="58" width="160" height="40" rx="6" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="420" y="84" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">プロジェクト B</text>
+<rect x="510" y="58" width="160" height="40" rx="6" fill="#e1efec" stroke="#0f766e" stroke-width="2"/>
+<text x="590" y="84" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">プロジェクト C</text>
+<rect x="20" y="108" width="140" height="65" rx="6" fill="#fdf3e1" stroke="#b45309" stroke-width="2"/>
+<text x="90" y="147" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">営業部</text>
+<rect x="20" y="183" width="140" height="65" rx="6" fill="#fdf3e1" stroke="#b45309" stroke-width="2"/>
+<text x="90" y="222" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">製造部</text>
+<rect x="20" y="258" width="140" height="65" rx="6" fill="#fdf3e1" stroke="#b45309" stroke-width="2"/>
+<text x="90" y="297" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">経理部</text>
+<rect x="170" y="108" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="290" cy="140" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<rect x="170" y="183" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<rect x="170" y="258" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="290" cy="290" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<rect x="340" y="108" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="460" cy="140" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<rect x="340" y="183" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="460" cy="215" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<rect x="340" y="258" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="460" cy="290" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<rect x="510" y="108" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="630" cy="140" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<rect x="510" y="183" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="630" cy="215" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<rect x="510" y="258" width="160" height="65" rx="6" fill="#eef2f7" stroke="#5a666b" stroke-width="1"/>
+<circle cx="630" cy="290" r="9" fill="#ffffff" stroke="#5a666b" stroke-width="2"/>
+<line x1="160" y1="215" x2="199" y2="215" stroke="#b45309" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="215" y1="98" x2="215" y2="199" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<circle cx="215" cy="215" r="13" fill="#fdf3e1" stroke="#b45309" stroke-width="2"/>
+<text x="237" y="220" text-anchor="start" font-size="14" fill="#1c2427" font-weight="bold">社員</text>
+<text x="20" y="350" text-anchor="start" font-size="14" fill="#1c2427">○ は社員です。橙の ○ は、2 つの軸の両方に所属する社員の例です</text>
+<line x1="20" y1="370" x2="60" y2="370" stroke="#b45309" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="68" y="375" text-anchor="start" font-size="14" fill="#1c2427">職能(部門)からの指示</text>
+<line x1="300" y1="370" x2="340" y2="370" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="348" y="375" text-anchor="start" font-size="14" fill="#1c2427">プロジェクトからの指示</text>
+<rect x="20" y="392" width="660" height="52" rx="6" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<text x="350" y="413" text-anchor="middle" font-size="14" fill="#1c2427">この社員は、製造部とプロジェクト A の両方に所属し、2 つの軸から指示を受けます。</text>
+<text x="350" y="435" text-anchor="middle" font-size="14" fill="#1c2427">柔軟に連携できる一方、指示が二重になります。</text>
+</g>
+</svg>
