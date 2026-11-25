@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countByRule, lintQuestions } from './contentLint'
+import { countByRule, lintQuestions, lintTextDiagrams } from './contentLint'
 import type { Question } from './types'
 
 let n = 0
@@ -90,5 +90,17 @@ describe('lintQuestions', () => {
 
   it('規則ごとに数える', () => {
     expect(countByRule(lintQuestions([q({ explanation: 'a' }), q({ explanation: 'b' })], []))).toEqual({ 'wrong-choice-unexplained': 2 })
+  })
+})
+
+describe('lintTextDiagrams', () => {
+  it('コードブロックの中の罫線と三角の矢印を見つける', () => {
+    const md = ['本文の │ は対象外', '```', 'a ──▶ b', '```', '```bash', 'ls  # → は使える', '```'].join('\n')
+    expect(lintTextDiagrams(md).map((f) => f.line)).toEqual([3])
+  })
+
+  it('text のブロックで、日本語の後ろの桁そろえを見つける', () => {
+    const md = ['```text', '/dev/sda      ディスク', '[PV]  物理    ボリューム', 'カーネル: 読み込む。/sys に出る', '```', '```', '日本語    # コメント', '```'].join('\n')
+    expect(lintTextDiagrams(md).map((f) => f.line)).toEqual([3])
   })
 })
