@@ -341,6 +341,51 @@ UEFI のブートエントリを、OS が動いたまま操作します。`-v` �
 注意: マスクしたユニットは、`systemctl start` でも起動しません。
 関連: systemd、ターゲット(systemd)
 
+### PXE
+別名: PXE ブート、ネットワークブート
+試験: LinuC3PS
+要約: ディスクがない機械を、ネットワークから起動する仕組みです。
+NIC のファームウェアが、DHCP で IP アドレスと取ってくるファイルの名前を聞き、TFTP でブートローダーを取ります。そのあと、カーネルとインストーラーが起動します。
+例: DHCP の `next-server` と `filename`、dnsmasq で DHCP と TFTP を動かす
+注意: BIOS と UEFI で、渡すブートローダーが違います。同じネットワークに、ほかの DHCP サーバーがあると競合します。
+関連: DHCP、kickstart、Preseed、Autoinstall
+
+### kickstart
+別名: ks.cfg
+試験: LinuC3PS
+要約: RHEL 系のインストーラーに、質問の答えをあらかじめ渡して、無人でインストールするファイルです。
+`%packages`(入れるもの)、`%pre`、`%post`(前後のスクリプト)などを書きます。ブートのパラメーター `inst.ks=URL` で渡します。
+例: `inst.ks=http://192.0.2.10/ks.cfg`、`ksvalidator ks.cfg`
+注意: `clearpart --all` は、ディスクの中身をすべて消します。パスワードは、ハッシュにします。
+関連: PXE、Preseed、Autoinstall
+
+### Preseed
+別名: preseed.cfg
+試験: LinuC3PS
+要約: Debian のインストーラーに、質問の答えをあらかじめ渡して、無人でインストールする仕組みです。
+`d-i 質問の名前 型 値` の形で書きます。答えがない質問のところで、インストールは止まります。
+例: `d-i partman-auto/method string lvm`、`d-i pkgsel/include string openssh-server`
+注意: 質問の名前は、手でインストールしたあとに `debconf-get-selections --installer` で調べられます。
+関連: PXE、kickstart、Autoinstall
+
+### Autoinstall
+別名: Ubuntu Autoinstall、subiquity
+試験: LinuC3PS
+要約: Ubuntu Server の、YAML で書く自動インストールの仕組みです。
+`user-data` の `autoinstall:` の下に、ネットワーク、ディスク、ユーザー、パッケージなどを書きます。ブートのパラメーターに `autoinstall` を付けると、確認なしで進みます。
+例: `autoinstall ds=nocloud-net;s=http://192.0.2.10/`
+注意: ディスクを消すので、`autoinstall` のパラメーターがないと、確認で止まります。
+関連: cloud-init、PXE、kickstart
+
+### cloud-init
+別名: cloud-config
+試験: LinuC3PS
+要約: クラウドや仮想マシンの最初の起動で、ホスト名、ユーザー、パッケージなどを自動で設定する仕組みです。
+`user-data`(`#cloud-config` で始まる YAML)、`meta-data`、`network-config` を読みます。`runcmd` は初回の 1 回、`bootcmd` は起動のたびに実行します。
+例: `cloud-init status --long`、`cloud-init schema --config-file user-data.yaml`、`cloud-init clean --logs`
+注意: YAML の書き方を間違えると、静かに無視されることがあります。`cloud-init schema` で検査します。
+関連: YAML、Autoinstall、IaC
+
 ## シェルとコマンド
 
 ### シェル
@@ -503,6 +548,42 @@ sysstat パッケージに入っています。過去の記録を、あとから
 例: `dmesg -T | grep -i "out of memory"`、`journalctl -k | grep -i "killed process"`
 注意: 終了させられるプロセスは、いちばん大事なものとは限りません。
 関連: OOMKilled、スワップ
+
+### オーバーコミット
+別名: メモリのオーバーコミット
+試験: LinuC3PS
+要約: 実際にあるメモリより多くの量の要求を、先に許す、カーネルの動きです。
+プログラムは使う量より多めにメモリを要求することが多いので、カーネルは要求をすぐには断りません。許し方は `vm.overcommit_memory` で決めます。足りなくなったときは、OOM Killer が働きます。
+例: `sysctl vm.overcommit_memory`、`grep Commit /proc/meminfo`
+注意: `vm.overcommit_memory=2` にすると、要求の時点で失敗するようになり、メモリが空いていても失敗することがあります。
+関連: sysctl、OOM Killer、スワップ
+
+### ヒュージページ
+別名: HugePages、Transparent Huge Pages
+試験: LinuC3PS
+要約: 通常の 4 KB より大きい(x86_64 では 2 MB など)メモリのページです。
+大きなメモリを使うプログラムで、ページの管理の負担を減らします。あらかじめ数を予約する方法(`vm.nr_hugepages`)と、カーネルが自動でまとめる方法(Transparent Huge Pages)があります。
+例: `grep Huge /proc/meminfo`、`cat /sys/kernel/mm/transparent_hugepage/enabled`
+注意: 予約したヒュージページは、使われなくても、ほかの用途に使えません。
+関連: sysctl、スワップ
+
+### dirty ページ
+別名: ダーティページ
+試験: LinuC3PS
+要約: メモリのキャッシュに書かれて、まだディスクに書き出されていないデータです。
+ファイルへの書き込みは、いったんメモリに入り、あとでカーネルがまとめて書き出します。書き出しの条件は `vm.dirty_ratio` などで決めます。
+例: `grep -E 'Dirty|Writeback' /proc/meminfo`、`sync`
+注意: 書き出す前に電源が切れると、dirty ページのデータは失われます。
+関連: sysctl
+
+### コアダンプ
+別名: core ファイル
+試験: LinuC3PS
+要約: プロセスが異常終了したときの、メモリの内容を保存したファイルです。
+原因を調べるために、デバッガー(gdb など)で読みます。保存の有無は `ulimit -c`、保存先の名前は `kernel.core_pattern` で決まります。
+例: `ulimit -c unlimited`、`coredumpctl list`、`sysctl kernel.core_pattern`
+注意: `ulimit -c` が 0 だと、コアダンプは保存されません。
+関連: sysctl、ulimit
 
 ## ユーザーと権限
 
@@ -816,6 +897,73 @@ QEMU の形式で、スナップショットや圧縮が使えます。`raw` の
 注意: ファイルの大きさは、ゲストから見えるディスクの大きさより小さいことがあります。
 関連: QEMU、仮想マシン
 
+### DRBD
+試験: LinuC3PS
+要約: 2 台のサーバーのディスクを、ネットワーク越しにミラーする、ブロックデバイスの複製の仕組みです。
+「ネットワークの RAID 1」とも呼ばれます。Primary が書いたデータを、Secondary に複製します。Primary が故障したら、Secondary を昇格して使い続けます。
+例: `drbdadm status r0`、`drbdadm primary r0`
+注意: 両方が Primary になる構成(dual-primary)は、OCFS2 や GFS2 などのクラスタファイルシステムと組み合わせるときだけ使います。
+関連: レプリケーション、スプリットブレイン、OCFS2
+
+### OCFS2
+試験: LinuC3PS
+要約: 複数のサーバーが、1 つの共有ディスクを同時にマウントできる、クラスタファイルシステムです。
+同時の書き込みを守るため、サーバー間でロックを調整します(DLM)。共有のブロックデバイス(iSCSI など)の上に作ります。
+例: `mkfs.ocfs2 -N 4 /dev/sdb1`、`mount -t ocfs2 /dev/sdb1 /mnt/shared`
+注意: データを複製する機能はありません。共有ディスクが壊れると、全体が使えません。
+関連: DRBD、クラスタ
+
+### Ceph
+試験: LinuC3PS
+要約: 多数のサーバーのディスクを集めて作る、複製と自己修復を持つ分散ストレージです。
+ブロック(RBD)、ファイル(CephFS)、オブジェクト(RGW。S3 互換)の 3 つの使い方を、同じクラスタで提供します。データは RADOS という土台に、オブジェクトとして入ります。
+例: `ceph status` で全体の状態を見る
+注意: MON は奇数台(3 か 5)にします。過半数が止まると、クラスタの操作が止まります。
+関連: OSD、CRUSH、オブジェクトストレージ、レプリケーション
+
+### OSD
+別名: Object Storage Daemon
+試験: LinuC3PS
+要約: Ceph で、データを実際に保存するデーモンです。
+ディスク 1 本に 1 つ動きます。データの複製、障害からの回復、再配置も行います。
+例: `ceph osd tree` で、ホストごとの OSD と up / down を見る
+注意: OSD が一定時間(既定で 10 分)戻らないと out になり、足りない複製が、ほかの OSD に作られます。
+関連: Ceph、CRUSH
+
+### CRUSH
+試験: LinuC3PS
+要約: Ceph で、データの置き場所を、計算で決める仕組みです。
+配置グループ(PG)をどの OSD に置くかを、中央の台帳なしで計算します。同じ PG の複製を、別のホストや別のラックに置くなど、障害ドメインの規則も持ちます。
+例: 既定の障害ドメインは host。同じ PG の 3 つの複製は、別々のホストの OSD に置かれる
+注意: プールごとに、PG の数と複製の数(size)を決めます。複製がホストの数より多いと、置き場所が足りません。
+関連: Ceph、OSD
+
+### cephadm
+試験: LinuC3PS
+要約: コンテナで Ceph のデーモンを動かして、入れて管理するコマンドです。
+現行の Ceph の標準の入れ方です。`cephadm bootstrap` で最初のクラスタを作り、`ceph orch` で、ホストやディスクを足します。
+例: `cephadm bootstrap --mon-ip 192.0.2.11`
+注意: 各ホストに、コンテナのエンジン(Podman か Docker)、LVM2、時刻の同期が要ります。
+関連: Ceph、OSD
+
+### Bacula
+別名: bconsole
+試験: LinuC3PS
+要約: 複数のサーバーを、まとめて管理して取る、ネットワーク型のバックアップのシステムです。
+Director(指揮者)、File Daemon(取られる側)、Storage Daemon(保存先)、Catalog(記録の DB)でできています。人は `bconsole` で操作します。
+例: `bconsole` の `run`、`status client=web01-fd`、`restore`
+注意: ポートは、Director が 9101、File Daemon が 9102、Storage Daemon が 9103 です。
+関連: バックアップ、増分バックアップ、差分バックアップ
+
+### rclone
+別名: rclone sync
+試験: LinuC3PS
+要約: クラウドのストレージと手元のファイルの間で、コピーや同期をする道具です。
+S3、Google Drive などに対応します。`copy` は先のファイルを残し、`sync` は元にないファイルを先から消します。`--bwlimit` で帯域を制限できます。
+例: `rclone copy /srv/data s3backup:bucket/data --bwlimit 10M`、`rclone check`
+注意: `sync` の前に、`--dry-run` で確かめます。設定ファイルには認証の情報が入るので、Git に入れません。
+関連: rsync、バックアップ
+
 ## パッケージと配布
 
 ### パッケージ
@@ -993,3 +1141,77 @@ Linux の GUI の基本の仕組みです。画面とキーボードを持つ手
 例: `startx`、`echo $DISPLAY`、`ssh -X server1`
 注意: 画面を持つ手元の側が X サーバーで、アプリの側が X クライアントです。
 関連: Linux
+
+## 仮想化
+
+### NUMA
+別名: Non-Uniform Memory Access
+試験: LinuC3PS
+要約: CPU のグループごとに自分のメモリを持ち、近いメモリほど速い構造です。
+CPU とメモリを組にしたもの(ノード)が複数ある構造です。自分のノードのメモリは速く、別のノードのメモリは遅くなります。VM の CPU とメモリは、同じノードにそろえます。
+例: `numactl --hardware`、`numastat -c qemu-kvm`
+注意: VM の CPU を固定しても、メモリが別のノードにあると遅くなります。
+関連: KVM、仮想マシン
+
+### IOMMU
+別名: VT-d、AMD-Vi
+試験: LinuC3PS
+要約: デバイスのメモリへの直接アクセスを、変換して制限する仕組みです。
+Intel では VT-d、AMD では AMD-Vi と呼びます。物理の PCI デバイスを、安全に VM に渡す(パススルーする)ために使います。
+例: `intel_iommu=on`(カーネルのパラメーター)、`find /sys/kernel/iommu_groups/ -type l`
+注意: UEFI の設定とカーネルのパラメーターの両方が必要なことがあります。
+関連: vfio-pci、KVM
+
+### vfio-pci
+別名: VFIO
+試験: LinuC3PS
+要約: PCI デバイスを VM に渡すためのカーネルのドライバーです。
+デバイスを元のドライバーから外して vfio-pci につなぐと、VM が直接使えるようになります。同じ IOMMU グループのデバイスは、まとめて渡します。
+例: `options vfio-pci ids=10de:2684`、`lspci -nnk -s 01:00.0`
+注意: 渡したデバイスは、ホストとほかの VM が使えなくなります。
+関連: IOMMU、KVM
+
+### メモリバルーニング
+別名: virtio-balloon
+試験: LinuC3PS
+要約: 動いている VM のメモリの量を、ホストから増減する仕組みです。
+ゲストの virtio-balloon のドライバーが、ゲストのメモリを取り上げてホストに返します。最大の量の範囲で増減できます。
+例: `virsh setmem web01 1G --live`
+注意: 最大のメモリの量は、動いている間は増やせません。
+関連: 仮想マシン、virsh
+
+### ライブマイグレーション
+別名: ライブマイグレート
+試験: LinuC3PS
+要約: VM を動かしたまま、別のホストに移すことです。
+メモリの内容を送り、最後に一瞬だけ止めて切り替えます。止めて移す方法は、コールドマイグレーションです。
+例: `virsh migrate --live --persistent --undefinesource web01 qemu+ssh://host2/system`
+注意: 移し先に、ゲストに見せている CPU の機能が必要です。
+関連: 仮想マシン、virsh、qcow2
+
+### 外部スナップショット
+別名: 差分スナップショット
+試験: LinuC3PS
+要約: 元のディスクを読み取り専用にし、変更を新しいファイルに書くスナップショットです。
+RAW でも使えます。使い終わったら、`virsh blockcommit` でベースディスクに統合します。
+例: `virsh snapshot-create-as web01 snap1 --disk-only --atomic`
+注意: 差分が積み重なると遅くなります。バックアップの代わりにはなりません。
+関連: qcow2、virsh
+
+### OVF
+別名: OVA、Open Virtualization Format
+試験: LinuC3PS
+要約: VM を、ソフトウェアの違いを越えて受け渡すための標準の形式です。
+構成を書いた `.ovf`、ディスクの `.vmdk`、ハッシュの一覧の `.mf`、署名の `.cert` からなります。これを 1 つの tar にしたものが OVA です。
+例: `tar -tvf web01.ova`、`qemu-img convert -f vmdk -O qcow2 a.vmdk a.qcow2`
+注意: 取り込む前に、`.mf` のハッシュを確かめます。
+関連: qcow2、仮想マシン
+
+### Proxmox VE
+別名: Proxmox Virtual Environment
+試験: LinuC3PS
+要約: KVM の VM と LXC のコンテナを、Web の画面で管理するプラットフォームです。
+Debian をもとにしたオープンソースです。クラスタ、高可用性(HA)、バックアップを備えます。Web UI はポート 8006 です。
+例: `qm list`、`pvecm status`、`vzdump 100 --mode snapshot`
+注意: クラスタでは、過半数のノード(クォーラム)が必要です。
+関連: KVM、クラスタ、仮想マシン
