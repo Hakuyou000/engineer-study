@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 350" width="680" height="350" role="img" aria-labelledby="t">
+<title id="t">ガントチャートの例(作業名と日数は例)</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="340.0" y="28" font-size="18" text-anchor="middle" font-weight="bold">ガントチャートの例(作業名と日数は例)</text>
+<rect x="150" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="178.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">1 日目</text>
+<rect x="206" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="234.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">2 日目</text>
+<rect x="262" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="290.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">3 日目</text>
+<rect x="318" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="346.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">4 日目</text>
+<rect x="374" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="402.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">5 日目</text>
+<rect x="430" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="458.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">6 日目</text>
+<rect x="486" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="514.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">7 日目</text>
+<rect x="542" y="54" width="56" height="26" fill="#eef2f7" stroke="#5a666b" stroke-width="1.5"/>
+<text x="570.0" y="72" text-anchor="middle" font-size="14" fill="#1c2427">8 日目</text>
+<text x="136" y="109.0" text-anchor="end" font-size="15" fill="#1c2427">作業 A</text>
+<rect x="150" y="80" width="448" height="48" fill="none" stroke="#5a666b" stroke-width="1" stroke-opacity="0.35"/>
+<text x="136" y="157.0" text-anchor="end" font-size="15" fill="#1c2427">作業 B</text>
+<rect x="150" y="128" width="448" height="48" fill="none" stroke="#5a666b" stroke-width="1" stroke-opacity="0.35"/>
+<text x="136" y="205.0" text-anchor="end" font-size="15" fill="#1c2427">作業 C</text>
+<rect x="150" y="176" width="448" height="48" fill="none" stroke="#5a666b" stroke-width="1" stroke-opacity="0.35"/>
+<text x="136" y="253.0" text-anchor="end" font-size="15" fill="#1c2427">作業 D</text>
+<rect x="150" y="224" width="448" height="48" fill="none" stroke="#5a666b" stroke-width="1" stroke-opacity="0.35"/>
+<rect x="153" y="90" width="162" height="28" fill="#0f766e" stroke="#0f766e" stroke-width="1.5"/>
+<text x="234.0" y="109.0" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">3 日</text>
+<rect x="321" y="138" width="218" height="28" fill="#0f766e" stroke="#0f766e" stroke-width="1.5"/>
+<text x="430.0" y="157.0" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">4 日</text>
+<rect x="321" y="186" width="106" height="28" fill="#e1efec" stroke="#0f766e" stroke-width="1.5"/>
+<text x="374.0" y="205.0" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">2 日</text>
+<rect x="545" y="234" width="50" height="28" fill="#0f766e" stroke="#0f766e" stroke-width="1.5"/>
+<text x="570.0" y="253.0" text-anchor="middle" font-size="14" fill="#ffffff" font-weight="bold">1 日</text>
+<text x="150" y="306" text-anchor="start" font-size="14" fill="#1c2427">横軸が日付、縦軸が作業で、作業の期間を棒で表します。</text>
+<text x="150" y="332" text-anchor="start" font-size="14" fill="#1c2427">B と C は並行して行い、D は両方が終わった後に行います。</text>
+</g>
+</svg>

@@ -484,6 +484,8 @@ interface GigabitEthernet0/1
 
 イーサネットのように多数の機器がつながるネットワークで、すべてのルーターが互いに Full になると、隣接の数が n(n−1)/2 に増えてしまいます。そこで代表のルーター(DR)とその予備(BDR)を選び、他のルーター(DROTHER)は DR と BDR とだけ Full になります。
 
+![OSPF のイーサネットのセグメントの図。R1 が DR、R2 が BDR、R3 と R4 が DROTHER。DR と BDR の間、DROTHER から DR と BDR へは、それぞれ Full の隣接になる。R3 と R4 の DROTHER どうしは 2-Way で止まり、これは正常。DROTHER は 224.0.0.6 で DR と BDR にあてて更新を送り、DR が 224.0.0.5 で全員に配る。](images/3-3-c-ospf-dr-bdr.svg)
+
 **選ぶ基準**
 
 1. OSPF の **プライオリティ** が最も大きい(既定は **1**、範囲は 0〜255)

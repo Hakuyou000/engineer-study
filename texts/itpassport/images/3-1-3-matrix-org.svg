@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 440" width="700" height="440" role="img" aria-labelledby="t">
+<title id="t">マトリックス組織(部門とプロジェクトは例)</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="350.0" y="28" font-size="18" text-anchor="middle" font-weight="bold">マトリックス組織(部門とプロジェクトは例)</text>
+<text x="300" y="72" text-anchor="middle" font-size="15" fill="#1c2427" font-weight="bold">プロジェクト(目的の軸)</text>
+<text x="215.0" y="95" text-anchor="middle" font-size="15" fill="#1c2427">プロジェクト X</text>
+<text x="385.0" y="95" text-anchor="middle" font-size="15" fill="#1c2427">プロジェクト Y</text>
+<text transform="translate(34,196.0) rotate(-90)" text-anchor="middle" font-size="15" font-weight="bold">職能(機能の軸)</text>
+<text x="120" y="137.0" text-anchor="end" font-size="15" fill="#1c2427">営業部</text>
+<rect x="130" y="100" width="170" height="64" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<rect x="300" y="100" width="170" height="64" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<text x="120" y="201.0" text-anchor="end" font-size="15" fill="#1c2427">開発部</text>
+<rect x="130" y="164" width="170" height="64" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<rect x="300" y="164" width="170" height="64" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<text x="120" y="265.0" text-anchor="end" font-size="15" fill="#1c2427">製造部</text>
+<rect x="130" y="228" width="170" height="64" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<rect x="300" y="228" width="170" height="64" fill="#ffffff" stroke="#5a666b" stroke-width="1.5"/>
+<rect x="520" y="170.0" width="170" height="52" fill="#fdf3e1" stroke="#b45309" stroke-width="1.5"/>
+<text x="605" y="192.0" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">職能部門の上司</text>
+<text x="605" y="212.0" text-anchor="middle" font-size="14" fill="#1c2427">(開発部)</text>
+<line x1="520" y1="196.0" x2="239.0" y2="196.0" stroke="#b45309" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="130.0" y="322" width="170" height="52" fill="#e1efec" stroke="#0f766e" stroke-width="1.5"/>
+<text x="215.0" y="344" text-anchor="middle" font-size="14" fill="#1c2427" font-weight="bold">プロジェクトの上司</text>
+<text x="215.0" y="364" text-anchor="middle" font-size="14" fill="#1c2427">(プロジェクト X)</text>
+<line x1="215.0" y1="322" x2="215.0" y2="232.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<circle cx="215.0" cy="184.0" r="9" fill="#1c2427"/><path d="M200.0,216.0 q15,-28 30,0 z" fill="#1c2427"/>
+<text x="237.0" y="182.0" text-anchor="start" font-size="14" fill="#1c2427" font-weight="bold">社員</text>
+<text x="350.0" y="418" text-anchor="middle" font-size="14" fill="#1c2427">社員は、職能の上司とプロジェクトの上司の 2 人から指示を受けます。</text>
+</g>
+</svg>

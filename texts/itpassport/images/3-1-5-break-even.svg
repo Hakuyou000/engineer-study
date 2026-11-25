@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 480" width="680" height="480" role="img" aria-labelledby="t">
+<title id="t">損益分岐点のグラフ(数値は例)</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5a666b"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif" font-size="15" fill="#1c2427">
+<text x="340.0" y="28" font-size="18" text-anchor="middle" font-weight="bold">損益分岐点のグラフ(数値は例)</text>
+<polygon points="427.5,192.5 630.0,80.0 630.0,147.5" fill="#e1efec"/>
+<polygon points="90.0,380.0 427.5,192.5 90.0,267.5" fill="#fdf3e1"/>
+<line x1="90" y1="380" x2="640" y2="380" stroke="#5a666b" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="90" y1="380" x2="90" y2="68.0" stroke="#5a666b" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="90.0" y1="380" x2="90.0" y2="385" stroke="#5a666b" stroke-width="1.5"/>
+<text x="90.0" y="402" text-anchor="middle" font-size="14" fill="#1c2427">0</text>
+<line x1="85" y1="380.0" x2="90" y2="380.0" stroke="#5a666b" stroke-width="1.5"/>
+<text x="81" y="385.0" text-anchor="end" font-size="14" fill="#1c2427">0</text>
+<line x1="292.5" y1="380" x2="292.5" y2="385" stroke="#5a666b" stroke-width="1.5"/>
+<text x="292.5" y="402" text-anchor="middle" font-size="14" fill="#1c2427">300</text>
+<line x1="85" y1="267.5" x2="90" y2="267.5" stroke="#5a666b" stroke-width="1.5"/>
+<text x="81" y="272.5" text-anchor="end" font-size="14" fill="#1c2427">300</text>
+<line x1="427.5" y1="380" x2="427.5" y2="385" stroke="#5a666b" stroke-width="1.5"/>
+<text x="427.5" y="402" text-anchor="middle" font-size="14" fill="#1c2427">500</text>
+<line x1="85" y1="192.5" x2="90" y2="192.5" stroke="#5a666b" stroke-width="1.5"/>
+<text x="81" y="197.5" text-anchor="end" font-size="14" fill="#1c2427">500</text>
+<line x1="630.0" y1="380" x2="630.0" y2="385" stroke="#5a666b" stroke-width="1.5"/>
+<text x="630.0" y="402" text-anchor="middle" font-size="14" fill="#1c2427">800</text>
+<line x1="85" y1="80.0" x2="90" y2="80.0" stroke="#5a666b" stroke-width="1.5"/>
+<text x="81" y="85.0" text-anchor="end" font-size="14" fill="#1c2427">800</text>
+<line x1="427.5" y1="192.5" x2="427.5" y2="380" stroke="#5a666b" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="90" y1="192.5" x2="427.5" y2="192.5" stroke="#5a666b" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="90" y1="267.5" x2="630.0" y2="267.5" stroke="#b45309" stroke-width="2.5"/>
+<line x1="90" y1="380.0" x2="630.0" y2="80.0" stroke="#0f766e" stroke-width="2.5"/>
+<line x1="90" y1="267.5" x2="630.0" y2="147.5" stroke="#5a666b" stroke-width="2.5"/>
+<circle cx="427.5" cy="192.5" r="6" fill="#ffffff" stroke="#1c2427" stroke-width="2.5"/>
+<text x="360.0" y="426" text-anchor="middle" font-size="15" fill="#1c2427">売上高(万円)</text>
+<text x="82" y="64.0" text-anchor="start" font-size="15" fill="#1c2427">金額(万円)</text>
+<text x="626.0" y="287.5" text-anchor="end" font-size="15" fill="#b45309" font-weight="bold">固定費 300</text>
+<text x="560.0" y="92.0" text-anchor="end" font-size="15" fill="#0f766e" font-weight="bold">売上高</text>
+<text x="626.0" y="186.0" text-anchor="end" font-size="15" fill="#1c2427" font-weight="bold">総費用</text>
+<text x="626.0" y="205.0" text-anchor="end" font-size="14" fill="#1c2427">(固定費 + 変動費)</text>
+<text x="437.5" y="226.5" text-anchor="start" font-size="15" fill="#1c2427" font-weight="bold">損益分岐点</text>
+<text x="437.5" y="246.5" text-anchor="start" font-size="15" fill="#1c2427">(500 万円)</text>
+<text x="586.125" y="129.0" text-anchor="middle" font-size="15" fill="#0f766e" font-weight="bold">利益</text>
+<text x="340.0" y="466" text-anchor="middle" font-size="14" fill="#1c2427">例: 固定費 300 万円、変動費率 40% なら、損益分岐点は 300 ÷ 0.6 = 500 万円です</text>
+<text x="191.25" y="323.75" text-anchor="middle" font-size="15" fill="#b45309" font-weight="bold">損失</text>
+</g>
+</svg>
