@@ -182,7 +182,7 @@ terraform.tfvars.json
 *.auto.tfvars(.json)
   |
   v
--var と -var-file            最も強い。書いた順に読まれ、後のものが優先される
+-var, -var-file              最も強い。書いた順に読まれ、後のものが優先される
 ```
 
 - `terraform.tfvars` と `*.auto.tfvars` は自動で読まれます。それ以外の名前(`prod.tfvars` など)は `-var-file=prod.tfvars` で指定します。

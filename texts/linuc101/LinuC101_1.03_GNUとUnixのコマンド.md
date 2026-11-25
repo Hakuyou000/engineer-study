@@ -36,7 +36,7 @@
         v
 [child process]
    $EDITOR  -> vim        引き継がれる
-   $NAME    -> 空         引き継がれない
+   $NAME    -> (empty)    引き継がれない(空になる)
 ```
 
 
