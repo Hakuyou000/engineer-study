@@ -73,6 +73,126 @@ Docker デーモンを root 以外のユーザーで動かす方式です。コ�
 注意: コンテナの中に入れる道具がないときも、`nsenter` ならホスト側から、コンテナの名前空間に入れます。
 関連: namespace、コンテナ
 
+### LXC
+別名: Linux Containers
+試験: LinuC3PS
+要約: namespace と cgroups を使って、OS 1 台ぶんのように見えるコンテナを作る Linux の道具です。
+Linux のカーネルの機能だけでコンテナを作る、ユーザー空間の道具とライブラリです。アプリ 1 つではなく、OS 全体が入った「システムコンテナ」を作る使い方が中心です。
+例: `lxc-create`、`lxc-start`、`lxc-attach`、`lxc-ls`
+注意: LXD の `lxc` コマンドと、LXC の `lxc-` で始まるコマンドは別のものです。
+関連: namespace、cgroups、LXD
+
+### LXD
+試験: LinuC3PS
+要約: LXC の上に作られた、API で管理するコンテナと仮想マシンの管理ツールです。
+LXC を使って、システムコンテナと仮想マシンを REST API とコマンドで管理します。イメージの取得、ストレージ、ネットワークの管理も LXD が行います。
+例: `lxc launch ubuntu:24.04 c1`、`lxc list`
+注意: LXD のクライアントのコマンド名は `lxc` です。LXC の `lxc-` 系のコマンドとは別です。
+関連: LXC、Incus
+
+### Incus
+試験: LinuC3PS
+要約: LXD から分かれてできた、コミュニティで開発されているコンテナと仮想マシンの管理ツールです。
+LXD の開発元が方針を変えた後に、コミュニティが LXD をもとに作りました。使い方は LXD とよく似ていて、コマンド名は `incus` です。
+例: `incus launch images:debian/12 c1`、`incus list`
+注意: LXD とは別のプロジェクトです。コマンド名が違うので、`lxc` と `incus` を取り違えないようにします。
+関連: LXD、LXC
+
+### コンテナランタイム
+別名: 高レベルランタイム、低レベルランタイム
+試験: LinuC3PS
+要約: コンテナを動かすソフトウェアです。イメージ管理までする高レベルと、プロセスを起動する低レベルに分かれます。
+高レベルランタイム(containerd、CRI-O)は、イメージの取得と保存、コンテナの管理を行い、実際の起動を低レベルランタイムに任せます。低レベルランタイム(runc、crun、gVisor、Kata Containers)は、OCI の規格に沿って namespace と cgroups を設定し、プロセスを起動します。
+例: containerd が runc を呼び出す、`docker info` の `Runtimes` の行
+注意: Kubernetes が使うのは CRI を話せる高レベルランタイムです。低レベルランタイムは、その下から呼ばれます。
+関連: containerd、CRI、OCI
+
+### CRI-O
+試験: LinuC3PS
+要約: Kubernetes のために作られた、軽い高レベルランタイムです。
+Kubernetes の CRI を実装し、イメージの取得とコンテナの管理を行う高レベルランタイムです。Kubernetes に必要な機能に絞ってあります。実際の起動は runc や crun などに任せます。
+例: `crictl --runtime-endpoint unix:///var/run/crio/crio.sock ps`、`/etc/crio/crio.conf`
+注意: Kubernetes 専用です。`docker` コマンドのような単体の使い方は想定されていません。
+関連: CRI、containerd、コンテナランタイム
+
+### crun
+試験: LinuC3PS
+要約: C 言語で書かれた、軽くて速い低レベルランタイムです。
+OCI のランタイムの規格を実装した低レベルランタイムです。runc は Go 言語で書かれ、crun は C 言語で書かれています。起動が速く、メモリが少なくて済みます。
+例: `podman --runtime /usr/bin/crun run …`
+注意: runc と同じ OCI のランタイムなので、同じイメージが動きます。ただし、機能に細かい違いがあります。
+関連: コンテナランタイム、OCI
+
+### gVisor
+別名: runsc
+試験: LinuC3PS
+要約: アプリのシステムコールを、ユーザー空間の専用カーネルで受け止める、隔離を強めた低レベルランタイムです。
+コンテナ内のシステムコールをホストのカーネルに直接渡さず、gVisor の Sentry が受け止めます。ホストのカーネルに届く呼び出しが減るので、カーネルの脆弱性を突かれにくくなります。代わりに、性能が下がる場面があります。
+例: `docker run --runtime=runsc nginx`(daemon.json に runsc の登録が要る)
+注意: 仮想マシンではありません。ゲストの OS を丸ごと動かす Kata Containers とは仕組みが違います。
+関連: Kata Containers、コンテナランタイム
+
+### Kata Containers
+別名: kata-containers
+試験: LinuC3PS
+要約: コンテナごとに小さな仮想マシンを作って動かす、隔離の強い低レベルランタイムです。
+コンテナや Pod ごとに、専用のカーネルを持つ軽い仮想マシンを起動し、その中でコンテナを動かします。ホストのカーネルを共有しないので隔離が強くなります。ハードウェアの仮想化支援が必要で、起動は普通のコンテナより遅くなります。
+例: containerd のランタイムとして `io.containerd.kata.v2` を指定する
+注意: 使うホストで、CPU の仮想化機能(VT-x、AMD-V)が有効なことが前提です。
+関連: gVisor、コンテナランタイム
+
+### no-new-privileges
+試験: LinuC3SS
+要約: setuid のプログラムなどで、起動時より多い権限を得られなくするオプションです。
+`--security-opt no-new-privileges` を付けると、コンテナの中のプロセスは、実行する先のプログラムが setuid でも、権限を上げられなくなります。権限を上げる攻撃を防ぎます。
+例: `docker run --security-opt no-new-privileges alpine id`
+注意: sudo のように、権限を上げることが目的のプログラムは、コンテナの中で動かなくなります。
+関連: ケーパビリティ、SUID、seccomp
+
+### container_t
+別名: container_file_t
+試験: LinuC3SS
+要約: SELinux で、コンテナのプロセスに付くタイプ(ラベル)です。
+SELinux が有効なホストでは、コンテナのプロセスは `container_t` で動き、`container_file_t` のラベルが付いたファイルだけに触れます。ホストのディレクトリをマウントするときは、`:z` か `:Z` でラベルを付け替えます。
+例: `ps -eZ | grep container_t`、`ls -Zd /srv/data`、`-v /srv/data:/data:Z`
+注意: `:Z` は実際にホストのディレクトリのラベルを書き換えるので、`/home` や `/etc` には付けません。
+関連: SELinux、seccomp
+
+### User namespace
+別名: ユーザー名前空間
+試験: LinuC3SS、Docker
+要約: コンテナの中の UID と GID を、ホストの別の番号に対応づけるカーネルの機能です。
+Rootless モードの土台です。コンテナの中の root(UID 0)を、ホストでは一般ユーザーに対応づけます。対応は `/proc/self/uid_map` で見えます。
+例: `cat /proc/self/uid_map`、`podman unshare cat /proc/self/uid_map`
+注意: コンテナの UID 1000 は、ホストでは別の番号(subuid の範囲の中)に見えるので、バインドマウントで所有者がずれます。
+関連: namespace、rootless モード、subuid と subgid
+
+### subuid と subgid
+別名: /etc/subuid、/etc/subgid
+試験: LinuC3SS、Docker
+要約: 一般ユーザーが、コンテナの UID と GID に使ってよいホストの番号の範囲を書くファイルです。
+書式は `ユーザー名:開始:個数` で、Rootless には 65536 個以上の範囲が要ります。範囲は人ごとに重ならないようにします。足すには `usermod --add-subuids` と `--add-subgids` を使います。
+例: `alice:100000:65536`、`grep '^alice:' /etc/subuid /etc/subgid`
+注意: 範囲を変えた後、Podman は `podman system migrate` を実行します。
+関連: User namespace、newuidmap と newgidmap、rootless モード
+
+### newuidmap と newgidmap
+別名: newuidmap、newgidmap
+試験: LinuC3SS、Docker
+要約: 一般ユーザーに代わって、UID と GID の対応を作る setuid のプログラムです。
+`/etc/subuid` と `/etc/subgid` の範囲を読み、User namespace に UID と GID の対応を書き込みます。Debian 系は `uidmap` パッケージに入っています。
+例: `ls -l /usr/bin/newuidmap /usr/bin/newgidmap`、`sudo apt install uidmap`
+注意: setuid が外れていたり、入っていなかったりすると、Rootless の準備が失敗します。
+関連: subuid と subgid、User namespace
+
+### Podman
+試験: LinuC3SS、Docker
+要約: デーモンなしで、一般ユーザーのままコンテナを動かせる、Docker 互換のコマンドです。
+Red Hat 系(RHEL、AlmaLinux)の標準のコンテナの道具です。`docker` とほぼ同じ引数が使え、既定で Rootless です。サービスにするときは、Quadlet か `systemctl --user` を使います。
+例: `podman run --rm -it docker.io/library/nginx:1.27`、`podman info | grep -i rootless`
+注意: Docker の Rootless と Podman の Rootless は別のものです。ソケットの場所も設定も違います。
+関連: rootless モード、User namespace
+
 ## Docker
 
 ### Docker
@@ -298,6 +418,31 @@ cgroups の freezer の機能で、コンテナ内のすべてのプロセスを
 例: `docker network create -d macvlan --subnet 192.168.1.0/24 --gateway 192.168.1.1 -o parent=eth0 lan`
 注意: 既定では、ホスト自身とコンテナは、直接通信できません。
 関連: bridge ネットワーク、ポートの公開、コンテナ
+
+### daemon.json
+別名: /etc/docker/daemon.json
+試験: LinuC3PS、Docker
+要約: Docker デーモンの設定を JSON で書くファイルです。
+Linux では `/etc/docker/daemon.json` に置きます。ロギングドライバー、データの置き場(`data-root`)、レジストリミラー、追加のランタイムなどを決めます。変更を反映するには、多くの場合デーモンの再起動が必要です。
+例: `{"log-driver": "journald"}`、`dockerd --validate`
+注意: JSON の書き方を間違えると、デーモンが起動しません。`hosts` を書くと、systemd の起動オプションの `-H` と衝突して起動に失敗することもあります。
+関連: Docker デーモン、ロギングドライバー
+
+### docker inspect
+試験: LinuC3PS、Docker
+要約: コンテナ、イメージ、ネットワーク、ボリュームの詳しい情報を JSON で表示するコマンドです。
+IP アドレス、マウント、環境変数、終了コード、OOM の有無などが分かります。`--format` に Go のテンプレートを渡すと、必要な項目だけを取り出せます。
+例: `docker inspect -f '{{.State.ExitCode}}' web`
+注意: 同じ名前のコンテナとイメージがあるときは、`--type container` で種類を指定します。
+関連: コンテナ、イメージ
+
+### docker system prune
+試験: LinuC3PS、Docker
+要約: 使っていないコンテナ、ネットワーク、イメージ、ビルドキャッシュをまとめて消すコマンドです。
+止まったコンテナ、使われていないネットワーク、名前のないイメージ、使われていないビルドキャッシュを消します。ボリュームは `--volumes` を付けたときだけ消えます。`-a` を付けると、使われていないイメージも全部消します。
+例: `docker system prune -f`、`docker system prune -a --volumes`
+注意: 本番のホストでは、何が消えるかを確かめてから使います。`--volumes` ではデータが消えます。
+関連: ボリューム、イメージ
 
 ## イメージの配布と信頼
 
@@ -1047,6 +1192,14 @@ EKS で、ServiceAccount に IAM ロールを結び付け、Pod に一時的な 
 注意: ノードの IAM ロールに広い権限を付けると、ノードのすべての Pod がその権限を持ってしまいます。
 関連: ServiceAccount、IAM ロール
 
+### pivot_root
+試験: LinuC3SS
+要約: マウント名前空間の中で、ルートファイルシステムを入れ替えるコマンドです。
+新しいルートと、古いルートの移し先を指定します。コンテナのランタイムが、コンテナのルートを設定するときに使います。新しいルートは、マウントポイントである必要があります。
+例: `pivot_root /newroot /newroot/oldroot`
+注意: `chroot` は見えるルートを変えるだけで、`pivot_root` はルートそのものを入れ替えます。どちらも、これだけでは安全な隔離になりません。
+関連: chroot、namespace
+
 ## スケールと運用
 
 ### HPA
@@ -1136,100 +1289,3 @@ Kubernetes の費用を、Namespace や Deployment ごとに分けて見える�
 例: OpenCost、Kubecost
 注意: 費用は requests から割り振るので、requests が大きすぎると無駄が見えます。
 関連: requests、コストの最適化
-
-## コンテナの基礎
-
-### LXC
-別名: Linux Containers
-試験: LinuC3PS
-要約: namespace と cgroups を使って、OS 1 台ぶんのように見えるコンテナを作る Linux の道具です。
-Linux のカーネルの機能だけでコンテナを作る、ユーザー空間の道具とライブラリです。アプリ 1 つではなく、OS 全体が入った「システムコンテナ」を作る使い方が中心です。
-例: `lxc-create`、`lxc-start`、`lxc-attach`、`lxc-ls`
-注意: LXD の `lxc` コマンドと、LXC の `lxc-` で始まるコマンドは別のものです。
-関連: namespace、cgroups、LXD
-
-### LXD
-試験: LinuC3PS
-要約: LXC の上に作られた、API で管理するコンテナと仮想マシンの管理ツールです。
-LXC を使って、システムコンテナと仮想マシンを REST API とコマンドで管理します。イメージの取得、ストレージ、ネットワークの管理も LXD が行います。
-例: `lxc launch ubuntu:24.04 c1`、`lxc list`
-注意: LXD のクライアントのコマンド名は `lxc` です。LXC の `lxc-` 系のコマンドとは別です。
-関連: LXC、Incus
-
-### Incus
-試験: LinuC3PS
-要約: LXD から分かれてできた、コミュニティで開発されているコンテナと仮想マシンの管理ツールです。
-LXD の開発元が方針を変えた後に、コミュニティが LXD をもとに作りました。使い方は LXD とよく似ていて、コマンド名は `incus` です。
-例: `incus launch images:debian/12 c1`、`incus list`
-注意: LXD とは別のプロジェクトです。コマンド名が違うので、`lxc` と `incus` を取り違えないようにします。
-関連: LXD、LXC
-
-### コンテナランタイム
-別名: 高レベルランタイム、低レベルランタイム
-試験: LinuC3PS
-要約: コンテナを動かすソフトウェアです。イメージ管理までする高レベルと、プロセスを起動する低レベルに分かれます。
-高レベルランタイム(containerd、CRI-O)は、イメージの取得と保存、コンテナの管理を行い、実際の起動を低レベルランタイムに任せます。低レベルランタイム(runc、crun、gVisor、Kata Containers)は、OCI の規格に沿って namespace と cgroups を設定し、プロセスを起動します。
-例: containerd が runc を呼び出す、`docker info` の `Runtimes` の行
-注意: Kubernetes が使うのは CRI を話せる高レベルランタイムです。低レベルランタイムは、その下から呼ばれます。
-関連: containerd、CRI、OCI
-
-### CRI-O
-試験: LinuC3PS
-要約: Kubernetes のために作られた、軽い高レベルランタイムです。
-Kubernetes の CRI を実装し、イメージの取得とコンテナの管理を行う高レベルランタイムです。Kubernetes に必要な機能に絞ってあります。実際の起動は runc や crun などに任せます。
-例: `crictl --runtime-endpoint unix:///var/run/crio/crio.sock ps`、`/etc/crio/crio.conf`
-注意: Kubernetes 専用です。`docker` コマンドのような単体の使い方は想定されていません。
-関連: CRI、containerd、コンテナランタイム
-
-### crun
-試験: LinuC3PS
-要約: C 言語で書かれた、軽くて速い低レベルランタイムです。
-OCI のランタイムの規格を実装した低レベルランタイムです。runc は Go 言語で書かれ、crun は C 言語で書かれています。起動が速く、メモリが少なくて済みます。
-例: `podman --runtime /usr/bin/crun run …`
-注意: runc と同じ OCI のランタイムなので、同じイメージが動きます。ただし、機能に細かい違いがあります。
-関連: コンテナランタイム、OCI
-
-### gVisor
-別名: runsc
-試験: LinuC3PS
-要約: アプリのシステムコールを、ユーザー空間の専用カーネルで受け止める、隔離を強めた低レベルランタイムです。
-コンテナ内のシステムコールをホストのカーネルに直接渡さず、gVisor の Sentry が受け止めます。ホストのカーネルに届く呼び出しが減るので、カーネルの脆弱性を突かれにくくなります。代わりに、性能が下がる場面があります。
-例: `docker run --runtime=runsc nginx`(daemon.json に runsc の登録が要る)
-注意: 仮想マシンではありません。ゲストの OS を丸ごと動かす Kata Containers とは仕組みが違います。
-関連: Kata Containers、コンテナランタイム
-
-### Kata Containers
-別名: kata-containers
-試験: LinuC3PS
-要約: コンテナごとに小さな仮想マシンを作って動かす、隔離の強い低レベルランタイムです。
-コンテナや Pod ごとに、専用のカーネルを持つ軽い仮想マシンを起動し、その中でコンテナを動かします。ホストのカーネルを共有しないので隔離が強くなります。ハードウェアの仮想化支援が必要で、起動は普通のコンテナより遅くなります。
-例: containerd のランタイムとして `io.containerd.kata.v2` を指定する
-注意: 使うホストで、CPU の仮想化機能(VT-x、AMD-V)が有効なことが前提です。
-関連: gVisor、コンテナランタイム
-
-## Docker の操作
-
-### daemon.json
-別名: /etc/docker/daemon.json
-試験: LinuC3PS、Docker
-要約: Docker デーモンの設定を JSON で書くファイルです。
-Linux では `/etc/docker/daemon.json` に置きます。ロギングドライバー、データの置き場(`data-root`)、レジストリミラー、追加のランタイムなどを決めます。変更を反映するには、多くの場合デーモンの再起動が必要です。
-例: `{"log-driver": "journald"}`、`dockerd --validate`
-注意: JSON の書き方を間違えると、デーモンが起動しません。`hosts` を書くと、systemd の起動オプションの `-H` と衝突して起動に失敗することもあります。
-関連: Docker デーモン、ロギングドライバー
-
-### docker inspect
-試験: LinuC3PS、Docker
-要約: コンテナ、イメージ、ネットワーク、ボリュームの詳しい情報を JSON で表示するコマンドです。
-IP アドレス、マウント、環境変数、終了コード、OOM の有無などが分かります。`--format` に Go のテンプレートを渡すと、必要な項目だけを取り出せます。
-例: `docker inspect -f '{{.State.ExitCode}}' web`
-注意: 同じ名前のコンテナとイメージがあるときは、`--type container` で種類を指定します。
-関連: コンテナ、イメージ
-
-### docker system prune
-試験: LinuC3PS、Docker
-要約: 使っていないコンテナ、ネットワーク、イメージ、ビルドキャッシュをまとめて消すコマンドです。
-止まったコンテナ、使われていないネットワーク、名前のないイメージ、使われていないビルドキャッシュを消します。ボリュームは `--volumes` を付けたときだけ消えます。`-a` を付けると、使われていないイメージも全部消します。
-例: `docker system prune -f`、`docker system prune -a --volumes`
-注意: 本番のホストでは、何が消えるかを確かめてから使います。`--volumes` ではデータが消えます。
-関連: ボリューム、イメージ
