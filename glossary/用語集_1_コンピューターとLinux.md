@@ -202,6 +202,33 @@ libvirt につないで、VM の作成、起動、停止、設定の変更、コ
 注意: RHEL 9 では、非推奨です(後継は Web 画面の Cockpit)【要確認】。
 関連: libvirt、virt-install、virsh
 
+### システムコール
+別名: syscall
+試験: LinuC3SS
+要約: プログラムが、カーネルに仕事を頼むための入口です。
+ファイルを開く(`open`)、読む(`read`)、プロセスを作る(`fork`)など、カーネルの機能を使うときに呼びます。種類は 300 以上あります。
+例: `strace -c -f ls`、`systemd-analyze syscall-filter`
+注意: プログラムが使うのは、ごく一部です。使わないものを seccomp で禁止すると、守りが固くなります。
+関連: seccomp、カーネル
+
+### ASLR
+別名: アドレス空間配置のランダム化
+試験: LinuC3SS
+要約: プログラムを実行するたびに、メモリ上の配置をランダムにして、攻撃を難しくする仕組みです。
+スタック、共有ライブラリ、ヒープなどの住所を毎回変えます。攻撃者が「この住所にある」と決め打ちしにくくなります。`kernel.randomize_va_space` で設定します。
+例: `sysctl kernel.randomize_va_space`(2 が既定。ヒープも含めてランダムにする)
+注意: 0 にするとランダム化が止まります。デバッグ以外では 0 にしません。
+関連: sysctl
+
+### SysRq
+別名: マジック SysRq
+試験: LinuC3SS
+要約: システムが固まったときに、カーネルに直接命令を送る仕組みです。
+`kernel.sysrq` で、許す機能を決めます。値は機能ごとの数を足し合わせたビットマスクです。`/proc/sysrq-trigger` に文字を書いても使えます。
+例: `sysctl kernel.sysrq`、`echo s > /proc/sysrq-trigger`(ディスクへの書き出し)
+注意: `echo b` は、その場で再起動します。試すときは注意します。
+関連: sysctl
+
 ## 起動とサービス
 
 ### UEFI
@@ -385,6 +412,23 @@ NIC のファームウェアが、DHCP で IP アドレスと取ってくるフ�
 例: `cloud-init status --long`、`cloud-init schema --config-file user-data.yaml`、`cloud-init clean --logs`
 注意: YAML の書き方を間違えると、静かに無視されることがあります。`cloud-init schema` で検査します。
 関連: YAML、Autoinstall、IaC
+
+### XDG_RUNTIME_DIR
+試験: LinuC3SS、Docker
+要約: ユーザー専用の実行時のディレクトリ(`/run/user/<UID>`)を指す環境変数です。
+ユーザー用の systemd のソケットや、Rootless のコンテナのソケットは、この下にあります。ログイン時に設定されます。
+例: `echo $XDG_RUNTIME_DIR`、`export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock`
+注意: `su` や `sudo -u` で切り替えると設定されないことがあり、`systemctl --user` が `Failed to connect to bus` で失敗します。
+関連: linger、systemd
+
+### linger
+別名: loginctl enable-linger
+試験: LinuC3SS、Docker
+要約: ユーザーがログアウトしても、ユーザー用の systemd を動かし続ける設定です。
+`loginctl enable-linger <ユーザー>` で有効にします。ブート時にもユーザー用の systemd が始まり、`systemctl --user` のサービスが、ログインなしで動きます。
+例: `sudo loginctl enable-linger alice`、`loginctl show-user alice | grep Linger`
+注意: 設定がないと、ログアウトで Rootless のコンテナが止まります。
+関連: systemd、XDG_RUNTIME_DIR、rootless モード
 
 ## シェルとコマンド
 
@@ -963,6 +1007,24 @@ S3、Google Drive などに対応します。`copy` は先のファイルを残�
 例: `rclone copy /srv/data s3backup:bucket/data --bwlimit 10M`、`rclone check`
 注意: `sync` の前に、`--dry-run` で確かめます。設定ファイルには認証の情報が入るので、Git に入れません。
 関連: rsync、バックアップ
+
+### 拡張属性
+別名: xattr、extended attributes
+試験: LinuC3SS
+要約: ファイルに付けられる、名前と値の組の追加情報です。
+ファイルに、権限や時刻とは別の情報を、名前と値の組で付ける仕組みです。ACL、SELinux のラベル、ファイルの Capability も、拡張属性として保存されます。`setfattr` で付け、`getfattr` で見ます。
+例: `setfattr -n user.team -v sre report.txt`、`getfattr -d report.txt`
+注意: `cp -r` や、`-A` と `-X` のない `rsync` では、黙って落ちます。残すには `cp -a`、`rsync -aAX`、`tar --xattrs` を使います。
+関連: POSIX ACL、セキュリティコンテキスト
+
+### ACL マスク
+別名: マスクエントリ
+試験: LinuC3SS
+要約: ACL で、名前付きのユーザーとグループが使える権限の上限です。
+名前付きユーザー、名前付きグループ、所有グループの権限は、エントリで許した権限とマスクの両方で許されたものだけが効きます。`getfacl` は、削られた権限の横に `#effective:` と表示します。
+例: `setfacl -m m::rw report.txt`、`getfacl report.txt`
+注意: ACL があるファイルで `chmod g=r` を実行すると、グループではなくマスクが変わります。
+関連: POSIX ACL、拡張属性
 
 ## パッケージと配布
 
