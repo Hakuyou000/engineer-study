@@ -12,6 +12,22 @@
 
 管理画面などで作られた**既存のリソース**を、Terraform の管理下(state)に取り込む操作です。import は**リソースを作りません**。既にあるものを state に記録するだけです。
 
+import の前と後で、設定、state、実物がどう変わるかを図にします。
+
+```text
+Before apply:
+  config : import ブロック(to と id)と resource ブロック(書いた)
+  state  : 空(まだ記録がない)
+  real   : example-logs-bucket(管理画面で作られた実物)
+
+After apply:
+  config : import ブロックと resource ブロック
+  state  : aws_s3_bucket.logs = example-logs-bucket(記録が増える)
+  real   : 設定が実物と同じなら変わらない
+```
+
+設定が実物と一致していれば、実物は変わりません。違う引数があると、同じ apply で実物も設定に合わせて変わります。
+
 ### 2. import ブロック(推奨。1.5〜)
 
 ```hcl

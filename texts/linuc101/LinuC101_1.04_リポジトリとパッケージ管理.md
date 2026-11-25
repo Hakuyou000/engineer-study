@@ -17,6 +17,21 @@
 | 高いレベルの道具 | `apt`、`apt-get`、`apt-cache` | `yum`、`dnf` |
 | リポジトリの設定 | `/etc/apt/sources.list`、`/etc/apt/sources.list.d/` | `/etc/yum.repos.d/*.repo` |
 
+高いレベルの道具と低いレベルの道具の関係を図にします。Debian 系の名前で描き、Red Hat 系の名前を右に書きます。
+
+```text
+[repository]     パッケージを置いたサーバー
+    |
+    |  一覧から探し、依存するものも一緒に取ってくる
+    v
+[apt]            Red Hat 系では yum / dnf
+    |
+    |  取ってきたパッケージのファイルを渡す
+    v
+[dpkg]           Red Hat 系では rpm
+```
+
+
 ### 2. apt と apt-get
 
 | apt | apt-get / apt-cache | 動き |
@@ -79,6 +94,20 @@ deb-src http://archive.ubuntu.com/ubuntu noble main
 | `dpkg -c pkg.deb` | .deb の中のファイルの一覧(入れずに見る) |
 
 `dpkg -i` で依存関係が足りずにエラーになったら、`apt -f install`(足りないものを入れて直す)を実行します。手元の .deb は `apt install ./pkg.deb` で入れると、依存関係も解決します。
+
+手元の .deb を入れる 2 つの方法の違いを図にします。
+
+```text
+dpkg -i pkg.deb
+  [pkg.deb] --> [dpkg] --> 依存するパッケージが足りないとエラー
+
+apt install ./pkg.deb
+  [pkg.deb] --> [apt] --> [dpkg]
+                  ^
+                  |
+            [repository]    足りないパッケージを取ってきて、一緒に入れる
+```
+
 
 ### 2. dpkg-reconfigure
 

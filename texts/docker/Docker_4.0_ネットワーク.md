@@ -33,6 +33,22 @@ docker network connect appnet web     # 動いているコンテナを追加で�
 | `-p 8080:80/udp` | UDP |
 | `-P` | `EXPOSE` に書いた全ポートを、ホストの空いているポートに公開する |
 
+`-p 8080:80` で公開したポートに、外からつながるまでの道すじです。
+
+```text
+client
+  |
+  |  http://HOST_IP:8080
+  v
+[host: port 8080]
+  |
+  |  -p 8080:80      <- ホストの 8080 を、コンテナの 80 に転送する
+  v
+[bridge network]     <- ホストの中の仮想スイッチ
+  +-- [web  172.17.0.x : 80]
+  `-- [db   172.17.0.x : 5432]     <- -p がないので、外からはつながらない
+```
+
 - 順番は **ホスト:コンテナ** です。逆に覚えないようにします。
 - `EXPOSE` は説明だけで、公開はしません。公開するのは `-p` です。
 - 同じホストのポートを 2 つのコンテナで公開することはできません(`port is already allocated`)。
@@ -58,6 +74,17 @@ docker network create appnet
 docker run -d --name db  --network appnet postgres:17
 docker run -d --name web --network appnet -p 8080:80 myweb
 # web の中から db という名前で接続できる: postgres://db:5432/...
+```
+
+ユーザー定義のブリッジネットワークでの通信です。同じネットワークの中では名前で通信でき、別のネットワークとは通信できません。
+
+```text
+network: appnet (user-defined bridge)
+  +-- [web]  ---> db:5432        <- コンテナの名前で接続する。DNS 127.0.0.11 が名前を IP に変える
+  `-- [db]
+
+network: other
+  `-- [batch]  --x--> db         <- 別のネットワークとは通信できない
 ```
 
 - ユーザー定義のネットワークでは、組み込みの DNS サーバー(コンテナの中から見て `127.0.0.11`)が、コンテナの名前(と `--network-alias` の別名)を IP に変えます。

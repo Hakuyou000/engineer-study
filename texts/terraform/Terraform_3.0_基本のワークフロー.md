@@ -36,6 +36,20 @@ Terraform は、リソース同士の参照から**依存関係のグラフ**を
 - 依存関係のないリソースは**並列に**作ります。同時に処理する数は既定で **10** で、`-parallelism=N` で変えられます。
 - グラフは `terraform graph` で DOT 形式で出力できます。
 
+参照から決まる依存関係と、作成の順番を図にします。同じ段のものは並列に作ります。
+
+```text
+[aws_vpc.main]    [aws_s3_bucket.logs]
+      |
+      v
+[aws_subnet.a]
+      |
+      v
+[aws_instance.web]
+```
+
+削除の順番は、作成と逆(下から上)です。`aws_s3_bucket.logs` は他と依存関係がないので、並列に処理できます。
+
 ## 3.2 作業ディレクトリの初期化(terraform init)
 
 出題範囲: init が行うこと、`.terraform` ディレクトリ、何度実行してもよいこと、主なオプション。
@@ -49,6 +63,16 @@ Terraform は、リソース同士の参照から**依存関係のグラフ**を
 | バックエンドの初期化 | state を置く場所(local、S3、HCP Terraform など)を準備する |
 | プロバイダーのダウンロード | `required_providers` に合うものを `.terraform/providers/` に置き、`.terraform.lock.hcl` を作る・確認する |
 | モジュールのダウンロード | 子モジュールを `.terraform/modules/` に置く |
+
+`terraform init` が準備するものを図にします。
+
+```text
+terraform init
+  |
+  +-- backend             --> state を置く場所を準備する
+  +-- required_providers  --> プロバイダーを .terraform/providers/ に置き、ロックファイルを作る(確認する)
+  +-- module              --> 子モジュールを .terraform/modules/ にダウンロードする
+```
 
 - インフラは**変更しません**。
 - 何度実行しても安全です。次の場合は再び実行が必要です。

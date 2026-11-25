@@ -19,6 +19,18 @@
 | **バインドマウント** | ホストの好きなパス | ホストのファイルをそのまま見せる。ホストの構成に依存する | 開発中のソースコード、設定ファイル |
 | **tmpfs** | ホストのメモリ | ディスクに書かない。コンテナが止まると消える | 一時ファイル、ディスクに残したくないもの |
 
+コンテナと、データの置き場所の関係です。書き込み層だけがコンテナと一緒に消えます。
+
+```text
+[container]
+  |
+  +-- writable layer                                      <- docker rm で消える
+  |
+  +-- /var/lib/postgresql/data  <==  [volume pgdata]      <- コンテナを消しても残る
+  +-- /usr/share/nginx/html     <==  [host dir ./html]    <- ホストのディレクトリがそのまま見える
+  `-- /tmp                      <==  [tmpfs]              <- ホストのメモリ。止まると消える
+```
+
 ### 1. ボリューム
 
 ```bash
@@ -74,6 +86,20 @@ docker run --rm \
   -v pgdata:/data:ro \
   -v "$(pwd)":/backup \
   alpine tar czf /backup/pgdata.tgz -C /data .
+```
+
+バックアップ用の一時的なコンテナを通して、ボリュームの中身をホストに取り出す流れです。
+
+```text
+[volume pgdata]
+  |
+  |  -v pgdata:/data:ro
+  v
+[alpine container]  tar czf /backup/pgdata.tgz -C /data .
+  |
+  |  -v "$(pwd)":/backup
+  v
+[host: current directory]/pgdata.tgz
 ```
 
 - データベースは、動いたままファイルをコピーすると、壊れたバックアップになることがあります。止めてからコピーするか、データベースの機能(`pg_dump` など)を使います。

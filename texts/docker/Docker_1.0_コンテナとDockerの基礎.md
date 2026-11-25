@@ -17,7 +17,38 @@
 | 分離の強さ | 強い | VM より弱い(カーネルを共有するため) |
 | 別の OS | 動かせる | ホストと同じ系統のカーネルだけ(Linux のコンテナには Linux のカーネル) |
 
+VM とコンテナの構成を並べると、次のようになります。コンテナはゲスト OS を持たず、ホストのカーネルを共有します。
+
+```text
+VM: 1 台ごとにゲスト OS(カーネル)を持つ
+  [App A]        [App B]
+  [Guest OS]     [Guest OS]
+  [Hypervisor]
+  [Hardware]
+
+Container: ホストのカーネルを共有する
+  [App A]   [App B]   [dockerd]   <- どれもホストのカーネルの上で動くプロセス
+  [Host OS (kernel)]
+  [Hardware]
+```
+
 Windows や Mac の Docker Desktop は、内部で小さな Linux の VM を動かし、その中で Linux のコンテナを動かしています。
+
+Windows や Mac の Docker Desktop では、Linux の VM が 1 つ間に入ります。コンテナが共有するのは、その VM の Linux のカーネルです。
+
+```text
+Linux
+  [Linux host (kernel)]
+    +-- [dockerd]
+          +-- [container]  [container]
+
+Windows / Mac (Docker Desktop)
+  [Windows / macOS]
+    +-- [Docker Desktop]
+          +-- [small Linux VM (kernel)]     <- コンテナはこの Linux のカーネルを共有する
+                +-- [dockerd]
+                      +-- [container]  [container]
+```
 
 ### 2. コンテナを実現する Linux の機能
 
@@ -81,6 +112,18 @@ runc(コンテナを実際に作る。OCI の実装)
 | **イメージ** | コンテナを作るための、読み取り専用のテンプレート(ファイルシステムと設定) | クラスや設計図 |
 | **コンテナ** | イメージから作った、動いている(または止まっている)実体。書き込みのできる層を持つ | インスタンス |
 
+イメージの層と、コンテナの書き込み層の関係です。同じイメージから作った 2 つのコンテナは、読み取り専用の層を共有し、書き込み層だけがコンテナごとに別になります。
+
+```text
+[A: writable layer]   [B: writable layer]     <- コンテナごとに 1 つ。docker rm で消える
+         |                     |
+         +----------+----------+
+                    v
+        [image layer 3: COPY app.py]           <- ここから下は読み取り専用。イメージは変わらない
+        [image layer 2: RUN pip install]
+        [base image layers: FROM python:3.13-slim]   <- ベースのイメージ自体が複数の層
+```
+
 - 1 つのイメージから、いくつでもコンテナを作れます。
 - コンテナの中での変更は、そのコンテナの書き込み層に入り、**イメージは変わりません**。コンテナを削除すると、その変更も消えます(残すにはボリュームを使う。分野 5)。
 
@@ -100,6 +143,21 @@ docker rmi nginx:1.27           # イメージを削除する
 ```
 
 `docker run` は、ローカルにイメージがなければ自動で pull してから、コンテナを作って起動します。
+
+`docker run` が内部で行う順番です。
+
+```text
+docker run nginx:1.27
+  |
+  v
+pull      <- イメージがローカルにないときだけ。レジストリから取得する
+  |
+  v
+create    <- イメージの上に書き込み層を作り、コンテナを作る
+  |
+  v
+start     <- コンテナのプロセスを起動する(running になる)
+```
 
 ### 2. コマンドの体系
 
