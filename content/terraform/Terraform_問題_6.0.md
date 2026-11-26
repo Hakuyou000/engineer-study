@@ -207,11 +207,15 @@ terraform {
 
 **正解**: C
 
+**テキスト**: 1. local バックエンドとは
+
 バックエンドを設定しないと local バックエンドが使われ、state は作業ディレクトリの `terraform.tfstate` に保存されます。HCP Terraform に置くには `cloud` ブロックが必要です。`.terraform.lock.hcl` はプロバイダーのバージョンの記録です。
 
 ### 問2 `Terraform-6.0-002`
 
 **正解**: A
+
+**テキスト**: 1. local バックエンドとは
 
 local バックエンドは、state を更新する前の内容を `terraform.tfstate.backup` に残します。誤った変更のときに戻すのに使えます。
 
@@ -221,11 +225,15 @@ local バックエンドは、state を更新する前の内容を `terraform.tf
 
 **正解**: A、B
 
+**テキスト**: 2. local バックエンドの限界
+
 local バックエンドでは、state は各自のパソコンにあるので、他のメンバーは最新の state を使えず、既にあるリソースをまた作ろうとします。また、ロックは同じマシンの中でしか効かないので、別々のパソコンからの同時の apply を防げません。local の state は暗号化されません。apply が拒否されたり、プロバイダーが使えなくなったりはしません。
 
 ### 問4 `Terraform-6.0-004`
 
 **正解**: C
+
+**テキスト**: 3. CLI のワークスペース
 
 local バックエンドでは、`default` 以外のワークスペースの state は `terraform.tfstate.d/<ワークスペース名>/terraform.tfstate` に保存されます。`terraform.tfstate` は `default` のワークスペースの state です。
 
@@ -233,17 +241,23 @@ local バックエンドでは、`default` 以外のワークスペースの sta
 
 **正解**: A
 
+**テキスト**: 3. CLI のワークスペース
+
 最初からあるワークスペースは `default` で、削除できません。CLI のワークスペースは同じバックエンドと認証情報を共有します。設定の中では `terraform.workspace` で今の名前を参照できます。
 
 ### 問6 `Terraform-6.0-006`
 
 **正解**: C
 
+**テキスト**: 1. ロックの目的
+
 ロックは、複数の操作が同時に同じ state を書き換えるのを防ぎます。同時に書き換えると、state が壊れたり、片方の変更が失われたりします。暗号化、削除の防止(`prevent_destroy`)、プロバイダーのバージョンの固定(ロックファイル)とは別のものです。
 
 ### 問7 `Terraform-6.0-007`
 
 **正解**: B
+
+**テキスト**: 1. ロックの目的
 
 ロックに対応したバックエンドなら、`plan` や `apply` など state を書き換えうる操作で自動でロックされ、終わると解除されます。`terraform lock` というコマンドや、`lifecycle` の `lock` という設定はありません。
 
@@ -253,11 +267,15 @@ local バックエンドでは、`default` 以外のワークスペースの sta
 
 **入力の別解**: `-lock-timeout=300s`
 
+**テキスト**: 3. ロックのオプション
+
 `-lock-timeout` は、ロックが取れないときに指定した時間だけ待ちます。既定は待たずにすぐエラーです。`-lock=false` はロックを使わない危険な設定で、相手の操作とぶつかります。`-parallelism` は同時に処理するリソースの数です。
 
 ### 問9 `Terraform-6.0-009`
 
 **正解**: D
+
+**テキスト**: 3. ロックのオプション
 
 異常終了で残ったロックは、`terraform force-unlock` にエラーに表示されたロックの ID を付けて外します。誰も操作していないことを確かめてから使います。`-lock=false` で実行するとロックは残ったままで、他の人の操作も守られません。
 
@@ -265,11 +283,15 @@ local バックエンドでは、`default` 以外のワークスペースの sta
 
 **正解**: C
 
+**テキスト**: 2. ロックに対応したバックエンド
+
 S3 バックエンドで `use_lockfile = true` にすると、state と同じ場所にロックファイル(`.tflock`)を置いてロックします。Terraform 1.11 以降、DynamoDB でのロック(`dynamodb_table`)は非推奨です。`encrypt` は state の暗号化です。
 
 ### 問11 `Terraform-6.0-011`
 
 **正解**: C、D
+
+**テキスト**: 2. リモートのバックエンドの利点
 
 リモートのバックエンドでは、チームと CI が同じ state を使え、ロック、暗号化、アクセス制御、バージョン管理も使えます。state に機密情報が入ること自体は変わらないので、保護が必要です。`init` と `plan` は引き続き必要です。
 
@@ -277,11 +299,15 @@ S3 バックエンドで `use_lockfile = true` にすると、state と同じ場
 
 **正解**: C
 
+**テキスト**: 1. backend ブロック
+
 backend ブロックは、変数やリソースよりも先に初期化されるので、`var.` などの変数や参照は使えません。値は直接書くか、部分的な設定で `init` のときに渡します。`key` と `region` は S3 バックエンドの通常の引数です。
 
 ### 問13 `Terraform-6.0-013`
 
 **正解**: C
+
+**テキスト**: 3. 部分的な設定(partial configuration)
 
 backend ブロックの一部を空にしておき、`terraform init -backend-config=backend-prod.hcl`(または `-backend-config="bucket=…"`)で値を渡します。これを部分的な設定と呼びます。`locals` も使えず、`apply` の `-var` はバックエンドには渡りません。
 
@@ -289,11 +315,15 @@ backend ブロックの一部を空にしておき、`terraform init -backend-co
 
 **正解**: A
 
+**テキスト**: 1. backend ブロック
+
 バックエンドの設定を変えたら、`terraform init` を再び実行します。state を移すなら `-migrate-state`、移さずに設定し直すなら `-reconfigure` を付けます。`plan` で自動で切り替わることはありません。
 
 ### 問15 `Terraform-6.0-015`
 
 **正解**: B
+
+**テキスト**: 4. HCP Terraform に state を置く: cloud ブロック
 
 HCP Terraform を使うときは、`terraform` ブロックに `cloud` ブロックを書き、組織とワークスペースを指定します。`backend "hcp"`、`remote_state`、`provider "hcp"` で state の置き場所を決めることはできません。
 
@@ -301,11 +331,15 @@ HCP Terraform を使うときは、`terraform` ブロックに `cloud` ブロッ
 
 **正解**: C
 
+**テキスト**: 5. 他の設定の出力を読む: terraform_remote_state
+
 別の state の出力を読むには `terraform_remote_state` データソースを使い、`data.terraform_remote_state.名前.outputs.subnet_id` で参照します。`module` ブロックはモジュールを呼ぶもので、別の state は読みません。手でのコピーは値の変更に追いつけません。
 
 ### 問17 `Terraform-6.0-017`
 
 **正解**: A
+
+**テキスト**: 5. 他の設定の出力を読む: terraform_remote_state
 
 `terraform_remote_state` で読めるのは、相手の state のルートモジュールの出力だけです。出力にしていないリソースの属性や、子モジュールの出力(ルートで出力にしていないもの)、変数は読めません。ただし、読むには state 全体を読める権限が必要です。
 
@@ -313,11 +347,15 @@ HCP Terraform を使うときは、`terraform` ブロックに `cloud` ブロッ
 
 **正解**: D
 
+**テキスト**: 1. ドリフトとは
+
 ドリフトは、Terraform の外での変更で、実際のインフラが state や設定とずれた状態です。`plan` で「Objects have changed outside of Terraform」と表示されます。書式の乱れ、古いプロバイダー、残ったロックはドリフトではありません。
 
 ### 問19 `Terraform-6.0-019`
 
 **正解**: D
+
+**テキスト**: 2. ドリフトへの対応
 
 設定が正しいなら、普通に `terraform apply` すると、実際のインフラが設定どおりに直されます。`-refresh-only` は state を実際のインフラに合わせるだけで、インスタンスタイプは変更されたまま残ります。`state rm` は管理から外す操作です。
 
@@ -325,11 +363,15 @@ HCP Terraform を使うときは、`terraform` ブロックに `cloud` ブロッ
 
 **正解**: C
 
+**テキスト**: 2. ドリフトへの対応
+
 `apply -refresh-only` は、実際のインフラを読み取り、確認のうえ state だけを更新します。インフラは変えません。外での変更を受け入れるときは、設定も合わせて直しておくことで、次の plan で差分が出なくなります。`-replace` は作り直し、`destroy` は削除です。
 
 ### 問21 `Terraform-6.0-021`
 
 **正解**: C
+
+**テキスト**: 2. ドリフトへの対応
 
 `plan -refresh-only` は、実際のインフラを読み取って、state がどう更新されるかだけを表示します。インフラも state も変えません。state を更新するのは `apply -refresh-only` です(確認あり)。
 
@@ -337,11 +379,15 @@ HCP Terraform を使うときは、`terraform` ブロックに `cloud` ブロッ
 
 **正解**: D
 
+**テキスト**: 3. リソースの名前を変える: moved ブロック
+
 `moved` ブロックは、state の中のアドレスを古い名前から新しい名前に移し、実物の削除と作成をしません。設定に書くのでレビューでき、全員の環境に同じように反映されます。`-replace` は作り直しで、`prevent_destroy` は削除の計画をエラーにするだけで、名前の変更にはなりません。
 
 ### 問23 `Terraform-6.0-023`
 
 **正解**: B
+
+**テキスト**: 4. 管理をやめる(実物は残す): removed ブロック
 
 `removed` ブロックに `lifecycle { destroy = false }` を書いて `apply` すると、リソースを state から外し、実物は残します。`resource` ブロックを消すだけだと、Terraform はそのバケットを削除します。`destroy -target` も削除し、`-replace` は作り直しです。
 
@@ -349,10 +395,14 @@ HCP Terraform を使うときは、`terraform` ブロックに `cloud` ブロッ
 
 **正解**: D
 
+**テキスト**: 5. terraform state のコマンド
+
 `terraform state rm` は、指定したリソースを state から外すだけで、実物は削除しません。設定ファイルも変わらないので、`resource` ブロックを残したまま `plan` すると、同じものを新しく作ろうとします。設定からも消しておく必要があります。
 
 ### 問25 `Terraform-6.0-025`
 
 **正解**: B
+
+**テキスト**: 2. ドリフトへの対応
 
 `terraform refresh` は、確認なしで state を書き換えるため非推奨になりました。代わりに、変更の内容を確認してから state を更新できる `terraform apply -refresh-only` を使います。`-refresh=false` は refresh を飛ばすオプションで、逆の働きです。

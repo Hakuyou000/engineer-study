@@ -136,6 +136,8 @@
 
 **正解**: B
 
+**テキスト**: 1. 物理マシン、仮想マシン、コンテナ
+
 コンテナは、ホストのカーネルの上で動く、分離されたプロセスです。仮想マシンは、ハイパーバイザーの上で、仮想マシンごとにゲスト OS(カーネル)を起動します。このため、コンテナのほうが軽くて速く起動します。なお、Kata Containers のように、コンテナごとに軽い VM を起動するランタイムもあります。この問題は、標準の runc の場合を問うています。
 
 - A. コンテナは、ゲスト OS のカーネルを持ちません。
@@ -145,6 +147,8 @@
 ### 問2 `LinuC201-2.06-002`
 
 **正解**: A
+
+**テキスト**: 3. 名前空間(namespace)
 
 名前空間は、プロセスから見えるものを分けます。PID、ネットワーク、マウント、ホスト名などの種類があります。コンテナの中のプロセスは、自分だけの世界が見えます。
 
@@ -156,11 +160,15 @@
 
 **正解**: `cgroups`、`cgroup`、`control groups`、`control group`、`コントロールグループ`
 
+**テキスト**: 4. cgroups
+
 cgroups(コントロールグループ)は、プロセスをグループにまとめ、CPU、メモリ、プロセスの数、ディスクの I/O を制限したり、集計したりします。メモリの上限を超えると、カーネルが OOM killer でプロセスを強制終了することがあります。
 
 ### 問4 `LinuC201-2.06-004`
 
 **正解**: A、C
+
+**テキスト**: 5. イメージとコンテナのファイルシステム
 
 イメージは、読み取り専用のレイヤーを重ねたものです。コンテナを起動すると、その上に書き込める層が 1 つ加わります。同じイメージから作ったコンテナは、読み取り専用のレイヤーを共有するので、ディスクを節約できます。
 
@@ -170,6 +178,8 @@ cgroups(コントロールグループ)は、プロセスをグループにま�
 ### 問5 `LinuC201-2.06-005`
 
 **正解**: D
+
+**テキスト**: 3. 名前空間(namespace)
 
 `net` の名前空間は、ネットワークの機器、IP アドレス、ポート番号、経路の表を分けます。このため、別のコンテナで、同じポート番号を使えます。
 
@@ -181,6 +191,8 @@ cgroups(コントロールグループ)は、プロセスをグループにま�
 
 **正解**: C
 
+**テキスト**: 4. cgroups
+
 cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシステムがマウントされ、`cgroup2fs` と表示されます。AlmaLinux / RHEL 9 や Ubuntu 24.04 では、v2 が既定です。
 
 - A. `tmpfs` は、v1 のときに表示される文字列です。
@@ -190,6 +202,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 ### 問7 `LinuC201-2.06-007`
 
 **正解**: C
+
+**テキスト**: 3. コンテナの状態と、動かすコマンド
 
 `docker kill` は、既定で SIGKILL を、すぐ送ります。プロセスは、後始末をせずに終了させられます。
 
@@ -201,6 +215,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: B、D
 
+**テキスト**: 3. コンテナの状態と、動かすコマンド
+
 `docker stop` は、プロセスに SIGTERM を送って、終了の準備(ファイルの書き出しなど)をする時間を与えます。既定の 10 秒(`-t` で変更)待っても終わらないときは、SIGKILL を送って強制的に止めます。最初に送る信号は、Dockerfile の `STOPSIGNAL` や、`docker run` の `--stop-signal` で変えられます。
 
 - A. 最初から SIGKILL を送るのは、`docker kill` です。
@@ -210,11 +226,15 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: `docker exec -it web sh`、`docker exec -ti web sh`、`docker exec -i -t web sh`、`docker exec -t -i web sh`、`docker exec -it web /bin/sh`、`docker exec -ti web /bin/sh`、`docker exec -i -t web /bin/sh`、`docker exec --interactive --tty web sh`、`docker exec --tty --interactive web sh`、`docker exec --interactive --tty web /bin/sh`、`docker container exec -it web sh`
 
+**テキスト**: 5. 動いているコンテナに入る
+
 `docker exec` は、動いているコンテナの中で、新しいプロセスとしてコマンドを実行します。`-i` は標準入力を開けておくこと、`-t` は端末を割り当てることです。シェルを使うときは、`-it` を付けます。
 
 ### 問10 `LinuC201-2.06-010`
 
 **正解**: B
+
+**テキスト**: 3. コンテナの状態と、動かすコマンド
 
 `docker rm` は、止まっているコンテナを削除します。動いているものは、`-f` を付けると、止めてから削除します。
 
@@ -226,11 +246,15 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: `docker ps -a`、`docker ps --all`、`docker container ls -a`、`docker container ls --all`、`docker container list -a`、`docker container list --all`、`docker container ps -a`、`docker container ps --all`
 
+**テキスト**: 4. 状態を見る
+
 `docker ps` は、動いているコンテナだけを表示します。`-a`(`--all`)を付けると、止まっているものも表示します。
 
 ### 問12 `LinuC201-2.06-012`
 
 **正解**: D
+
+**テキスト**: 2. コンテナのネットワークとポート
 
 `-p ホストのポート:コンテナのポート` の順に書きます。`-p 8080:80` は、ホストの 8080 に来た通信を、コンテナの 80 に転送します。
 
@@ -242,6 +266,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: A
 
+**テキスト**: 3. コンテナの状態と、動かすコマンド
+
 `docker pause` は、cgroups の freezer の機能で、コンテナのプロセスを一時停止します。メモリの内容は残り、`docker unpause` で再開できます。
 
 - B. `docker stop` は、プロセスを終了させます。メモリの内容は残りません。
@@ -251,6 +277,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 ### 問14 `LinuC201-2.06-014`
 
 **正解**: B
+
+**テキスト**: 5. 動いているコンテナに入る
 
 `docker exec` は、動いているコンテナの中で、新しいプロセスとしてコマンドを実行します。
 
@@ -262,11 +290,15 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: `docker build -t myapp:1.0 .`、`docker build --tag myapp:1.0 .`、`docker build --tag=myapp:1.0 .`、`docker build . -t myapp:1.0`、`docker image build -t myapp:1.0 .`、`docker image build --tag myapp:1.0 .`、`docker buildx build -t myapp:1.0 .`、`docker builder build -t myapp:1.0 .`
 
+**テキスト**: 6. イメージを管理する
+
 `docker build` は、Dockerfile を読んで、命令ごとにレイヤーを作り、イメージにします。`-t` で名前とタグを付けます。最後の `.` は、ファイルを渡すディレクトリ(ビルドコンテキスト)で、ここでは、カレントディレクトリです。Docker 29 では、`docker build` は `docker buildx build` の別名で、`docker image build` や `docker builder build` でも同じ動きになります。
 
 ### 問16 `LinuC201-2.06-016`
 
 **正解**: C
+
+**テキスト**: 6. イメージを管理する
 
 `docker commit コンテナ イメージ名` は、コンテナの今の状態を、新しいイメージにします。ただし、手作業の変更が記録に残らず、作り直せません。ふつうは、Dockerfile を書いて `docker build` します。
 
@@ -278,6 +310,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: D
 
+**テキスト**: 6. イメージを管理する
+
 `docker import` は、tar のファイル(ファイルシステムの中身)から、1 つのレイヤーのイメージを作ります。`docker export` の反対の操作です。
 
 - A. `docker load` は、`docker save` で作った tar(レイヤーやタグの情報を持つ)を読み込みます。ファイルシステムだけの tar は読み込めません。
@@ -287,6 +321,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 ### 問18 `LinuC201-2.06-018`
 
 **正解**: C
+
+**テキスト**: 6. イメージを管理する
 
 `docker pull` は、レジストリ(既定は Docker Hub)からイメージを取ってくるだけです。コンテナは作りません。
 
@@ -298,6 +334,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 
 **正解**: A
 
+**テキスト**: 6. イメージを管理する
+
 `docker rmi` は、ローカルのイメージを削除します。そのイメージから作ったコンテナが残っていると、消せません(先にコンテナを `docker rm` します)。
 
 - B. `docker rm` は、コンテナを削除します。イメージは削除しません。
@@ -307,6 +345,8 @@ cgroups の v2 では、`/sys/fs/cgroup` に、`cgroup2` のファイルシス�
 ### 問20 `LinuC201-2.06-020`
 
 **正解**: D
+
+**テキスト**: 4. 状態を見る
 
 `docker stats` は、動いているコンテナごとの CPU、メモリ、ネットワーク、ディスクの使用量を、リアルタイムで表示します。`--no-stream` を付けると、1 回だけ表示します。
 

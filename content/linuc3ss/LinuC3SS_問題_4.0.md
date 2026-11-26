@@ -270,6 +270,8 @@ server {
 
 **正解**: B
 
+**テキスト**: 1. Let's Encrypt と ACME
+
 `certbot --nginx` は、標準では HTTP-01 チャレンジで、ドメインの管理を確かめます。Let's Encrypt の側が、`http://example.com/.well-known/acme-challenge/<token>` に 80/tcp で取りに来ます。80/tcp が外から届かないと、`Timeout during connect` のように失敗します。対処は、80/tcp を開けるか、80 番を開けられないなら DNS-01 にすることです。
 
 - A. 秘密鍵は、証明書を申請する前に certbot 自身が作ります。チャレンジに失敗する理由ではありません。
@@ -279,6 +281,8 @@ server {
 ### 問2 `LinuC3SS-4.0-002`
 
 **正解**: D
+
+**テキスト**: 1. Let's Encrypt と ACME
 
 ワイルドカード証明書(`*.example.com`)は、DNS-01 チャレンジでだけ取れます。DNS のプラグイン(`--dns-route53` など)を使うと、`_acme-challenge` の TXT レコードを、certbot が API で自動で作って消します。`*.example.com` は `example.com` 自体を含まないので、`-d` で両方を指定します。
 
@@ -290,11 +294,15 @@ server {
 
 **正解**: `certbot renew --dry-run`、`certbot --dry-run renew`
 
+**テキスト**: 4. 自動更新と確かめ方
+
 `certbot renew --dry-run` は、Let's Encrypt のテスト用の環境(staging)で、更新の手順をすべて試します。証明書は保存されず、本番の証明書は変わりません。自動更新(timer ユニットや cron)が正しく動くかを、本番の発行の回数の制限(レート制限)を使わずに確かめられます。
 
 ### 問4 `LinuC3SS-4.0-004`
 
 **正解**: C
+
+**テキスト**: 4. 自動更新と確かめ方
 
 nginx は、起動したとき(reload したとき)に証明書を読み込みます。ファイルが新しくなっても、reload するまでは古い証明書を返し続けます。`--nginx` や `--apache` のプラグインで入れた場合は、更新のあとに certbot が reload しますが、`--webroot` や `certonly` で取ったときは自分で設定します。`/etc/letsencrypt/renewal-hooks/deploy/` にスクリプトを置いても同じことができます。deploy フックは、更新に成功した証明書があるときだけ動きます。
 
@@ -306,11 +314,15 @@ nginx は、起動したとき(reload したとき)に証明書を読み込み�
 
 **正解**: `/var/log/letsencrypt/letsencrypt.log`
 
+**テキスト**: 4. 自動更新と確かめ方
+
 certbot のログは、`/var/log/letsencrypt/letsencrypt.log` に書かれます(古いものは `.log.1` などに回されます)。`Challenge failed`、`Timeout during connect`、`unauthorized` などの、失敗の理由はここで確かめます。
 
 ### 問6 `LinuC3SS-4.0-006`
 
 **正解**: A
+
+**テキスト**: 3. 証明書のファイルと Web サーバーの設定
 
 `live/` の下の `fullchain.pem` は、サーバー証明書と中間証明書をつなげたファイルです。更新しても同じパスのまま、中身が新しくなります(実体は `archive/` の番号付きのファイルへのシンボリックリンク)。nginx の `ssl_certificate` と、Apache の `SSLCertificateFile` に使います。
 
@@ -321,6 +333,8 @@ certbot のログは、`/var/log/letsencrypt/letsencrypt.log` に書かれます
 ### 問7 `LinuC3SS-4.0-007`
 
 **正解**: A、D
+
+**テキスト**: 1. Let's Encrypt と ACME
 
 ACME の 2 つの代表的なチャレンジです。HTTP-01 は Web サーバーに置いたファイルで、DNS-01 は DNS の TXT レコードで、ドメインの管理を確かめます。
 
@@ -333,6 +347,8 @@ ACME の 2 つの代表的なチャレンジです。HTTP-01 は Web サーバ�
 
 **正解**: C
 
+**テキスト**: 1. 証明書の種類と階層
+
 サーバー証明書は、中間証明書を通して、クライアントが信頼するルート証明書までつながって、はじめて検証できます。サーバーは、サーバー証明書と一緒に中間証明書も送る必要があります。ブラウザーは、足りない中間証明書を自分で補うことがあり、開けてしまいます。`curl` や API のクライアントは補わないので、失敗します。
 
 - A. ルート証明書は、クライアントが元から持っています。サーバーが送る必要はなく、足りないのは中間証明書です。
@@ -342,6 +358,8 @@ ACME の 2 つの代表的なチャレンジです。HTTP-01 は Web サーバ�
 ### 問9 `LinuC3SS-4.0-009`
 
 **正解**: D
+
+**テキスト**: 3. openssl で確かめる
 
 `openssl s_client` は、サーバーに実際につないで、TLS の握手と証明書を表示します。`-tls1_3` で TLS 1.3 だけで試せます(`-tls1_2` なら 1.2)。`-servername` で、SNI(接続先の名前)を送ります。名前ごとに証明書を切り替えるサーバーでは、これがないと、別の証明書が返ることがあります。
 
@@ -353,11 +371,15 @@ ACME の 2 つの代表的なチャレンジです。HTTP-01 は Web サーバ�
 
 **正解**: `-checkend`、`--checkend`、`checkend`
 
+**テキスト**: 3. openssl で確かめる
+
 `openssl x509 -in cert.pem -noout -checkend 2592000` のように使います。指定した秒数のうちに期限が切れるなら終了コード 1、切れないなら 0 になります(2592000 秒は 30 日)。cron や監視のスクリプトで、期限の近い証明書を見つけるのに使えます。
 
 ### 問11 `LinuC3SS-4.0-011`
 
 **正解**: A
+
+**テキスト**: 5. セキュリティヘッダー
 
 HSTS は、「この名前には、指定した期間、HTTPS だけでつなぐ」とブラウザーに覚えさせます。`includeSubDomains` を付けると、サブドメインも対象です。HTTPS に対応していない `old.example.com` には、つなげなくなります。HSTS は取り消しにくいので、サブドメインがすべて HTTPS になってから `includeSubDomains` を付けます。最初は `max-age=300` のような短い値で試します。
 
@@ -369,6 +391,8 @@ HSTS は、「この名前には、指定した期間、HTTPS だけでつなぐ
 
 **正解**: B
 
+**テキスト**: 5. セキュリティヘッダー
+
 nginx の `add_header` は、下の階層(`location` など)に `add_header` が 1 つでもあると、上の階層(`server` など)の `add_header` を引き継ぎません。`/api/` の `location` に、必要なヘッダーを書き足します。ヘッダーを `include` で共通のファイルにして、各階層から読み込む方法もあります。
 
 - A. `always` は、4xx や 5xx の応答にもヘッダーを付ける指定で、`location` の中でも使えます。
@@ -378,6 +402,8 @@ nginx の `add_header` は、下の階層(`location` など)に `add_header` が
 ### 問13 `LinuC3SS-4.0-013`
 
 **正解**: A、C
+
+**テキスト**: 5. セキュリティヘッダー
 
 ヘッダーごとに、役割が違います。目的に合わせて組み合わせます。
 
@@ -390,6 +416,8 @@ nginx の `add_header` は、下の階層(`location` など)に `add_header` が
 
 **正解**: D
 
+**テキスト**: 5. セキュリティヘッダー
+
 `Content-Security-Policy-Report-Only` は、ルールに違反したものを報告するだけで、実際には止めません。報告を見て、必要な取得元をルールに足してから、`Content-Security-Policy` にして強制します。
 
 - A. `X-Frame-Options` は、`<iframe>` への埋め込みの制限だけです。CSP のスクリプトなどの制限の代わりになりません。
@@ -399,6 +427,8 @@ nginx の `add_header` は、下の階層(`location` など)に `add_header` が
 ### 問15 `LinuC3SS-4.0-015`
 
 **正解**: C
+
+**テキスト**: 4. nginx の HTTP/3
 
 HTTP/3 は、TCP ではなく、QUIC(UDP の上の暗号化された通信)で動きます。使う UDP の 443 番が止まっていると、ブラウザーは HTTP/3 を諦めて、TCP の HTTP/2(または HTTP/1.1)に戻ります。サイトは開けますが、HTTP/3 にはなりません。ファイアウォールで 443/udp を開けます。
 
@@ -410,6 +440,8 @@ HTTP/3 は、TCP ではなく、QUIC(UDP の上の暗号化された通信)で�
 
 **正解**: A
 
+**テキスト**: 2. TLS 1.2 と TLS 1.3
+
 `SSLProtocol -all +TLSv1.2 +TLSv1.3` は、いったんすべてを無効にして、使う版だけを足す書き方です。許可する版がはっきりして、確実です。nginx では `ssl_protocols TLSv1.2 TLSv1.3;` と書きます。
 
 - B. `all -SSLv3` は、SSLv3 だけを除く指定です。TLS 1.0 と 1.1 は、設定の上では許可したままです(実際に使えるかは、OS の暗号ポリシーしだいです)。
@@ -419,6 +451,8 @@ HTTP/3 は、TCP ではなく、QUIC(UDP の上の暗号化された通信)で�
 ### 問17 `LinuC3SS-4.0-017`
 
 **正解**: B
+
+**テキスト**: 1. 証明書の種類と階層
 
 証明書の種類は、認証局が何を確かめるかで決まります。DV はドメインの管理、OV はそれに加えて組織の実在、EV は OV よりさらに厳しい審査です。暗号の強さは、種類で変わりません。
 
@@ -430,6 +464,8 @@ HTTP/3 は、TCP ではなく、QUIC(UDP の上の暗号化された通信)で�
 
 **正解**: A
 
+**テキスト**: 2. BIND 9.18 に DoT と DoH を設定する
+
 `tls <名前> { … };` は、`options` と同じ階層の、独立したステートメントです。`options` の中の `listen-on port 853 tls dot-tls { … };` から、名前で参照します。Debian 系では、`named.conf.options` の `options` の外に書いても、`named.conf` から include されるので同じです。
 
 - B. `options` の中には書けません。`options` の外に書きます。
@@ -439,6 +475,8 @@ HTTP/3 は、TCP ではなく、QUIC(UDP の上の暗号化された通信)で�
 ### 問19 `LinuC3SS-4.0-019`
 
 **正解**: C
+
+**テキスト**: 2. BIND 9.18 に DoT と DoH を設定する
 
 DoT は、TCP の 853 番を使います。`firewall-cmd --permanent --add-port=853/tcp` で許可し、`firewall-cmd --reload` で反映します(Debian 系で ufw なら `ufw allow 853/tcp`)。DoH も使うなら、443/tcp も要ります。普通の DNS(53 番)は、クライアントが使う限り、そのまま残します。
 
@@ -450,6 +488,8 @@ DoT は、TCP の 853 番を使います。`firewall-cmd --permanent --add-port=
 
 **正解**: B
 
+**テキスト**: 1. DoT と DoH
+
 DoT と DoH が守るのは、クライアントとリゾルバー(キャッシュサーバー)の間です。リゾルバーが権威サーバーに問い合わせる区間は、そのまま平文です。また、DoT と DoH は、答えが本物であることを保証しません。それは DNSSEC の役割です。
 
 - A. リゾルバーと権威サーバーの間は、DoT の対象外です。
@@ -459,6 +499,8 @@ DoT と DoH が守るのは、クライアントとリゾルバー(キャッシ�
 ### 問21 `LinuC3SS-4.0-021`
 
 **正解**: D
+
+**テキスト**: 2. BIND 9.18 に DoT と DoH を設定する
 
 named は、専用のユーザー(`named`、Debian 系は `bind`)で動くので、root だけが読めるファイルは読めません。所有グループを named のグループにして、グループに読み取りを許す(640)と、他のユーザーには読ませずに済みます。秘密鍵が漏れると、サーバーになりすませるので、読めるユーザーは最小にします。AppArmor や SELinux で、置き場所が許されているかも確かめます【要確認】。
 
@@ -470,11 +512,15 @@ named は、専用のユーザー(`named`、Debian 系は `bind`)で動くので
 
 **正解**: `+tls`、`dig +tls`
 
+**テキスト**: 3. 動作の確認
+
 BIND 9.18 以降の `dig` は、`+tls` で DoT、`+https` で DoH の問い合わせができます。たとえば `dig +tls @dns.example.com example.com A` のように使います。`kdig`(knot-dnsutils のコマンド)も `+tls` を使います。
 
 ### 問23 `LinuC3SS-4.0-023`
 
 **正解**: B
+
+**テキスト**: 2. BIND 9.18 に DoT と DoH を設定する
 
 `listen-on` に、`tls <名前>` と `http <名前>` の両方を付けると DoH になります。`default` は、標準の設定(`/dns-query`)の名前です。`http` を付けない `tls` だけの指定は、DoT です。
 
@@ -486,6 +532,8 @@ BIND 9.18 以降の `dig` は、`+tls` で DoT、`+https` で DoH の問い合�
 
 **正解**: D
 
+**テキスト**: 1. DNSSEC のレコード
+
 信頼のつながり(チェーン)は、ルートから親、子へと、DS で受け渡されます。親に DS がないと、検証するリゾルバーは、子のゾーンを署名なし(insecure)として扱います。普通に引けますが、`ad` は付きません。DS を登録して、はじめて DNSSEC が働きます。逆に、DS を登録したのに子の署名や鍵が合っていないと、SERVFAIL になります。
 
 - A. DS がない場合は、署名なしの扱いで、SERVFAIL にはなりません。SERVFAIL になるのは、DS を登録したのに、署名や鍵が合っていないときです。
@@ -495,6 +543,8 @@ BIND 9.18 以降の `dig` は、`+tls` で DoT、`+https` で DoH の問い合�
 ### 問25 `LinuC3SS-4.0-025`
 
 **正解**: A
+
+**テキスト**: 2. dnssec-policy で自動にする(BIND 9.16 以降、9.18 でも使える)
 
 9.18 では、静的なゾーンファイルに `dnssec-policy` を使うとき、`inline-signing yes;` を明示します。元のゾーンファイルは書き換えず、署名したコピーを別に作って配ります。動的更新のゾーン(`allow-update` など)では不要です。反映は `rndc reconfig`、状態は `rndc dnssec -status example.com` で確かめます。
 
@@ -506,17 +556,23 @@ BIND 9.18 以降の `dig` は、`+tls` で DoT、`+https` で DoH の問い合�
 
 **正解**: `dnssec-dsfromkey`
 
+**テキスト**: 3. 手作業の署名(dnssec-* コマンド)
+
 `dnssec-dsfromkey -2 Kexample.com.+013+12345.key` で、SHA-256 の DS が出ます。出た値を、親のゾーンの管理者(レジストラーの画面など)に登録します。
 
 ### 問27 `LinuC3SS-4.0-027`
 
 **正解**: `delv`
 
+**テキスト**: 4. 検証する側とトラストアンカー
+
 `delv @127.0.0.1 example.com A` のように使います。`+rtrace` や `+vtrace` を付けると、どの手順で検証に失敗したかが分かります。署名のないゾーンは `; unsigned answer`、検証の失敗は `; resolution failed: …` と出ます。`dig +dnssec` は、答えと RRSIG を見る道具です。検証そのものは、`ad` フラグで確かめます。
 
 ### 問28 `LinuC3SS-4.0-028`
 
 **正解**: C
+
+**テキスト**: 3. 手作業の署名(dnssec-* コマンド)
 
 `dnssec-signzone` が付ける署名には、期限があります(標準で約 30 日)。期限が切れると、検証するリゾルバーは、署名が無効と判断して SERVFAIL を返します。検証をしない `+cd` で答えが返ることから、署名の検証に失敗していると分かります。期限の前に署名し直すこと(cron など)が必要です。`dnssec-verify` で、署名したゾーンの内容を確かめられます。自動にしたいときは、`dnssec-policy` に切り替えます。
 
@@ -527,6 +583,8 @@ BIND 9.18 以降の `dig` は、`+tls` で DoT、`+https` で DoH の問い合�
 ### 問29 `LinuC3SS-4.0-029`
 
 **正解**: B、D
+
+**テキスト**: 1. DNSSEC のレコード
 
 NSEC と NSEC3 は、どちらも「その名前は存在しない」ことを、署名つきで証明するレコードです。違いは、名前をそのまま使うか、ハッシュにするかです。
 
@@ -539,6 +597,8 @@ NSEC と NSEC3 は、どちらも「その名前は存在しない」ことを�
 
 **正解**: B
 
+**テキスト**: 5. DANE と TLSA
+
 TLSA の `3 1 1` は、サーバー証明書の公開鍵の SHA-256 です。更新で鍵が変わると、DNS の TLSA と、サーバーが見せる鍵が合わなくなり、DANE を使う相手は、接続を拒否します。鍵を使い回す(`--reuse-key`)と、TLSA を変える必要がありません。鍵を変えるなら、新しい鍵の TLSA を先に公開して、古い TLSA の TTL が過ぎてから切り替えます。
 
 - A. DS は、ゾーンの署名の信頼のつながりです。証明書の鍵が変わっても、DS は変わりません。
@@ -548,6 +608,8 @@ TLSA の `3 1 1` は、サーバー証明書の公開鍵の SHA-256 です。更
 ### 問31 `LinuC3SS-4.0-031`
 
 **正解**: A
+
+**テキスト**: 3. 手作業の署名(dnssec-* コマンド)
 
 `dnssec-settime` は、鍵のファイルに、時刻の予定を書き込みます。`-I` は無効化(署名に使わなくなる。ゾーンには残る)、`-D` は削除(ゾーンからも消える)、`-P` は公開(ゾーンに DNSKEY を出す)、`-A` は有効化(署名に使い始める)です。新しい鍵は `dnssec-keygen` で作り、先に公開して、時間を置いてから有効にします。
 
@@ -559,6 +621,8 @@ TLSA の `3 1 1` は、サーバー証明書の公開鍵の SHA-256 です。更
 
 **正解**: C
 
+**テキスト**: 4. 検証する側とトラストアンカー
+
 検証は、トラストアンカー(信頼の起点)から始まります。`auto` の標準のトラストアンカーは、ルートゾーンのものです。ルートからつながらない内部のゾーンは、`trust-anchors { "corp.example.internal" static-ds … ; };` のように、自分でトラストアンカーを登録します。`static-*` は追従しないので、鍵を交換したら、手で更新します。
 
 - A. 検証をやめると、ほかのゾーンの DNSSEC の保護も、すべて失われます。
@@ -568,6 +632,8 @@ TLSA の `3 1 1` は、サーバー証明書の公開鍵の SHA-256 です。更
 ### 問33 `LinuC3SS-4.0-033`
 
 **正解**: B
+
+**テキスト**: 1. SPF、DKIM、DMARC
 
 SPF は、メールを送ってきたサーバーの IP アドレスが、送信元のドメインの SPF で許可されているかを確かめます。メールを転送すると、転送先から見て、送ってくるのは転送したサーバーです。その IP アドレスは、元のドメインの SPF に書かれていないので、失敗します。転送でも通る必要があるときは、DKIM の署名を使います(転送しても、署名は残ります)。
 
@@ -579,6 +645,8 @@ SPF は、メールを送ってきたサーバーの IP アドレスが、送信
 
 **正解**: D
 
+**テキスト**: 1. SPF、DKIM、DMARC
+
 DKIM の公開鍵は、`<セレクター>._domainkey.<ドメイン>` の TXT レコードに置きます。メールの `DKIM-Signature:` の `s=`(セレクター)と `d=`(ドメイン)から、受信側が、この名前で公開鍵を取ります。セレクターを変えると、鍵を複数持て、鍵の交換がしやすくなります。
 
 - A. `_dmarc` は、DMARC のポリシーを置く名前です。
@@ -589,6 +657,8 @@ DKIM の公開鍵は、`<セレクター>._domainkey.<ドメイン>` の TXT レ
 
 **正解**: A
 
+**テキスト**: 1. SPF、DKIM、DMARC
+
 DMARC に通るには、SPF か DKIM の、どちらか 1 つが成功し、かつ、その認証したドメインが、`From:` のドメインと合っている(アラインメント)必要があります。ここで SPF が認証したのは `example.net` で、`From:` の `example.com` とは違うので、DMARC は fail です。対処は、配信サービスに、`d=example.com` の DKIM 署名をさせることです。
 
 - B. SPF が pass でも、ドメインが `From:` と合っていないと、DMARC には通りません。
@@ -598,6 +668,8 @@ DMARC に通るには、SPF か DKIM の、どちらか 1 つが成功し、か�
 ### 問36 `LinuC3SS-4.0-036`
 
 **正解**: B、C
+
+**テキスト**: 3. SMTPS、IMAPS、STARTTLS
 
 メールの暗号化には、つないだ直後から TLS にする方式(暗黙の TLS)と、平文でつないでから `STARTTLS` で切り替える方式があります。
 
@@ -610,6 +682,8 @@ DMARC に通るには、SPF か DKIM の、どちらか 1 つが成功し、か�
 
 **正解**: C
 
+**テキスト**: 3. SMTPS、IMAPS、STARTTLS
+
 `smtpd_tls_security_level=encrypt` は、TLS を必須にします。`STARTTLS` で暗号化しないと、認証もメールの送信も、受け付けません。`main.cf` の `smtpd_tls_auth_only = yes` でも、暗号化の前の認証を拒否できます。
 
 - A. `none` は、TLS を使わない指定です。パスワードが平文で流れます。
@@ -620,11 +694,15 @@ DMARC に通るには、SPF か DKIM の、どちらか 1 つが成功し、か�
 
 **正解**: `opendkim-testkey`
 
+**テキスト**: 2. OpenDKIM と Postfix
+
 `opendkim-testkey -d example.com -s 202611 -vvv` のように、ドメインとセレクターを指定します。DNS の TXT レコードを引いて、秘密鍵と合っているかを確かめます。`dig +short TXT 202611._domainkey.example.com` で、レコードそのものも見られます。
 
 ### 問39 `LinuC3SS-4.0-039`
 
 **正解**: D
+
+**テキスト**: 3. SMTPS、IMAPS、STARTTLS
 
 `openssl s_client -starttls smtp` は、SMTP で `EHLO` と `STARTTLS` のやり取りをしてから、TLS の握手をして、証明書を表示します。465 番や 993 番のように、つないだ直後から TLS のポートは、`-starttls` を付けずに `-connect` だけで確かめます。
 

@@ -227,6 +227,8 @@
 
 **正解**: C
 
+**テキスト**: 2. メモリの割り当てと余裕
+
 2 のときの上限は「スワップ + 物理メモリ × ratio ÷ 100」です。2 GB + 8 GB × 0.5 = 6 GB になります。これを超える要求は、その場で失敗します。
 
 - A. ratio 分(4 GB)だけを数えていて、スワップが足りません。
@@ -236,6 +238,8 @@
 ### 問2 `LinuC3PS-4.0-002`
 
 **正解**: B
+
+**テキスト**: 2. メモリの割り当てと余裕
 
 1 は、メモリの要求を常に許します。実際に足りなくなったときだけ、OOM killer が働きます。子プロセスは親とメモリを共有して始まるので、1 にすると `fork` が失敗しにくくなります。
 
@@ -247,6 +251,8 @@
 
 **正解**: D
 
+**テキスト**: 3. ヒュージページ
+
 THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を書くと無効になります。再起動で元に戻るので、残すにはカーネルの起動オプション `transparent_hugepage=never` などを使います。
 
 - A. `vm.transparent_hugepage` という sysctl の名前はありません。
@@ -256,6 +262,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 ### 問4 `LinuC3PS-4.0-004`
 
 **正解**: A
+
+**テキスト**: 3. ヒュージページ
 
 2 MB × 1024 = 2048 MB で、2 GB です。予約したメモリは、使われなくても、ほかの用途に使えません。
 
@@ -267,6 +275,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: B
 
+**テキスト**: 2. メモリの割り当てと余裕
+
 `vm.swappiness` を小さくすると、スワップを使いにくくなります。スワップ領域は残るので、メモリが足りなくなったときの余裕になります。
 
 - A. 値を大きくすると、スワップを積極的に使います。逆の効果です。
@@ -276,6 +286,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 ### 問6 `LinuC3PS-4.0-006`
 
 **正解**: C
+
+**テキスト**: 2. メモリの割り当てと余裕
 
 `vm.min_free_kbytes` は、カーネルが常に空けておくメモリの量です。受信のとき、カーネルが急にメモリを必要としても、確保できるようになります。
 
@@ -287,6 +299,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: D
 
+**テキスト**: 4. 書き込み(dirty ページ)の制御
+
 `vm.dirty_background_ratio`(既定は多くの環境で 10)に達すると、カーネルのスレッドが裏で書き出し始めます。`vm.dirty_ratio`(既定は 20)に達すると、書き込んでいるプロセス自身が書き出すので、`write()` が止まって見えます。止まりを減らすには、`vm.dirty_background_ratio` を下げて、早めに少しずつ書き出させます。
 
 - A. 2 つが逆です。裏の書き出しのほうが、小さい割合で始まります。
@@ -296,6 +310,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 ### 問8 `LinuC3PS-4.0-008`
 
 **正解**: A
+
+**テキスト**: 4. 書き込み(dirty ページ)の制御
 
 単位は 1/100 秒(センチ秒)です。`dirty_writeback_centisecs=200` は 2 秒ごとに起きること、`dirty_expire_centisecs=1500` は 15 秒以上たったデータが対象になることを表します。
 
@@ -307,6 +323,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: C
 
+**テキスト**: 5. プロセスとファイルの数の上限
+
 `fs.nr_open` は、1 つのプロセスが持てるファイルの数の限界で、`ulimit -n` はこれを超えられません。先に `fs.nr_open` を上げます。systemd のサービスなら、`LimitNOFILE` も合わせて設定します。
 
 - A. `fs.aio-max-nr` は、非同期 I/O の要求の数の上限で、開けるファイルの数とは別です。
@@ -317,6 +335,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: A、C
 
+**テキスト**: 5. プロセスとファイルの数の上限
+
 プロセスとスレッドには、それぞれ PID を割り当てるので、PID の最大値(`kernel.pid_max`)と、システム全体のスレッドの数の上限(`kernel.threads-max`)が、どちらも足りなくなる原因になります。
 
 - B. `fs.aio-max-nr` は、非同期 I/O の要求の数の上限です。足りなくなると、`io_setup` が失敗します。
@@ -326,11 +346,15 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: `fs.aio-max-nr`、`aio-max-nr`、`/proc/sys/fs/aio-max-nr`
 
+**テキスト**: 5. プロセスとファイルの数の上限
+
 `fs.aio-max-nr` が、システム全体の非同期 I/O の要求の数の上限です。現在の使用数は `fs.aio-nr` で見ます。上げても、メモリがすぐに確保されるわけではありません。
 
 ### 問12 `LinuC3PS-4.0-012`
 
 **正解**: B
+
+**テキスト**: 6. 異常のときの動き
 
 `vm.panic_on_oom=1` で、OOM のときに OOM killer でなくカーネルパニックにします。`kernel.panic=10` で、パニックの 10 秒後に自動で再起動します。両方が必要です。
 
@@ -342,17 +366,23 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: `%p`
 
+**テキスト**: 6. 異常のときの動き
+
 `%p` は PID、`%e` は実行ファイルの名前、`%t` は UNIX 時間に置き換えられます。たとえば PID 1234 の nginx なら、`core.nginx.1234.…` のようなファイル名になります。
 
 ### 問14 `LinuC3PS-4.0-014`
 
 **正解**: `sysctl --system`、`systemctl restart systemd-sysctl`、`systemctl restart systemd-sysctl.service`
 
+**テキスト**: 1. sysctl の基本
+
 `sysctl --system` は、`/etc/sysctl.d/`、`/usr/lib/sysctl.d/`、`/etc/sysctl.conf` などをすべて読み込みます。`sysctl -p` は、引数がなければ `/etc/sysctl.conf` だけを読み込むので、この条件を満たしません。`systemctl restart systemd-sysctl` は、起動時と同じ処理をやり直すので、同じ結果になります(root の権限が要ります)。
 
 ### 問15 `LinuC3PS-4.0-015`
 
 **正解**: D
+
+**テキスト**: 5. プロセスとファイルの数の上限
 
 `Too many open files in system`(ENFILE)は、システム全体の上限に達したことを表します。上限は `fs.file-max` で、現在の使用数は `/proc/sys/fs/file-nr` で見ます。1 つのプロセスの上限に達したときは、`Too many open files`(EMFILE)で、`ulimit -n` を確かめます。
 
@@ -364,6 +394,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: D
 
+**テキスト**: 1. 送受信のバッファ
+
 帯域遅延積は、帯域 × RTT です。1 Gbps は 125 MB/s なので、125 MB/s × 0.08 秒 = 10 MB です。受信バッファがこれより小さいと、帯域を使い切れません。
 
 - A. 1 Gbps ÷ 8 = 125 MB/s の、1 秒ぶんですらありません。単位を間違えています。
@@ -373,6 +405,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 ### 問17 `LinuC3PS-4.0-017`
 
 **正解**: A
+
+**テキスト**: 1. 送受信のバッファ
 
 `net.core.rmem_max` は、アプリが `SO_RCVBUF` で指定できる受信バッファの上限です。要求がこれを超えても、この上限に切られます。カーネルは、切った値を 2 倍にして持ちます(管理用の領域のため)。`getsockopt` が返すのも 2 倍の値で、212992 なら 425984 バイトです。送信側は `net.core.wmem_max` です。
 
@@ -384,6 +418,8 @@ THP の設定は `/sys/kernel/mm/transparent_hugepage/enabled` で、`never` を
 
 **正解**: B
 
+**テキスト**: 2. 接続を受けるキュー
+
 accept キューの上限は、アプリが指定した backlog と `net.core.somaxconn` の小さいほうです。8192 と 1024 の小さいほうの、1024 になります。8192 にしたければ、`net.core.somaxconn` も上げます。
 
 - A. アプリの指定した値は、`net.core.somaxconn` を超えられません。
@@ -393,6 +429,8 @@ accept キューの上限は、アプリが指定した backlog と `net.core.so
 ### 問19 `LinuC3PS-4.0-019`
 
 **正解**: C
+
+**テキスト**: 2. 接続を受けるキュー
 
 `net.core.netdev_max_backlog` は、NIC から受け取ったパケットを、CPU ごとのキューに入れて処理を待たせる、その上限です。`softnet_stat` の dropped は、このキューがあふれて捨てたパケットの数です。
 
@@ -404,6 +442,8 @@ accept キューの上限は、アプリが指定した backlog と `net.core.so
 
 **正解**: B、D
 
+**テキスト**: 2. 接続を受けるキュー
+
 このメッセージは、SYN を受けて ACK を待つ接続が、待ち受けの backlog(アプリの指定と `net.core.somaxconn` の小さいほう)に達したときに出ます。`net.ipv4.tcp_max_syn_backlog` は、SYN cookie を無効にしているときに、SYN を受け付ける量を決めます。ip-sysctl.rst も、上げるときは `somaxconn` もあわせて確かめるよう書いています。
 
 - A. `tcp_fin_timeout` は、接続を閉じるときの FIN_WAIT_2 の時間で、接続を受けるキューとは関係がありません。
@@ -412,6 +452,8 @@ accept キューの上限は、アプリが指定した backlog と `net.core.so
 ### 問21 `LinuC3PS-4.0-021`
 
 **正解**: A
+
+**テキスト**: 3. クライアント側のポートと TIME_WAIT
 
 同じ宛先に接続するには、送信元のポートが 1 つずつ必要です。既定の範囲は約 28000 個で、閉じた接続が TIME_WAIT で 60 秒残ると、短い接続を毎秒数千回作る場合は足りなくなります。範囲を広げる、接続を使い回す、が対策です。
 
@@ -423,6 +465,8 @@ accept キューの上限は、アプリが指定した backlog と `net.core.so
 
 **正解**: D
 
+**テキスト**: 3. クライアント側のポートと TIME_WAIT
+
 `tcp_fin_timeout` は、アプリが閉じたあと、相手の FIN を待つ状態(FIN_WAIT_2)の時間です。Linux では TIME_WAIT の時間は 60 秒で固定されていて、この設定では変わりません。
 
 - A. よくある誤解です。TIME_WAIT の時間は、この設定とは別に固定されています。
@@ -433,6 +477,8 @@ accept キューの上限は、アプリが指定した backlog と `net.core.so
 
 **正解**: A、D
 
+**テキスト**: 3. クライアント側のポートと TIME_WAIT
+
 TIME_WAIT は、接続を先に閉じた側が、閉じたあとにしばらく残す状態です。遅れて届いた古いパケットが、新しい接続に紛れ込むのを防ぎます。Linux では約 60 秒で固定です。
 
 - B. これは FIN_WAIT_2 の説明です。TIME_WAIT の時間は `tcp_fin_timeout` では変わりません。
@@ -441,6 +487,8 @@ TIME_WAIT は、接続を先に閉じた側が、閉じたあとにしばらく�
 ### 問24 `LinuC3PS-4.0-024`
 
 **正解**: C
+
+**テキスト**: 3. クライアント側のポートと TIME_WAIT
 
 `tcp_tw_reuse=1` は、新しく外へ接続するとき、TIME_WAIT のソケットを、安全なら再利用します。接続を作る側(クライアント側)の設定で、タイムスタンプが有効であることが前提です。
 
@@ -452,6 +500,8 @@ TIME_WAIT は、接続を先に閉じた側が、閉じたあとにしばらく�
 
 **正解**: B
 
+**テキスト**: 3. クライアント側のポートと TIME_WAIT
+
 `tcp_tw_recycle` は、NAT の内側から来る複数のクライアントで接続が失敗する問題があり、カーネル 4.12 で削除されました。今は `tcp_tw_reuse` を使います。
 
 - A. 権限の問題なら、エラーは「許可がありません」になります。名前そのものがありません。
@@ -461,6 +511,8 @@ TIME_WAIT は、接続を先に閉じた側が、閉じたあとにしばらく�
 ### 問26 `LinuC3PS-4.0-026`
 
 **正解**: A
+
+**テキスト**: 3. クライアント側のポートと TIME_WAIT
 
 TIME_WAIT のソケットの数が、`net.ipv4.tcp_max_tw_buckets` の上限を超えると、超えたぶんは TIME_WAIT を待たずに破棄され、この計数が増えます。ログには出ません(カーネル 2.6.38 以降)。この上限は DoS 攻撃を防ぐためのもので、ドキュメントは「下げずに、必要なら増やす」よう書いています。
 
@@ -472,11 +524,15 @@ TIME_WAIT のソケットの数が、`net.ipv4.tcp_max_tw_buckets` の上限を�
 
 **正解**: `net.netfilter.nf_conntrack_max`、`nf_conntrack_max`、`net.nf_conntrack_max`、`/proc/sys/net/netfilter/nf_conntrack_max`
 
+**テキスト**: 4. 接続の追跡(conntrack)
+
 `net.netfilter.nf_conntrack_max` が、conntrack の表の上限です。現在の数は `/proc/sys/net/netfilter/nf_conntrack_count` で見ます。上げると、そのぶんカーネルのメモリを使います。
 
 ### 問28 `LinuC3PS-4.0-028`
 
 **正解**: D
+
+**テキスト**: 4. 接続の追跡(conntrack)
 
 `net.netfilter.nf_conntrack_max` は、`nf_conntrack` のモジュールが読み込まれてはじめて存在します。起動の早い段階で設定を読むと、まだ存在しません。`/etc/modules-load.d/` で、モジュールを先に読み込むようにします。
 
@@ -488,6 +544,8 @@ TIME_WAIT のソケットの数が、`net.ipv4.tcp_max_tw_buckets` の上限を�
 
 **正解**: C
 
+**テキスト**: 5. タイムアウトと再送
+
 `net.ipv4.tcp_syn_retries` は、こちらから接続するときの、SYN の再送の回数です。小さくすると、接続先が落ちているときに早く諦められます。ただし、一時的なパケット損失にも弱くなります。
 
 - A. `tcp_synack_retries` は、サーバー側が SYN+ACK を再送する回数です。接続する側の待ち時間とは関係がありません。
@@ -497,6 +555,8 @@ TIME_WAIT のソケットの数が、`net.ipv4.tcp_max_tw_buckets` の上限を�
 ### 問30 `LinuC3PS-4.0-030`
 
 **正解**: B
+
+**テキスト**: 5. タイムアウトと再送
 
 「orphan(孤児)」は、アプリが `close()` したのに、カーネルにまだ残っている接続のことです。相手が応答しないとき、再送の回数を決めます。負荷の高い Web サーバーでは、こういう接続が資源を使うので、小さくすることがあります。
 
@@ -508,11 +568,15 @@ TIME_WAIT のソケットの数が、`net.ipv4.tcp_max_tw_buckets` の上限を�
 
 **正解**: `net.ipv4.tcp_slow_start_after_idle`、`tcp_slow_start_after_idle`、`/proc/sys/net/ipv4/tcp_slow_start_after_idle`
 
+**テキスト**: 5. タイムアウトと再送
+
 `net.ipv4.tcp_slow_start_after_idle` を 0 にすると、通信が止まったあとでも、輻輳ウィンドウ(送れる量)を縮めず、速度を維持します。既定は 1(有効)です。
 
 ### 問32 `LinuC3PS-4.0-032`
 
 **正解**: A
+
+**テキスト**: 6. keepalive
 
 判断までの時間は、`time + intvl × probes` です。600 + 30 × 5 = 750 秒です。
 
@@ -523,6 +587,8 @@ TIME_WAIT のソケットの数が、`net.ipv4.tcp_max_tw_buckets` の上限を�
 ### 問33 `LinuC3PS-4.0-033`
 
 **正解**: D
+
+**テキスト**: 7. パケットの転送
 
 `net.ipv4.ip_forward` が 0(既定)だと、自分宛てでないパケットを転送しません。ルーターや NAT ゲートウェイにするには、1 にします。`sysctl -w` だけでは再起動で戻るので、`/etc/sysctl.d/` にも書きます。
 

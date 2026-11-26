@@ -110,6 +110,8 @@
 
 **正解**: B
 
+**テキスト**: 2. 権限を絞るオプション
+
 ファイルの所有者を変える特権は `CHOWN` です。`--cap-drop ALL` で外したので、`--cap-add CHOWN` だけを足せば `chown` が使えます。必要な分だけを足すのが、最小権限の考え方です。
 
 - A. `NET_BIND_SERVICE` は、1024 未満のポートで待ち受けるための特権です。`chown` には関係しません。
@@ -120,11 +122,15 @@
 
 **正解**: `no-new-privileges`、`no-new-privileges=true`、`no-new-privileges:true`、`--security-opt no-new-privileges`、`--security-opt=no-new-privileges`、`--security-opt no-new-privileges=true`、`--security-opt=no-new-privileges=true`、`--security-opt no-new-privileges:true`、`--security-opt=no-new-privileges:true`
 
+**テキスト**: 2. 権限を絞るオプション
+
 `no-new-privileges` を付けると、setuid のプログラムなどを実行しても、起動時より多い権限を得られなくなります。コンテナの中で権限を上げる攻撃を防ぎます。Docker でも Podman でも使えます。
 
 ### 問3 `LinuC3SS-3.0-003`
 
 **正解**: D
+
+**テキスト**: 2. 権限を絞るオプション
 
 `--read-only` では、ルートファイルシステムに書けません。nginx のキャッシュのように、書く場所が決まっているものは、その場所だけに `--tmpfs`(メモリ上の書ける領域)かボリュームを付けます。
 
@@ -136,6 +142,8 @@
 
 **正解**: A
 
+**テキスト**: 5. SELinux
+
 SELinux では、コンテナのプロセス(`container_t`)が使えるファイルのタイプは `container_file_t` です。ホストの普通のディレクトリには別のタイプが付いているので、拒否されます。`:Z` を付けると、Podman がそのディレクトリのラベルを、このコンテナ専用のものに付け替えます。`Enforcing` のまま直せます。
 
 - B. `:ro` は読み取り専用にするだけで、ラベルは変わりません。読むことも拒否されたままです。
@@ -146,6 +154,8 @@ SELinux では、コンテナのプロセス(`container_t`)が使えるファイ
 
 **正解**: A、C
 
+**テキスト**: 5. SELinux
+
 `:z`(小文字)は、複数のコンテナで共有できるラベルを付けます。同じディレクトリを複数のコンテナで使うときに使います。`:Z`(大文字)は、そのコンテナだけが使えるラベル(コンテナごとに別のカテゴリ)を付けます。どちらもホストのディレクトリのラベルを書き換えるので、`/home` や `/etc` のような広い場所には付けないようにします。
 
 - B. 読み取り専用にするのは `:ro` です。`:z` はラベルの付け替えです。
@@ -155,11 +165,15 @@ SELinux では、コンテナのプロセス(`container_t`)が使えるファイ
 
 **正解**: `seccomp=unconfined`、`seccomp:unconfined`、`--security-opt seccomp=unconfined`、`--security-opt=seccomp=unconfined`、`--security-opt seccomp:unconfined`
 
+**テキスト**: 3. seccomp
+
 `seccomp=unconfined` は、seccomp の制限をなくします。これで動くなら、原因は seccomp です。調べた後は必ず外し、必要なシステムコールだけを足した独自のプロファイル(`seccomp=<ファイル>`)にします。
 
 ### 問7 `LinuC3SS-3.0-007`
 
 **正解**: C
+
+**テキスト**: 4. AppArmor
 
 AppArmor は、プロファイルに、触れてよいファイルのパスやネットワークを書く仕組みです。Ubuntu では、既定で有効です。Docker は `docker-default` を付け、独自のものは `--security-opt apparmor=<名前>` で指定します。
 
@@ -171,11 +185,15 @@ AppArmor は、プロファイルに、触れてよいファイルのパスや�
 
 **正解**: `--privileged`、`--privileged=true`
 
+**テキスト**: 2. 権限を絞るオプション
+
 `--privileged` は、ほぼすべてのケーパビリティとデバイスを与え、seccomp と AppArmor の制限も外します。コンテナを抜け出さなくても、ホストを操作できるので、本番では使いません。
 
 ### 問9 `LinuC3SS-3.0-009`
 
 **正解**: C
+
+**テキスト**: 3. subuid、subgid と newuidmap、newgidmap
 
 Rootless には、`/etc/subuid` と `/etc/subgid` に、そのユーザーの行(使ってよい UID と GID の範囲)が必要です。行がないので、`usermod --add-subuids` と `--add-subgids` で足します。範囲は、ほかのユーザーと重ならないようにします。
 
@@ -187,6 +205,8 @@ Rootless には、`/etc/subuid` と `/etc/subgid` に、そのユーザーの行
 
 **正解**: A
 
+**テキスト**: 3. subuid、subgid と newuidmap、newgidmap
+
 `/etc/subuid` の書式は `ユーザー名:開始:個数` です。alice は、ホストの 100000 から 65536 個(100000 〜 165535)を、コンテナの中の UID に対応づけて使えます。
 
 - B. alice 自身の UID は `/etc/passwd` で決まります。subuid は、追加で使える範囲です。
@@ -196,6 +216,8 @@ Rootless には、`/etc/subuid` と `/etc/subgid` に、そのユーザーの行
 ### 問11 `LinuC3SS-3.0-011`
 
 **正解**: B
+
+**テキスト**: 2. User namespace と UID の対応
 
 Rootless では、コンテナの中の root(UID 0)は、ホストでは実行したユーザー本人(alice、UID 1001)に対応します。ホストで見ると、alice のファイルです。
 
@@ -207,6 +229,8 @@ Rootless では、コンテナの中の root(UID 0)は、ホストでは実行�
 
 **正解**: D
 
+**テキスト**: 2. User namespace と UID の対応
+
 `/proc/self/uid_map` の 2 行目は、「コンテナの UID 1 から 65536 個が、ホストの 100000 から対応する」という意味です。コンテナの UID 1 がホストの 100000 なので、UID 1000 は `100000 + 1000 - 1 = 100999` です。
 
 - A. 1000 は、コンテナの中の番号です。ホストでは対応した別の番号になります。
@@ -217,11 +241,15 @@ Rootless では、コンテナの中の root(UID 0)は、ホストでは実行�
 
 **正解**: `loginctl enable-linger`、`loginctl enable-linger alice`
 
+**テキスト**: 4. systemctl --user、enable-linger、XDG_RUNTIME_DIR
+
 `loginctl enable-linger <ユーザー>` を実行すると、そのユーザーがログアウトしても、ユーザー用の systemd が動き続けます。ブート時にも自動で始まります。これで、`systemctl --user` のサービスが、ログインなしで動きます。確認は `loginctl show-user alice` の `Linger=yes` です。ユーザー名を付けた `loginctl enable-linger alice` も正解です。
 
 ### 問14 `LinuC3SS-3.0-014`
 
 **正解**: C
+
+**テキスト**: 4. systemctl --user、enable-linger、XDG_RUNTIME_DIR
 
 `systemctl --user` は、ユーザー用の systemd と、`XDG_RUNTIME_DIR`(`/run/user/<UID>`)の中のソケットで通信します。`sudo -u` で切り替えたシェルには、この環境変数が設定されないことが多く、つながりません。ssh で alice として直接ログインすると、設定されます。
 
@@ -233,6 +261,8 @@ Rootless では、コンテナの中の root(UID 0)は、ホストでは実行�
 
 **正解**: A、D
 
+**テキスト**: 5. Rootless の制限と Podman
+
 Rootless では、ホストの 1024 未満のポートへの公開は、既定ではできません(コンテナの中で 80 番で待ち受けることは、できます)。対処は、`net.ipv4.ip_unprivileged_port_start` を下げる、Docker では `rootlesskit` に `CAP_NET_BIND_SERVICE` を付ける、または 1024 以上のポートで公開する、のどれかです。`--memory` などの資源の制限は、cgroup v2 のホストでだけ使えます(Docker は systemd も必要です)。既定で委譲されるのは、ふつう memory と pids だけです。`--cpus` を使うには、`user@.service` に `Delegate=` を設定します。
 
 - B. Rootless の `--privileged` は、ユーザー名前空間の中だけの特権です。ホストの root の権限は得られません。
@@ -241,5 +271,7 @@ Rootless では、ホストの 1024 未満のポートへの公開は、既定�
 ### 問16 `LinuC3SS-3.0-016`
 
 **正解**: `podman unshare`
+
+**テキスト**: 2. User namespace と UID の対応
 
 `podman unshare` は、Rootless のユーザー名前空間の中でコマンドを実行します。例: `podman unshare chown 1000:1000 ~/data`。コンテナの UID 1000 に対応するホストの UID(subuid の範囲の中の番号)を、自分で計算せずに指定できます。
