@@ -301,6 +301,15 @@ describe('解答の書式', () => {
   it('複数選択に入力の別解を書くとエラーにする', () => {
     expect(() => parseQuestions(md.replace('**正解**: B\n', '**正解**: A、B\n\n**入力の別解**: `x`\n'))).toThrow(/別解/)
   })
+
+  it('テキストの小見出しを読み、解説には含めない', () => {
+    const [q] = parseQuestions(md.replace('**正解**: B\n', '**正解**: B\n\n**入力の別解**: `bb`\n\n**テキスト**: 2. 引数(位置パラメータ)\n'))
+    expect(q.subsection).toBe('2. 引数(位置パラメータ)')
+    expect(q.inputAlt).toEqual(['bb'])
+    expect(q.explanation.startsWith('手順です。')).toBe(true)
+    expect(parseQuestions(md)[0].subsection).toBeUndefined()
+    expect(() => parseQuestions(md.replace('**正解**: B\n', '**正解**: B\n**テキスト**:\n'))).toThrow(/小見出し/)
+  })
 })
 
 describe('タグ', () => {

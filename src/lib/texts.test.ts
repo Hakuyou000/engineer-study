@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import questions from '../data/questions.json'
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { lintSvg, lintTextDiagrams, lintTextImages } from './contentLint'
-import { PAGE_MAX, PAGE_MIN, TEXTS, loadText, parseTextPath, sectionNumbers, splitPages, splitSections, textFor } from './texts'
+import { PAGE_MAX, PAGE_MIN, TEXTS, findSubsection, loadText, parseTextPath, sectionNumbers, splitPages, splitSections, textFor } from './texts'
 
 describe('parseTextPath', () => {
   it('試験名、番号、題名を取り出す', () => {
@@ -95,12 +95,40 @@ describe('splitPages', () => {
   })
 })
 
+describe('findSubsection', () => {
+  const sections = splitSections(['## 1.1 節', '前置き', '### 1. 一つ目', '本文1', '### 2. 二つ目', '本文2', '```', '### コード内', '```', '## 1.2 次', '### 1. 一つ目', '別'].join('\n'))
+
+  it('節の中の ### の範囲を、次の ### の前まで返す', () => {
+    const found = findSubsection(sections, '2. 二つ目')
+    expect(found?.section.number).toBe('1.1')
+    expect(found?.body).toBe('### 2. 二つ目\n本文2\n```\n### コード内\n```')
+    expect(findSubsection(sections, 'コード内')).toBeUndefined()
+    expect(findSubsection(sections, 'ない')).toBeUndefined()
+    // 同じ見出しが複数の節にあれば、先の節のもの
+    expect(findSubsection(sections, '1. 一つ目')?.body).toBe('### 1. 一つ目\n本文1')
+  })
+})
+
 describe('sectionNumbers', () => {
   it('先頭の節番号を取り出す', () => {
     expect(sectionNumbers('1.1 インターフェースとケーブル')).toEqual(['1.1'])
     expect(sectionNumbers('2.0 / 2.1 スイッチの基本、トランク')).toEqual(['2.0', '2.1'])
     expect(sectionNumbers('4.7 L2 セキュリティ 802.1X')).toEqual(['4.7'])
     expect(sectionNumbers('番号なし')).toEqual([])
+  })
+})
+
+describe('問題の小見出し(**テキスト**:)', () => {
+  it('問題の小項目の節の中に、同じ見出しの ### がある', async () => {
+    const missing: string[] = []
+    for (const q of questions as { code: string; exam: string; domain: string; section: string; subsection?: string }[]) {
+      if (!q.subsection) continue
+      const t = textFor(q.exam, q.domain)
+      const numbers = sectionNumbers(q.section)
+      const sections = t ? splitSections(await loadText(t.id)).filter((s) => numbers.includes(s.number)) : []
+      if (!findSubsection(sections, q.subsection)) missing.push(`${q.code}: ${q.subsection}`)
+    }
+    expect(missing).toEqual([])
   })
 })
 

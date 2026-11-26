@@ -304,6 +304,8 @@ sudo pcs resource create vip ocf:heartbeat:IPaddr2 ip=192.0.2.100 cidr_netmask=2
 
 **正解**: C
 
+**テキスト**: 2. keepalived の設定(VRRP)
+
 VRRP では、優先度(`priority`)がいちばん高い機器が MASTER になります。`nopreempt` を書かないと、優先度の高い機器が戻ったときに、MASTER を取り戻します(プリエンプト)。MASTER が止まって VIP が別の機器へ移る切り替えは、フェイルオーバーです。lb1 の起動後、lb1 が VIP を取り戻します。
 
 - A. プリエンプトが有効なので、lb2 は MASTER のままではいません。取り戻させたくないときは、`nopreempt` を書き、両方の `state` を `BACKUP` にします。
@@ -313,6 +315,8 @@ VRRP では、優先度(`priority`)がいちばん高い機器が MASTER にな�
 ### 問2 `LinuC3PS-5.0-002`
 
 **正解**: A
+
+**テキスト**: 2. keepalived の設定(VRRP)
 
 `vrrp_script` の `weight` が負の値のとき、スクリプトが失敗すると、その分だけ `priority` から引かれます。100 − 5 = 95 は、lb2 の 90 より高いので、lb1 が MASTER のままです。VIP を移すには、100 − 20 = 80 のように、相手の `priority` を**下回る**値にします。`weight` を書かない(0 のまま)ときは、失敗した機器が FAULT になり、VIP を手放します。
 
@@ -324,6 +328,8 @@ VRRP では、優先度(`priority`)がいちばん高い機器が MASTER にな�
 
 **正解**: B
 
+**テキスト**: 2. keepalived の設定(VRRP)
+
 VRRP の広告は、マルチキャスト `224.0.0.18`、IP プロトコル番号 112 で送ります。ファイアウォールがこれを止めると、お互いの広告が届かず、どちらも「相手がいない」と判断して MASTER になります。`firewall-cmd` で VRRP を許可します。
 
 - A. 同じグループで `priority` が違うのは、正常な設計です。差があるから MASTER が決まります。
@@ -334,6 +340,8 @@ VRRP の広告は、マルチキャスト `224.0.0.18`、IP プロトコル番�
 
 **正解**: `net.ipv4.ip_nonlocal_bind`
 
+**テキスト**: 2. keepalived の設定(VRRP)
+
 `sysctl -w net.ipv4.ip_nonlocal_bind=1` で、自分が持っていないアドレスにも bind できます。永続にするには `/etc/sysctl.d/` に書きます。ほかに、`bind *:80` と書く方法もあります。
 
 **入力の別解**: `net.ipv4.ip_nonlocal_bind=1`、`net.ipv4.ip_nonlocal_bind = 1`、`net/ipv4/ip_nonlocal_bind`、`ip_nonlocal_bind`、`/proc/sys/net/ipv4/ip_nonlocal_bind`
@@ -341,6 +349,8 @@ VRRP の広告は、マルチキャスト `224.0.0.18`、IP プロトコル番�
 ### 問5 `LinuC3PS-5.0-005`
 
 **正解**: D
+
+**テキスト**: 3. IPVS(LVS)
 
 宛先の MAC アドレスだけを書き換え、応答を実サーバーから直接返すのは、DR(Direct Routing)方式です。LB と実サーバーが同じ L2 にある必要があります。LB に戻りの通信が通らないので、LB の負荷が軽くなります。`ipvsadm` では `-g` です。keepalived の `virtual_server` で書くときは、`lb_kind DR` です。
 
@@ -352,6 +362,8 @@ VRRP の広告は、マルチキャスト `224.0.0.18`、IP プロトコル番�
 
 **正解**: B
 
+**テキスト**: 3. IPVS(LVS)
+
 DR 方式では、実サーバーも VIP を持ちます。そのままでは、実サーバーが VIP の ARP に答え、LB を通らない通信が起きます。`arp_ignore=1`(自分の NIC のアドレス宛の ARP にだけ答える)と、`arp_announce=2`(ARP の送信元に、出ていく NIC のアドレスを使う)で抑えます。
 
 - A. `ip_forward` は、パケットを別のネットワークへ転送するかの設定で、ARP の応答とは関係ありません。
@@ -361,6 +373,8 @@ DR 方式では、実サーバーも VIP を持ちます。そのままでは、
 ### 問7 `LinuC3PS-5.0-007`
 
 **正解**: C
+
+**テキスト**: 3. IPVS(LVS)
 
 NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するので、戻りも LB を通る必要があります。実サーバーの既定ゲートウェイが別のルーターだと、応答がそのルーターから直接クライアントへ出てしまい、クライアントから見ると、知らない送信元からの応答になって、捨てられます。
 
@@ -372,6 +386,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: A
 
+**テキスト**: 4. HAProxy の構成
+
 `timeout server` は、バックエンドからの応答を待つ時間です。処理に 45 秒かかるのに 30 秒なので、HAProxy が待ちきれず、504 を返します。45 秒より長くします。
 
 - B. `timeout connect` は、バックエンドへの TCP の接続を待つ時間です。この問題では、接続はできています。
@@ -381,6 +397,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 ### 問9 `LinuC3PS-5.0-009`
 
 **正解**: D
+
+**テキスト**: 6. ヘルスチェックの設定
 
 `check` だけでは、TCP で接続できるかしか見ません。`option httpchk` で HTTP のリクエストを送り、`http-check expect status 200` で、200 のときだけ正常と決めると、500 を返すサーバーを外せます。
 
@@ -392,11 +410,15 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: `h2`
 
+**テキスト**: 7. HTTPS(TLS オフロード)
+
 `alpn h2,http/1.1` と書くと、クライアントが TLS の接続のときに、HTTP/2(`h2`)か HTTP/1.1 かを選べます。HTTP/2 は TLS の上で使うのが普通なので、`ssl crt` と一緒に書きます。HAProxy 2.8 以降は、`alpn` を書かなければ `h2,http/1.1` が既定で使われます。AlmaLinux 9 の 2.4 系では書く必要があります。このように、HAProxy が TLS を終わらせる構成を、TLS オフロードと呼びます。
 
 ### 問11 `LinuC3PS-5.0-011`
 
 **正解**: C
+
+**テキスト**: 9. acl と振り分け、ヘッダーと圧縮
 
 `use_backend` はどの条件にも合わず、`default_backend` もないので、振り分け先がありません。HAProxy は 503 を返します。`be_web` を使わせたいときは、`default_backend be_web` を足します。
 
@@ -408,6 +430,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: B、D
 
+**テキスト**: 8. セッションの固定(Sticky Session)
+
 クッキーでの固定には、backend に `cookie SRV insert indirect nocache` を書き、`server` 行にサーバーごとの `cookie` の値を付けます。HAProxy が初回の応答に `Set-Cookie: SRV=s1` を足し、次からはその値を見て、同じサーバーへ送ります。
 
 - A. `balance source` は、クッキーではなく、クライアントの IP アドレスで決める別の方式です。
@@ -417,11 +441,15 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: `backup`
 
+**テキスト**: 5. 負荷分散の方式とサーバーの指定
+
 `server web3 192.0.2.13:8080 check backup` のように書くと、ほかのサーバーがすべて DOWN のときだけ使われます。
 
 ### 問14 `LinuC3PS-5.0-014`
 
 **正解**: A
+
+**テキスト**: 9. acl と振り分け、ヘッダーと圧縮
 
 応答のヘッダーを消すのは `http-response del-header` です。`Server` の値を隠したいときに使います。
 
@@ -433,6 +461,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: D
 
+**テキスト**: 9. acl と振り分け、ヘッダーと圧縮
+
 `compression algo` は方式を決めるだけです。`compression type` を書かないと、Content-Type で絞らず、条件に合う応答をすべて圧縮します(画像も対象になります)。`compression type text/html application/json` と書くと、その 2 種類だけを圧縮します。画像のような、すでに圧縮されたものは入れません。
 
 - A. 方式を変えても、圧縮する種類は絞れません。
@@ -442,6 +472,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 ### 問16 `LinuC3PS-5.0-016`
 
 **正解**: B
+
+**テキスト**: 7. HTTPS(TLS オフロード)
 
 条件のない `http-request redirect scheme https` は、すでに HTTPS で来たリクエストも、また HTTPS へ転送するので、無限に繰り返されます。`unless { ssl_fc }`(TLS の接続でなければ)を付け、HTTP のときだけ転送します。
 
@@ -453,6 +485,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: `status=+H`
 
+**テキスト**: 1. Apache の mod_proxy_balancer
+
 `BalancerMember "http://192.0.2.13:8080" status=+H` と書くと、ほかのメンバーがすべて使えないときだけ使われます(H は Hot standby)。`+D` は無効にして外す指定です。
 
 **入力の別解**: `+H`、`status=H`、`H`
@@ -460,6 +494,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 ### 問18 `LinuC3PS-5.0-018`
 
 **正解**: A
+
+**テキスト**: 2. Apache の振り分けの方式
 
 `bytraffic` は、転送したバイト数が `loadfactor` の比になるように振り分けます。`mod_lbmethod_bytraffic` が要ります。
 
@@ -471,6 +507,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: C
 
+**テキスト**: 2. Apache の振り分けの方式
+
 振り分けの方式ごとに、モジュールが別です。読み込まれていないと、設定の誤りになり、Apache が起動しません。`bybusyness` には `mod_lbmethod_bybusyness` が要ります。`a2enmod lbmethod_bybusyness`(Debian 系)や、`LoadModule`(Red Hat 系)で読み込みます。
 
 - A. `mod_ssl` は HTTPS のモジュールで、振り分けの方式とは関係ありません。
@@ -480,6 +518,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 ### 問20 `LinuC3PS-5.0-020`
 
 **正解**: B
+
+**テキスト**: 1. Apache の mod_proxy_balancer
 
 `ProxyPassReverse` は、バックエンドの応答の `Location` などのヘッダーを、Apache の URL に書き換えます。`ProxyPassReverse "/app/" "balancer://mycluster/"` のように、バランサーの名前を書くと、各メンバーの URL を書き換えます。
 
@@ -491,6 +531,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 
 **正解**: D
 
+**テキスト**: 3. Apache の持続接続と同時接続の上限
+
 `MaxRequestWorkers` は、`ServerLimit × ThreadsPerChild` を超えられません。16 × 25 = 400 です。600 にするには、600 ÷ 25 = 24 なので、`ServerLimit` を 24 以上にします。`ServerLimit` の変更は、`reload` では反映されず、`httpd` の再起動が要ります。
 
 - A. `MaxConnectionsPerChild` は、プロセスを作り直す接続の数で、同時処理の上限とは別です。
@@ -500,6 +542,8 @@ NAT 方式は、LB が宛先の IP アドレスを書き換えて転送するの
 ### 問22 `LinuC3PS-5.0-022`
 
 **正解**: A
+
+**テキスト**: 3. Apache の持続接続と同時接続の上限
 
 prefork では、持続接続は、次のリクエストを待つ間も、処理の枠を占めます(event MPM では、アイドルの接続をリスナーのスレッドに任せるので、影響が小さくなります)。混んでいるときは、`KeepAliveTimeout` を数秒にして、アイドルの接続を早く手放します。
 
@@ -511,6 +555,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: C
 
+**テキスト**: 3. Apache の持続接続と同時接続の上限
+
 `MaxConnectionsPerChild` は、1 つの子プロセスが処理する接続の数です。その数に達したプロセスは終了し、新しいプロセスが作られます。0 は無制限です。Apache 2.2 では `MaxRequestsPerChild` でした。
 
 - A. `MaxRequestWorkers` は、同時に処理するリクエストの上限です。
@@ -520,6 +566,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 ### 問24 `LinuC3PS-5.0-024`
 
 **正解**: B
+
+**テキスト**: 4. nginx の upstream
 
 `down` は、サーバーを使わない印で、`ip_hash` の計算の位置は残ります。ほかのクライアントの割り当ては変わりません。
 
@@ -531,6 +579,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: D
 
+**テキスト**: 5. nginx の持続接続と処理能力
+
 同時の接続の目安は `worker_processes × worker_connections` = 4 × 1024 = 4096 です。リバースプロキシでは、クライアント側とバックエンド側で 2 本を使うので、クライアントは約 2048 です。
 
 - A. 2 本使うことを考えていない数です。
@@ -541,6 +591,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: A
 
+**テキスト**: 4. nginx の upstream
+
 何も書かないと、重み付きのラウンドロビンです。`weight` の 3:1 の比で振り分けるので、8 回では 6 回と 2 回です。
 
 - B. 重みがないときの比です。
@@ -550,6 +602,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 ### 問27 `LinuC3PS-5.0-027`
 
 **正解**: A、C
+
+**テキスト**: 5. nginx の持続接続と処理能力
 
 `ip_hash` は、IPv4 では先頭の 3 オクテット(/24)で決めます。`keepalive_timeout 0;` は、持続接続を使わない指定です。
 
@@ -562,11 +616,15 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: `MaxKeepAliveRequests`
 
+**テキスト**: 3. Apache の持続接続と同時接続の上限
+
 既定は 100 で、0 にすると無制限です。待ち時間は `KeepAliveTimeout`、持続接続の使用の有無は `KeepAlive` です。
 
 ### 問29 `LinuC3PS-5.0-029`
 
 **正解**: B
+
+**テキスト**: 7. STONITH(フェンシング)
 
 `stonith-enabled` の既定は true です。フェンシングの装置がないと、安全にリソースを動かせないとして、Pacemaker はリソースを起動しません。本番では、`pcs stonith create` で装置を作ります。練習用の環境に限って、`pcs property set stonith-enabled=false` で止められます。
 
@@ -578,6 +636,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: D
 
+**テキスト**: 2. corosync.conf
+
 クォーラムは過半数の票です。5 ノードなら 3 票が要ります。3 台の側はクォーラムがあるので動き続けます。2 台の側は、過半数がないので、`no-quorum-policy` の既定(stop)により、リソースを止めます。STONITH があれば、3 台の側が 2 台の側を止めて、確実に分けます。
 
 - A. 両方が動くと、スプリットブレインです。クォーラムは、これを防ぐためのものです。
@@ -588,6 +648,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: B、C
 
+**テキスト**: 5. 制約(location、order、colocation)
+
 `colocation add vip with db INFINITY` で、`vip` を `db` と同じノードに置きます。`order db then vip` で、`db` の起動のあとに `vip` を起動します(停止は逆順)。colocation は順番を決めず、order は置き場所を決めないので、両方が要ります。
 
 - A. location はノードの好みを決める制約で、指定できるのはノードの名前です。`db` はリソースの名前です。
@@ -596,6 +658,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 ### 問32 `LinuC3PS-5.0-032`
 
 **正解**: A
+
+**テキスト**: 6. 戻らない設定と、失敗の扱い
 
 今いるノードに居続ける強さ(`resource-stickiness` = 100)が、node1 を好む強さ(50)より大きいので、`db` は node2 のままです。node1 に戻したければ、`prefers node1=200` のように、stickiness より大きいスコアにします。
 
@@ -607,11 +671,15 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: `migration-threshold`
 
+**テキスト**: 6. 戻らない設定と、失敗の扱い
+
 `pcs resource meta db migration-threshold=3` と設定すると、同じノードで 3 回失敗したら、別のノードへ移します。
 
 ### 問34 `LinuC3PS-5.0-034`
 
 **正解**: C
+
+**テキスト**: 4. リソースを作る(OCF)
 
 `on-fail=fence` は、失敗したらそのノードをフェンシング(STONITH)して、別のノードでリソースを動かします。
 
@@ -623,11 +691,15 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: `ocf:heartbeat:IPaddr2`
 
+**テキスト**: 4. リソースを作る(OCF)
+
 `pcs resource create vip ocf:heartbeat:IPaddr2 ip=192.0.2.100 cidr_netmask=24` のように使います。OCF の標準で、heartbeat の提供元の `IPaddr2` です。
 
 ### 問36 `LinuC3PS-5.0-036`
 
 **正解**: D
+
+**テキスト**: 6. 戻らない設定と、失敗の扱い
 
 `failure-timeout` は、失敗の記録を、その時間がたったら消す設定です。`migration-threshold` と合わせると、「短い期間に何回も失敗したときだけ」別のノードへ移せます。手で消すときは `pcs resource cleanup db` です。
 
@@ -639,6 +711,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: B
 
+**テキスト**: 5. 制約(location、order、colocation)
+
 `pcs resource move-with-constraint` は、`cli-prefer-<リソース名>` という location の制約を足して残します。`pcs resource clear db` で、その制約を消します。RHEL 9 の `pcs resource move` は、移したあとに制約を自動で消します。
 
 - A. `cleanup` は、失敗の記録を消すもので、制約は消えません。
@@ -649,6 +723,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 
 **正解**: A
 
+**テキスト**: 4. リソースを作る(OCF)
+
 `pcs resource group add` は、書いた順に起動し、同じノードに置き、停止は逆順にします。`fs`、`db`、`vip` の順に書きます。
 
 - B. 仮想 IP が先に付き、ファイルシステムがマウントされる前に、データベースが起動する順です。
@@ -658,6 +734,8 @@ prefork では、持続接続は、次のリクエストを待つ間も、処理
 ### 問39 `LinuC3PS-5.0-039`
 
 **正解**: C
+
+**テキスト**: 2. corosync.conf
 
 `nodelist` は、仲間のノードの一覧です。`totem` は、クラスタの名前と通信の方式、`quorum` は、クォーラムの方式、`logging` は、ログの出し先です。`pcs cluster setup` が作り、全ノードへ配ります。
 

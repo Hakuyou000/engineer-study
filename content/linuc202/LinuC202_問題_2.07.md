@@ -179,6 +179,8 @@ olcAccess: {0}to attrs=userPassword by self write by anonymous auth by * none
 
 **正解**: A
 
+**テキスト**: 1. DHCP と dhcpd
+
 ISC dhcpd のメインの設定は `/etc/dhcp/dhcpd.conf` です。Red Hat 系(`dhcp-server`)も Debian 系(`isc-dhcp-server`)も、同じ場所です。
 
 - B. `/var/lib/dhcpd/` は、貸し出しの記録(`dhcpd.leases`)を置く場所です。設定ファイルは置きません。
@@ -188,6 +190,8 @@ ISC dhcpd のメインの設定は `/etc/dhcp/dhcpd.conf` です。Red Hat 系(`
 ### 問2 `LinuC202-2.07-002`
 
 **正解**: C
+
+**テキスト**: 1. DHCP と dhcpd
 
 `dhcpd.leases` は、dhcpd が書く貸し出しの記録です。アドレス、MAC アドレス、期限、状態が残ります。Red Hat 系は `/var/lib/dhcpd/`、Debian 系は `/var/lib/dhcp/` にあります。
 
@@ -199,6 +203,8 @@ ISC dhcpd のメインの設定は `/etc/dhcp/dhcpd.conf` です。Red Hat 系(`
 
 **正解**: B
 
+**テキスト**: 3. 固定の割り当てと BOOTP
+
 `hardware ethernet` で MAC アドレスを指定し、`fixed-address` で渡すアドレスを決めます。その MAC の機器には、いつも `192.0.2.10` が渡されます。`192.0.2.10` は `range`(100〜150)の外ですが、書けます。むしろ、`range` の外にするのがふつうです。
 
 - A. `fixed-address` は、`range` の外でも書けます。
@@ -209,11 +215,15 @@ ISC dhcpd のメインの設定は `/etc/dhcp/dhcpd.conf` です。Red Hat 系(`
 
 **正解**: `dhcrelay`
 
+**テキスト**: 4. リレーエージェント
+
 ブロードキャストの Discover はルーターを越えられないので、**リレーエージェント**の `dhcrelay` が、サーバーへユニキャストで転送します。`dhcrelay -i eth0 -i eth1 198.51.100.10` のように、クライアント側とサーバー側のインターフェースと、サーバーのアドレスを指定します。DHCP サーバー側にも、リレー越しのサブネットの `subnet` の宣言が要ります。
 
 ### 問5 `LinuC202-2.07-005`
 
 **正解**: B、D
+
+**テキスト**: 6. DHCPv6 とルーター広告(radvd)
 
 radvd は、`/etc/radvd.conf` に従って、定期的にルーター広告(RA)を送ります。`AdvAutonomous on` のプレフィックスは、クライアントが SLAAC で、自分でアドレスを作れます。
 
@@ -224,11 +234,15 @@ radvd は、`/etc/radvd.conf` に従って、定期的にルーター広告(RA)�
 
 **正解**: `arp`、`arp -a`、`arp -n`、`arp -an`、`arp -e`、`ip neigh`、`ip neighbour`、`ip neighbor`、`ip n`、`ip neigh show`、`ip neigh list`、`ip neighbour show`、`ip neighbor show`
 
+**テキスト**: 5. 保守とログ
+
 `arp` は、ARP テーブル(IP アドレスと MAC アドレスの対応)を表示します。`arp -n` は、名前を引かずに表示します。新しい書き方は `ip neigh` です。
 
 ### 問7 `LinuC202-2.07-007`
 
 **正解**: D
+
+**テキスト**: 3. 主なモジュール
 
 `pam_limits` は、ログインの前後の準備にあたる `session` のタイプで使います。`session required pam_limits.so` のように書き、`/etc/security/limits.conf` の上限を適用します。
 
@@ -240,6 +254,8 @@ radvd は、`/etc/radvd.conf` に従って、定期的にルーター広告(RA)�
 
 **正解**: B
 
+**テキスト**: 2. 設定ファイルの 1 行
+
 `requisite` は、失敗したらすぐに失敗を返し、続きの行を実行しません。
 
 - A. `required` も、最終的には失敗になりますが、続きの行を最後まで実行します。
@@ -250,6 +266,8 @@ radvd は、`/etc/radvd.conf` に従って、定期的にルーター広告(RA)�
 
 **正解**: A、C
 
+**テキスト**: 2. 設定ファイルの 1 行
+
 `required` は、失敗しても最後まで実行してから失敗を返します(どこで失敗したかを、ユーザーに悟らせないためです)。`optional` は、そのタイプの唯一のモジュールのときだけ、結果が効きます。
 
 - B. `sufficient` は、失敗しても無視して続きの行へ進みます。失敗で即終了するのは `requisite` です。
@@ -258,6 +276,8 @@ radvd は、`/etc/radvd.conf` に従って、定期的にルーター広告(RA)�
 ### 問10 `LinuC202-2.07-010`
 
 **正解**: A
+
+**テキスト**: 3. 主なモジュール
 
 `pam_listfile` で `item=user sense=deny` と書くと、ファイルにあるユーザーは失敗します。`required` なので、その失敗は全体の失敗になります。`onerr=succeed` は、ファイルが読めないときは成功とします。
 
@@ -269,6 +289,8 @@ radvd は、`/etc/radvd.conf` に従って、定期的にルーター広告(RA)�
 
 **正解**: C
 
+**テキスト**: 3. 主なモジュール
+
 `pam_pwquality` は `pam_cracklib` の後継で、パスワードの強さを検査します。設定は `/etc/security/pwquality.conf` に書けます。`pam_cracklib` は Linux-PAM 1.5.0 で削除されました。Debian 系では `libpam-pwquality` を入れて使います【要確認】。
 
 - A. `pam_limits` は、資源の上限を適用します。
@@ -279,11 +301,15 @@ radvd は、`/etc/radvd.conf` に従って、定期的にルーター広告(RA)�
 
 **正解**: `/etc/sssd/sssd.conf`、`sssd.conf`
 
+**テキスト**: 4. nsswitch.conf と SSSD
+
 SSSD の設定は `/etc/sssd/sssd.conf` です。所有者を root、権限を `0600` にしないと、sssd は起動しません。
 
 ### 問13 `LinuC202-2.07-013`
 
 **正解**: D
+
+**テキスト**: 4. nsswitch.conf と SSSD
 
 NSS の `passwd` の行に `sss` を足して、SSSD の持つユーザーを見えるようにします。認証は、`auth` で `pam_sss` が SSSD に頼みます。
 
@@ -295,6 +321,8 @@ NSS の `passwd` の行に `sss` を足して、SSSD の持つユーザーを見
 
 **正解**: A
 
+**テキスト**: 3. ldapsearch(探す)
+
 `-b` で探し始めるベースを指定し、`"(uid=taro)"` のフィルターで探し、最後に表示したい属性(`mail`)を書きます。`-x` は簡易認証で、バインド DN がないので匿名になります。
 
 - B. `-D` はバインド DN(接続する名前)の指定で、ベースではありません。`dc=example,dc=com` というエントリーでバインドしようとして失敗し、ベースも決まりません。
@@ -305,6 +333,8 @@ NSS の `passwd` の行に `sss` を足して、SSSD の持つユーザーを見
 
 **正解**: B、C
 
+**テキスト**: 4. ldapadd、ldapmodify、ldapdelete
+
 `ldapadd` は、LDIF のエントリーを追加します。`ldapmodify -a` は、`ldapadd` と同じ動きです。
 
 - A. `ldapsearch` の `-f` は、ファイルに書いたフィルターで探すオプションです。追加はしません。
@@ -314,11 +344,15 @@ NSS の `passwd` の行に `sss` を足して、SSSD の持つユーザーを見
 
 **正解**: `ldapmodify`
 
+**テキスト**: 4. ldapadd、ldapmodify、ldapdelete
+
 `ldapmodify` は、LDIF の `changetype: modify` に従って、`replace`(置き換え)、`add`(足す)、`delete`(消す)を行います。`ldapadd` も `changetype` の行に従いますが、変更には `ldapmodify` を使うのがふつうです。
 
 ### 問17 `LinuC202-2.07-017`
 
 **正解**: B
+
+**テキスト**: 5. ldappasswd(パスワードを変える)
 
 `-D` でバインド DN(管理者)、`-W` でその管理者のパスワードの入力、`-S` で新しいパスワードの入力、最後に変える相手の DN を書きます。
 
@@ -329,6 +363,8 @@ NSS の `passwd` の行に `sss` を足して、SSSD の持つユーザーを見
 ### 問18 `LinuC202-2.07-018`
 
 **正解**: D
+
+**テキスト**: 4. ldapadd、ldapmodify、ldapdelete
 
 `ldapdelete -r` は、子のエントリーも含めて、再帰的に削除します。
 
@@ -350,6 +386,8 @@ DN は、RDN を `,` でつなげたものです。いちばん左の `uid=taro`
 
 **正解**: A
 
+**テキスト**: 5. slapadd、slapcat、slapindex
+
 `slapindex` は、インデックスの設定を変えたあと、すでに入っているデータのインデックスを作り直します。slapd を止めてから実行します。slapd-config で、動いている slapd に `olcDbIndex` を足したときは、インデックスは裏で自動で作られます【要確認】。
 
 - B. `slapcat` は、データベースの中身を LDIF に書き出します。
@@ -359,6 +397,8 @@ DN は、RDN を `,` でつなげたものです。いちばん左の `uid=taro`
 ### 問21 `LinuC202-2.07-021`
 
 **正解**: B
+
+**テキスト**: 2. 設定の方式: slapd-config(cn=config)
 
 slapd-config は、設定を `cn=config` のエントリー(`slapd.d/` の LDIF のファイル)として持ちます。`ldapmodify -Y EXTERNAL -H ldapi:///` で、動いたまま変えられます。
 
@@ -370,6 +410,8 @@ slapd-config は、設定を `cn=config` のエントリー(`slapd.d/` の LDIF 
 
 **正解**: C
 
+**テキスト**: 6. アクセス制御(olcAccess)
+
 `to attrs=userPassword` が対象で、本人は書き換え(`self write`)、匿名の接続は認証にだけ使え(`anonymous auth`)、それ以外は何もできません(`* none`)。パスワードのハッシュを、他人に読ませないための規則です。
 
 - A. 本人以外は `none` です。読めません。
@@ -380,6 +422,8 @@ slapd-config は、設定を `cn=config` のエントリー(`slapd.d/` の LDIF 
 
 **正解**: D
 
+**テキスト**: 3. スキーマ
+
 スキーマの属性や objectClass には、OID が付いています。`cn` は `2.5.4.3` です。
 
 - A. DN は、エントリーを決める名前(識別名)です。
@@ -389,5 +433,7 @@ slapd-config は、設定を `cn=config` のエントリー(`slapd.d/` の LDIF 
 ### 問24 `LinuC202-2.07-024`
 
 **正解**: `slapcat`
+
+**テキスト**: 5. slapadd、slapcat、slapindex
 
 `slapcat` は、データベースを直接読んで、LDIF にして出力します。`slapcat -b "dc=example,dc=com" -l backup.ldif` のように、`-b` でデータベースを、`-l` で出力のファイルを指定します。戻すときは `slapadd` を使います。
