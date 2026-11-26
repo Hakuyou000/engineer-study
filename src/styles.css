@@ -466,6 +466,7 @@ summary.toc-label { margin: 0; cursor: pointer; }
 .toc button.link[aria-current='page'] { color: var(--accent); font-weight: 700; }
 .text-crumb { margin: var(--sp-4) 0 0; font-size: var(--fs-sm); color: var(--sub); max-width: var(--measure); }
 .text-crumb::after { content: ' の続き'; }
+.text-crumb.plain::after { content: none; }
 .text-page-count { margin: 0; }
 .section-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-top: var(--sp-4); max-width: var(--measure); }
 .section-text { margin-top: 14px; border-top: 1px solid var(--rule); padding: 10px 0; }

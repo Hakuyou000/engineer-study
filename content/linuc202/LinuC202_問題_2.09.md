@@ -202,6 +202,8 @@ http_access deny  all
 
 **正解**: B
 
+**テキスト**: 1. Apache の名前と置き場所
+
 Red Hat 系の `httpd` のメインの設定は `/etc/httpd/conf/httpd.conf` です。追加の設定は `/etc/httpd/conf.d/*.conf` に置きます。
 
 - A. `/etc/apache2/apache2.conf` は、Debian 系(`apache2` パッケージ)のメインの設定です。
@@ -212,11 +214,15 @@ Red Hat 系の `httpd` のメインの設定は `/etc/httpd/conf/httpd.conf` で
 
 **正解**: `a2ensite`
 
+**テキスト**: 1. Apache の名前と置き場所
+
 `a2ensite example.conf` で、`sites-available/` の設定が `sites-enabled/` にリンクされます。そのあと `apache2ctl configtest` で構文を検査し、`systemctl reload apache2` で反映します。`a2ensite` は Debian 系のコマンドです。Red Hat 系の `conf.d/` に置いたファイルは、何もしなくても読まれます。
 
 ### 問3 `LinuC202-2.09-003`
 
 **正解**: C
+
+**テキスト**: 4. アクセスの制限(Apache 2.4 の書き方)
 
 Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mod_authz_host` の機能です)。
 
@@ -228,11 +234,15 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 
 **正解**: `htpasswd`
 
+**テキスト**: 5. 利用者の認証(Basic 認証)
+
 `htpasswd /etc/httpd/.htpasswd alice` で、パスワードを聞かれ、ハッシュにして `alice:ハッシュ` の形で保存されます。ファイルを新しく作るときだけ `-c` を付けます(付けると上書きで、前のユーザーが消えます)。Basic 認証の設定では、`mod_auth_basic` を使い、このファイルを `AuthUserFile` に指定します。グループで分けるときは、グループのファイルを `AuthGroupFile` に指定します。
 
 ### 問5 `LinuC202-2.09-005`
 
 **正解**: A、C
+
+**テキスト**: 6. .htaccess
 
 `.htaccess` は、ディレクトリごとに置く設定ファイルです。`AllowOverride` で許可された種類の設定だけが効きます。
 
@@ -242,6 +252,8 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 ### 問6 `LinuC202-2.09-006`
 
 **正解**: D
+
+**テキスト**: 7. リダイレクトとスクリプト言語
 
 `Redirect permanent`(`Redirect 301` と同じ)は、301(恒久的な移転)を返して、別の URL へ転送します。
 
@@ -253,6 +265,8 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 
 **正解**: A
 
+**テキスト**: 3. 仮想ホスト
+
 名前ベースの仮想ホストは、リクエストの `Host` ヘッダー(利用者が入力したホスト名)と、`ServerName` や `ServerAlias` を比べて選びます。合うものがなければ、先に読まれた仮想ホスト(`VirtualHost`)が使われます。サイトごとのログは、仮想ホストの中に `CustomLog`(アクセスログ)と `ErrorLog`(エラーログ)を書いて分けられます。
 
 - B. クライアントの IP アドレスでは、同じ人が両方のサイトを開く場合に見分けられません。
@@ -262,6 +276,8 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 ### 問8 `LinuC202-2.09-008`
 
 **正解**: B
+
+**テキスト**: 2. 同時接続とリクエストの上限
 
 `MaxRequestWorkers` は、同時に処理するリクエスト数の上限です(Apache 2.2 では `MaxClients` でした)。
 
@@ -273,6 +289,8 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 
 **正解**: C
 
+**テキスト**: 1. HTTPS と証明書
+
 先に秘密鍵を作り、その鍵から CSR(署名の申請書)を作って、CSR だけを CA に送ります。CA は、申請者を確かめて、サーバー証明書を返します。
 
 - A. 秘密鍵は、サーバーだけが持つもので、CA に送りません。
@@ -283,11 +301,15 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 
 **正解**: `req`、`openssl req`
 
+**テキスト**: 2. openssl のコマンド
+
 `openssl req -new -key server.key -out server.csr` で、秘密鍵から CSR を作ります。`-x509` を付けると、CSR ではなく、自己署名証明書が作られます。
 
 ### 問11 `LinuC202-2.09-011`
 
 **正解**: D
+
+**テキスト**: 3. Apache の SSL のディレクティブ
 
 `SSLCertificateKeyFile` は、サーバーの秘密鍵のファイルを指します。ファイルの権限は `600`(所有者だけ読み書き)にして、他人に渡しません。置き場所は、Red Hat 系は `/etc/pki/tls/private/`、Debian 系は `/etc/ssl/private/` です。
 
@@ -299,6 +321,8 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 
 **正解**: A
 
+**テキスト**: 4. 中間 CA と古い方式の停止
+
 `SSLProtocol -all +TLSv1.2 +TLSv1.3` は、すべてを外してから、使うものだけを足します。確実に、古いプロトコルを無効にできます。`SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1` のように、外すものを書く方法もあります。
 
 - B. `all` は、Apache の設定では古い版を外していません。OS やライブラリーの設定によっては止まりますが、Apache の設定で制限したことにはなりません。
@@ -309,6 +333,8 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 
 **正解**: B、D
 
+**テキスト**: 2. openssl のコマンド
+
 自己署名証明書は、自分の秘密鍵で、自分に署名した証明書です。通信は暗号化できますが、信頼された CA の署名がないので、ブラウザーが警告を出します。検証や社内の試験に使います。
 
 - A. 商用の CA の署名は付いていません。そのためブラウザーが警告を出します。
@@ -317,6 +343,8 @@ Apache 2.4 では `Require ip` で、アドレスの範囲を指定します(`mo
 ### 問14 `LinuC202-2.09-014`
 
 **正解**: B
+
+**テキスト**: 4. 中間 CA と古い方式の停止
 
 Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー証明書、中間 CA の証明書の順に続けて書きます。以前の `SSLCertificateChainFile` は、非推奨になりました。
 
@@ -328,6 +356,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: C
 
+**テキスト**: 3. Apache の SSL のディレクティブ
+
 `SSLCACertificatePath` は、クライアント証明書を検証するための CA の証明書を、ディレクトリに 1 つずつ置いて指定します(ハッシュの名前のリンクが要ります)。`SSLVerifyClient require` とあわせて使います。
 
 - A. `SSLCACertificateFile` は、同じ目的の CA の証明書を、1 つのファイルにまとめて指定します。ディレクトリではありません。
@@ -338,11 +368,15 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: `nginx -t`、`nginx -T`、`nginx -t -q`、`nginx -q -t`、`nginx -tq`、`nginx -qt`
 
+**テキスト**: 1. nginx の名前と設定ファイル
+
 `nginx -t` は、設定ファイルの構文を検査して、結果を表示します。`nginx -T` は、検査に加えて、設定の全文も表示します。`-q` を足すと、検査のときにエラー以外のメッセージを出しません。設定は `/etc/nginx/nginx.conf` と `/etc/nginx/conf.d/` の下のファイルです。問題がなければ `nginx -s reload` か `systemctl reload nginx` で反映します。
 
 ### 問17 `LinuC202-2.09-017`
 
 **正解**: D
+
+**テキスト**: 4. リバースプロキシ
 
 `proxy_pass` の URL に道筋(ここでは末尾の `/`)があるので、`location` に合った部分(`/api/`)が、その道筋(`/`)に置き換わります。結果は `/users` です。
 
@@ -354,6 +388,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: A
 
+**テキスト**: 4. リバースプロキシ
+
 `proxy_set_header` を書かないと、バックエンドには、元のホスト名ではなく、中継先の名前が `Host` として渡ります。`$host` で、クライアントが指定したホスト名を渡します。
 
 - B. クライアントの IP アドレスは、`X-Real-IP` や `X-Forwarded-For` で渡します。
@@ -363,6 +399,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 ### 問19 `LinuC202-2.09-019`
 
 **正解**: B
+
+**テキスト**: 4. リバースプロキシ
 
 `upstream` の `keepalive` を使うには、`proxy_http_version 1.1;` と、`Connection` ヘッダーを空にする `proxy_set_header Connection "";` を書きます。nginx 1.29.7 以降は、`proxy_http_version` の既定が 1.1 になり、この 2 行を書かなくても接続が使い回されます。古い版と同じ動きにするときも、明示しておくと確実です。
 
@@ -374,6 +412,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: C
 
+**テキスト**: 3. HTTPS の設定
+
 `listen 443 ssl;` で TLS の待ち受けにし、`ssl_certificate` にサーバー証明書、`ssl_certificate_key` に秘密鍵を指定します。
 
 - A. 証明書と鍵が逆です。また、`listen` に `ssl` がありません。
@@ -384,6 +424,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: A、D
 
+**テキスト**: 3. HTTPS の設定
+
 `ssl_protocols` は許可する TLS の版(`TLSv1.2 TLSv1.3` など)を、`ssl_ciphers` は使う暗号スイートを指定します。
 
 - B. `ssl_ciphers` が指定するのは、暗号スイートです。TLS の版は `ssl_protocols` で指定します。
@@ -392,6 +434,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 ### 問22 `LinuC202-2.09-022`
 
 **正解**: A
+
+**テキスト**: 5. リダイレクト
 
 `return 301 URL;` は、恒久的な転送を返します。`$host` はリクエストのホスト名、`$request_uri` は道筋と引数です。
 
@@ -403,11 +447,15 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: `3128`
 
+**テキスト**: 1. Squid とは
+
 `squid.conf` の `http_port` の既定は `3128` です。ブラウザーのプロキシの設定には、Squid のアドレスと 3128 番を書きます。
 
 ### 問24 `LinuC202-2.09-024`
 
 **正解**: C
+
+**テキスト**: 2. acl と http_access
 
 `http_access` は、上から順に調べ、最初に当たった行で決まります。192.168.1.20 は `lan` に当たるので、1 行目の `allow lan` で許可されて、終わりです。2 行目の `deny bad` は見られません。禁止したいなら、`deny bad` を `allow lan` より前に置きます。
 
@@ -419,6 +467,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: D
 
+**テキスト**: 2. acl と http_access
+
 `dstdomain` は、宛先のドメイン名で決めます。`.example.com` のように、先頭に `.` を付けると、サブドメインも含みます。
 
 - A. `src` は、送信元(クライアント)の IP アドレスです。
@@ -428,6 +478,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 ### 問26 `LinuC202-2.09-026`
 
 **正解**: B
+
+**テキスト**: 3. 認証
 
 `proxy_auth REQUIRED` は、認証できた利用者に当たります。その acl に `http_access allow` を使うと、認証した人だけが許可されます。
 
@@ -439,6 +491,8 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 
 **正解**: A
 
+**テキスト**: 4. 資源と管理
+
 `squidclient` は、動いている Squid にリクエストを送るクライアントです。`mgr:info` で、全体の情報(起動時間、要求の数など)を取れます。パッケージによっては、別の名前のパッケージになっています。`squidclient` は Squid 7 でなくなりました。新しい Squid では、`curl http://localhost:3128/squid-internal-mgr/info` のように、HTTP で同じ情報を取れます。
 
 - B. `squid -k parse` は、設定ファイルの構文を検査するコマンドです。動いている Squid には問い合わせません。
@@ -448,5 +502,7 @@ Apache 2.4.8 以降は、`SSLCertificateFile` のファイルに、サーバー�
 ### 問28 `LinuC202-2.09-028`
 
 **正解**: `squid -k reconfigure`
+
+**テキスト**: 4. 資源と管理
 
 `squid -k reconfigure` は、実行中の Squid に、`squid.conf` を読み直させます。止めないので、処理中の接続は切れません。先に `squid -k parse` で、構文を検査しておきます。

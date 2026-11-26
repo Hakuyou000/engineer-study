@@ -13,6 +13,8 @@ export interface Question {
   domain: string
   domainTitle: string
   section: string
+  /** 問題に対応するテキストの小見出し(### の見出しの文字)。なければ節全体を出す */
+  subsection?: string
   number: number
   /** Markdown(コードブロック、インラインコード、太字) */
   stem: string

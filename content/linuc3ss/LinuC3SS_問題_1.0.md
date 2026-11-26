@@ -401,6 +401,8 @@ SystemCallFilter=~@mount
 
 **正解**: D
 
+**テキスト**: 2. setfacl と getfacl
+
 `setfacl -m` は、ACL エントリを追加または変更します。`u:alice:rw` は、ユーザー alice に読み書きを与える意味です。`getfacl report.txt` で確かめます。
 
 - A. `-x` は、エントリを**消す**オプションです。
@@ -410,6 +412,8 @@ SystemCallFilter=~@mount
 ### 問2 `LinuC3SS-1.0-002`
 
 **正解**: B
+
+**テキスト**: 2. setfacl と getfacl
 
 `ls -l` は、通常の権限のほかに ACL があるファイルの権限の後ろに `+` を付けます。内容は `getfacl` で見ます。なお SELinux のラベルだけがあるときは、`.` が付きます。
 
@@ -421,6 +425,8 @@ SystemCallFilter=~@mount
 
 **正解**: A
 
+**テキスト**: 3. マスク
+
 名前付きユーザー、名前付きグループ、所有グループが実際に使える権限は、エントリとマスクの論理積です。エントリが `rwx` でも、マスクが `r--` なら、効くのは `r--` だけです。`setfacl -m m::rw report.txt` でマスクを広げます。`chmod g=r` のようにグループの権限を変えると、ACL があるファイルではマスクが変わるので、同じ症状になります。
 
 - B. エントリは `rwx` です。マスクで削られて、実際に効くのが `r--` になっています(`#effective:r--`)。
@@ -430,6 +436,8 @@ SystemCallFilter=~@mount
 ### 問4 `LinuC3SS-1.0-004`
 
 **正解**: C
+
+**テキスト**: 4. デフォルト ACL
 
 `-d` を付けると、デフォルト ACL を設定します。そのディレクトリの中に新しく作られるファイルとディレクトリが、この ACL を引き継ぎます。`getfacl` では `default:group:dev:rw-` と表示されます。既にあるファイルには効かないので、必要なら `-R` で別に ACL を付けます。
 
@@ -441,11 +449,15 @@ SystemCallFilter=~@mount
 
 **正解**: `setfacl -b`、`setfacl --remove-all`、`-b`、`--remove-all`
 
+**テキスト**: 2. setfacl と getfacl
+
 `setfacl -b`(長い形は `--remove-all`)は、ACL エントリをすべて消します。1 つのエントリだけ消すなら `-x`、デフォルト ACL だけ消すなら `-k` です。
 
 ### 問6 `LinuC3SS-1.0-006`
 
 **正解**: B
+
+**テキスト**: 7. コピー、移動、バックアップで ACL を残す
 
 `rsync` で ACL を残すのは `-A`(`--acls`)、拡張属性を残すのは `-X`(`--xattrs`)です。`-a` には含まれないので、足します。コピー先のファイルシステムも ACL と拡張属性に対応している必要があります。
 
@@ -457,6 +469,8 @@ SystemCallFilter=~@mount
 
 **正解**: A、C
 
+**テキスト**: 7. コピー、移動、バックアップで ACL を残す
+
 `tar` は、既定では ACL と拡張属性を扱いません。作るときと取り出すときの**両方**に `--acls --xattrs --selinux`(SELinux のラベルは `--selinux`)を付けます。なお、取り出すときの `--xattrs` が戻すのは、既定では `user.` で始まる名前の属性だけです。ほかの属性(`security.capability` など)も戻すには、`--xattrs-include='*'` を足します。
 
 - B. 取り出すときにも指定がないと、ACL や拡張属性は復元されません。
@@ -465,6 +479,8 @@ SystemCallFilter=~@mount
 ### 問8 `LinuC3SS-1.0-008`
 
 **正解**: C
+
+**テキスト**: 5. NFSv4 と Samba の ACL
 
 `acl_xattr` は、Windows の ACL を拡張属性に保存する Samba のモジュールです。共有するディレクトリは、拡張属性と ACL に対応するファイルシステムに置きます。Linux 側の ACL は `getfacl`、Samba 側の ACL は `smbcacls` で確かめます。
 
@@ -476,6 +492,8 @@ SystemCallFilter=~@mount
 
 **正解**: D
 
+**テキスト**: 5. NFSv4 と Samba の ACL
+
 NFSv4 ACL は、POSIX ACL とは別の形式です(許可と拒否のエントリを並べます)。クライアントでは、`nfs4-acl-tools` パッケージの `nfs4_getfacl` と `nfs4_setfacl` で扱います。
 
 - A. サーバーが公開している共有の一覧を見るコマンドで、ACL は見えません。
@@ -485,6 +503,8 @@ NFSv4 ACL は、POSIX ACL とは別の形式です(許可と拒否のエント�
 ### 問10 `LinuC3SS-1.0-010`
 
 **正解**: A
+
+**テキスト**: 6. 拡張属性
 
 `setfattr -n 名前 -v 値 ファイル` で、拡張属性(xattr)を付けます。`getfattr -d report.txt` で、`user.` の属性を一覧にできます。消すときは `setfattr -x user.team report.txt` です。ACL(`system.posix_acl_access`)や SELinux のラベル(`security.selinux`)も、拡張属性として保存されています。
 
@@ -496,6 +516,8 @@ NFSv4 ACL は、POSIX ACL とは別の形式です(許可と拒否のエント�
 
 **正解**: B
 
+**テキスト**: 7. コピー、移動、バックアップで ACL を残す
+
 `cp -a` は、`--preserve=all` と `-r` を合わせたものです。権限、所有者、時刻、拡張属性(ACL や SELinux のラベル、ファイルの Capability を含む)を残します。別の書き方は `cp -r --preserve=all` です。
 
 - A. `-r` は、下の階層も含めてコピーするだけです。拡張属性や ACL は残りません。
@@ -505,6 +527,8 @@ NFSv4 ACL は、POSIX ACL とは別の形式です(許可と拒否のエント�
 ### 問12 `LinuC3SS-1.0-012`
 
 **正解**: A
+
+**テキスト**: 3. モードとポリシーの種類
 
 `setenforce 0` で permissive になります。拒否はせず、記録だけします。再起動で、`/etc/selinux/config` のモードに戻ります。permissive で直るなら、原因は SELinux です。元の `setenforce 1` に戻して、ラベルやブール値を直します。
 
@@ -516,6 +540,8 @@ NFSv4 ACL は、POSIX ACL とは別の形式です(許可と拒否のエント�
 
 **正解**: D
 
+**テキスト**: 4. 設定ファイルと、無効にする手順
+
 RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` を付けます。有効に戻すときは `--remove-args selinux=0` で外し、`/.autorelabel` を作ってラベルを付け直します。
 
 - A. permissive になるだけで、無効にはなりません。再起動すると元のモードに戻ります。
@@ -525,6 +551,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問14 `LinuC3SS-1.0-014`
 
 **正解**: C
+
+**テキスト**: 3. モードとポリシーの種類
 
 `Current mode` は今のモード、`Mode from config file` は、`/etc/selinux/config` の `SELINUX=` の値で、再起動後に使われるモードです。再起動後も permissive にしたいときは、設定ファイルを書き換えます。
 
@@ -536,6 +564,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: D
 
+**テキスト**: 5. ファイルのラベルを直す
+
 ホームディレクトリで作ったファイルを `mv` で移すと、ラベルが `user_home_t` のまま残り、`httpd_t` のプロセスは読めません。`restorecon` は、ポリシーが決めている正しいラベル(`httpd_sys_content_t`)に直します。
 
 - A. 原因は権限ではなく、ラベルです。権限を広げても直りません。
@@ -545,6 +575,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問16 `LinuC3SS-1.0-016`
 
 **正解**: C
+
+**テキスト**: 5. ファイルのラベルを直す
 
 `semanage fcontext -a` は、「このパスのファイルは、このタイプ」という決まりを恒久的に足します。そのあと `restorecon -Rv /web` で、実際のファイルにラベルを付けます。`chcon` は、試すときの一時的な方法です。
 
@@ -556,6 +588,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: A
 
+**テキスト**: 5. ファイルのラベルを直す
+
 ポートにもタイプがあり、`httpd_t` が待ち受けられるのは `http_port_t` のポートだけです。`semanage port -l` で一覧を見て、`semanage port -a` で足します。ポリシーですでに別の型が割り当てられているポートは、`-a` ではなく `-m` で変えます。
 
 - B. 動きますが、SELinux の保護を全体で弱めます。ポートのタイプを足せば、必要な許可だけで済みます。
@@ -565,6 +599,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問18 `LinuC3SS-1.0-018`
 
 **正解**: B
+
+**テキスト**: 6. ブール値
 
 よくある許可の切り替えは、ポリシーのブール値です。`getsebool -a | grep httpd` で探し、`setsebool -P 名前 on` で恒久的に変えます。`-P` を付けない設定は、再起動で消えます。
 
@@ -576,6 +612,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: C
 
+**テキスト**: 7. 拒否のログと audit2allow
+
 `scontext` が操作したプロセスのコンテキスト、`tcontext` が対象のコンテキストです。この例は、ディレクトリのラベルが合っていない可能性があります。まず `ls -Zd` で対象のラベルを見て、`restorecon` や `semanage fcontext` で直せるかを考えます。
 
 - A. `scontext` が操作したプロセス、`tcontext` が操作された対象です。向きが逆です。
@@ -585,6 +623,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問20 `LinuC3SS-1.0-020`
 
 **正解**: A
+
+**テキスト**: 7. 拒否のログと audit2allow
 
 `audit2allow` は、拒否のログから許可のルールを作りますが、「ログに出た拒否をすべて許す」ルールになりがちです。原因の多くは、ラベルの誤り(`restorecon`、`semanage fcontext`)やブール値(`setsebool`)です。まずそれで直し、足りないときだけモジュールにします。`audit2allow -w` で、拒否の理由を説明させることもできます。
 
@@ -596,11 +636,15 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: `audit2allow -M`、`-M`、`audit2allow --module-package`、`--module-package`
 
+**テキスト**: 7. 拒否のログと audit2allow
+
 `audit2allow -M mypol` は、`mypol.te` と `mypol.pp` を作ります。`semodule -i mypol.pp` で入れます。小文字の `-m` は、ルールの元(`.te` の形)を標準出力に出すだけで、`.pp` は作りません。
 
 ### 問22 `LinuC3SS-1.0-022`
 
 **正解**: B、D
+
+**テキスト**: 7. 拒否のログと audit2allow
 
 `allow` が許可、`auditallow` が許可して記録、`dontaudit` が拒否の記録を省略です。拒否されているのに `audit.log` に AVC が出ないときは、`dontaudit` が記録を隠していることがあります。`semodule -DB` で一時的に隠さない設定にし、調べ終えたら `semodule -B` で戻します。
 
@@ -610,6 +654,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問23 `LinuC3SS-1.0-023`
 
 **正解**: B
+
+**テキスト**: 5. ファイルのラベルを直す
 
 `seinfo` は、ポリシーの中身(タイプ、ユーザー、ロールなど)の数や一覧を調べます。`setools-console` パッケージに入っています。許可のルールを探すときは、同じパッケージの `sesearch` を使います。
 
@@ -621,6 +667,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: D
 
+**テキスト**: 3. モードとポリシーの種類
+
 `SELINUXTYPE=` は、ポリシーの種類です。`targeted`(既定)、`minimum`、`mls` があります。`mls` は、コンテキストの最後の「レベル」(`s0` など)を使います。
 
 - A. これは `targeted` の説明です。
@@ -630,6 +678,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問25 `LinuC3SS-1.0-025`
 
 **正解**: C
+
+**テキスト**: 3. 状態の確認とモードの切り替え
 
 `aa-status`(古い名前は `apparmor_status`)は、読み込まれているプロファイルの数、enforce と complain の別、プロファイルで縛られているプロセスを表示します。root で実行します。
 
@@ -641,6 +691,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: D
 
+**テキスト**: 2. プロファイルとモード
+
 プロファイルは `/etc/apparmor.d/` に置き、ファイル名は、プログラムのパスの `/` を `.` にしたものです。
 
 - A. SELinux のポリシーの置き場所です。
@@ -650,6 +702,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問27 `LinuC3SS-1.0-027`
 
 **正解**: A
+
+**テキスト**: 3. 状態の確認とモードの切り替え
 
 `aa-complain` は complain モードにします。違反は `apparmor="ALLOWED"` として記録され、動作は止まりません。記録をもとに、`aa-logprof` でプロファイルを直します。
 
@@ -661,6 +715,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: B
 
+**テキスト**: 3. 状態の確認とモードの切り替え
+
 プロファイルのファイルを書き換えても、カーネルに読み込まれているのは古い内容のままです。`apparmor_parser -r` で置き換えます。`-a` は追加、`-R` は外す、です。
 
 - A. アプリを再起動しても、プロファイルの読み込み直しにはなりません。
@@ -670,6 +726,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 ### 問29 `LinuC3SS-1.0-029`
 
 **正解**: D
+
+**テキスト**: 5. 拒否のログ
 
 `profile=` が、どのプロファイルか、`name=` が対象のパス、`denied_mask=` が拒否された権限です。直し方は、`aa-logprof` で足すか、`/srv/data/** r,` を足して `apparmor_parser -r` で読み込み直すことです。
 
@@ -681,6 +739,8 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: A
 
+**テキスト**: 4. プロファイルを作って育てる
+
 `aa-genprof /usr/sbin/myapp` を実行したまま、別の端末で、プログラムの機能を一通り使います。戻って `S`(スキャン)を押すと、ログをもとに、許す、拒否するなどの質問が出ます。`F` で終わると、プロファイルが保存され、enforce になります。
 
 - B. `aa-genprof` は、動作を記録する間は complain の状態にします。
@@ -691,17 +751,23 @@ RHEL 9 系では、`grubby` で、カーネルの起動の引数に `selinux=0` 
 
 **正解**: `aa-logprof`、aa-logprof
 
+**テキスト**: 2. プロファイルとモード
+
 `aa-logprof` は、ログの違反を読み、「このアクセスを許可しますか」と質問します。答えに応じて、`/etc/apparmor.d/` のプロファイルを更新します。
 
 ### 問32 `LinuC3SS-1.0-032`
 
 **正解**: `aa-enforce`、aa-enforce
 
+**テキスト**: 3. 状態の確認とモードの切り替え
+
 `aa-enforce` は、プロファイルを enforce モードにします。complain にするのは `aa-complain` です。
 
 ### 問33 `LinuC3SS-1.0-033`
 
 **正解**: C
+
+**テキスト**: 1. AppArmor とは
 
 SELinux はラベル、AppArmor はパスで、ルールを決めます。ファイルのパスを書くので、読みやすい反面、ハードリンクや、別の名前でのマウントでは、見え方が変わることがあります。
 
@@ -713,6 +779,8 @@ SELinux はラベル、AppArmor はパスで、ルールを決めます。ファ
 
 **正解**: B
 
+**テキスト**: 2. seccomp のモード
+
 `SECCOMP_MODE_STRICT` は、`read`、`write`、`_exit`、`sigreturn` だけを許す、非常に厳しいモードです。許されないシステムコールを呼ぶと、プロセスは強制終了されます。実際には、柔軟な `SECCOMP_MODE_FILTER` が使われます。
 
 - A. `open` は許されません。STRICT は、4 つだけです。
@@ -722,6 +790,8 @@ SELinux はラベル、AppArmor はパスで、ルールを決めます。ファ
 ### 問35 `LinuC3SS-1.0-035`
 
 **正解**: D
+
+**テキスト**: 2. seccomp のモード
 
 フィルタは、BPF(クラシック BPF)の形式のプログラムです。呼ばれたシステムコールの番号、アーキテクチャ、引数を見て、許可、エラー、強制終了などを返します。
 
@@ -733,6 +803,8 @@ SELinux はラベル、AppArmor はパスで、ルールを決めます。ファ
 
 **正解**: A
 
+**テキスト**: 2. seccomp のモード
+
 `Seccomp:` の値は、`0` が `SECCOMP_MODE_DISABLED`、`1` が `SECCOMP_MODE_STRICT`、`2` が `SECCOMP_MODE_FILTER` です。コンテナの中のプロセスは、`2` になっていることがよくあります。
 
 - B. `0` のときです。
@@ -742,6 +814,8 @@ SELinux はラベル、AppArmor はパスで、ルールを決めます。ファ
 ### 問37 `LinuC3SS-1.0-037`
 
 **正解**: B
+
+**テキスト**: 3. systemd のサービスで使う
 
 `SystemCallErrorNumber=` を書かないと、禁止したシステムコールを呼んだプロセスは、`SIGSYS` で強制終了します。`EPERM` などを書くと、システムコールがそのエラーで失敗して、プロセスは続きます。
 
@@ -753,6 +827,8 @@ SELinux はラベル、AppArmor はパスで、ルールを決めます。ファ
 
 **正解**: C
 
+**テキスト**: 3. systemd のサービスで使う
+
 `SystemCallFilter=` は、許可のリストです。先頭に `~` を付けると、禁止のリストになります。`@` で始まる名前は、システムコールのグループです。
 
 - A. 先頭に `~` がなければ、そのとおりになります。`~` は、反対にします。
@@ -762,6 +838,8 @@ SELinux はラベル、AppArmor はパスで、ルールを決めます。ファ
 ### 問39 `LinuC3SS-1.0-039`
 
 **正解**: D
+
+**テキスト**: 3. systemd のサービスで使う
 
 x86-64 のマシンは、32 ビット用のシステムコールの番号の体系も使えます。フィルタが 64 ビットの番号だけを見ていると、別の体系の番号で、抜けが出ることがあります。`native` は、そのマシンの本来のアーキテクチャだけを許します。
 
@@ -773,6 +851,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: B
 
+**テキスト**: 3. systemd のサービスで使う
+
 `status=31/SYS` は、`SIGSYS`(31 番)で終了したことを表します。監査ログには `type=SECCOMP` の行が残ります。`strace -c -f` で、プログラムが使うシステムコールを調べ、許可に足すか、`SystemCallErrorNumber=` でエラーにします。
 
 - A. OOM killer は `SIGKILL`(9)で終了させます。`SIGSYS` ではありません。
@@ -783,17 +863,23 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: `seccomp-tools`、seccomp-tools
 
+**テキスト**: 4. フィルタの中身を読む: seccomp-tools
+
 `seccomp-tools dump ./myapp` は、付いているフィルタを逆アセンブルして表示します。自分で作ったフィルタが、意図どおりに許可と禁止を決めているかを確かめるときに使います。
 
 ### 問42 `LinuC3SS-1.0-042`
 
 **正解**: `SECCOMP_MODE_STRICT`、SECCOMP_MODE_STRICT
 
+**テキスト**: 2. seccomp のモード
+
 `0` が `SECCOMP_MODE_DISABLED`、`1` が `SECCOMP_MODE_STRICT`、`2` が `SECCOMP_MODE_FILTER` です。
 
 ### 問43 `LinuC3SS-1.0-043`
 
 **正解**: B、C
+
+**テキスト**: 2. seccomp のモード
 
 フィルタは、あとから外せず、子にも引き継がれます。これによって、乗っ取られたプロセスが、自分でフィルタを外して、制限から逃げることを防ぎます。
 
@@ -803,6 +889,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 ### 問44 `LinuC3SS-1.0-044`
 
 **正解**: C
+
+**テキスト**: 1. Capabilities とは
 
 `CAP_NET_BIND_SERVICE` は、1024 未満のポートで待ち受ける権限です。この権限だけを与えれば、root で動かさずに済みます。
 
@@ -814,6 +902,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: A
 
+**テキスト**: 1. Capabilities とは
+
 `CAP_SYS_TIME` は、システムの時刻(`settimeofday`、`adjtimex` など)を変える権限です。
 
 - B. 再起動などに関する権限です。
@@ -823,6 +913,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 ### 問46 `LinuC3SS-1.0-046`
 
 **正解**: D
+
+**テキスト**: 1. Capabilities とは
 
 `CAP_SYS_MODULE` は、カーネルモジュールの読み込みと取り外しの権限で、持っていればカーネルの動作を変えられます。与えるのは、ごく限られた場合だけです。
 
@@ -834,6 +926,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: C
 
+**テキスト**: 1. Capabilities とは
+
 `CAP_NET_ADMIN` は、ネットワークの設定(インターフェース、経路、ファイアウォールなど)の権限です。
 
 - A. RAW ソケットを使う権限で、経路の設定はできません。
@@ -843,6 +937,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 ### 問48 `LinuC3SS-1.0-048`
 
 **正解**: A
+
+**テキスト**: 1. Capabilities とは
 
 `CAP_DAC_OVERRIDE` は、ファイルの読み、書き、実行の権限の確認を、すべて無視する権限です。読み取りだけでよいときは、より狭い `CAP_DAC_READ_SEARCH` を使います。SELinux や AppArmor の制限は、別に効きます。
 
@@ -854,6 +950,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: B
 
+**テキスト**: 3. ファイルに付ける: setcap と getcap
+
 `setcap` で、ファイルに Capability を付けます。`e` は Effective、`p` は Permitted を表します。`getcap /usr/local/bin/myserver` で確かめます。ファイルの Capability は拡張属性に保存されるため、コピーするときは `cp -a` などで残します。
 
 - A. `getcap` は、付いている Capability を表示するコマンドで、付けるのは `setcap` です。
@@ -864,17 +962,23 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: `getcap -r`
 
+**テキスト**: 3. ファイルに付ける: setcap と getcap
+
 `getcap -r /` で、Capability が付いたファイルを一覧にします(権限のないところのエラーは `2>/dev/null` で捨てます)。意図しない Capability の付与がないか、定期的に確かめます。
 
 ### 問51 `LinuC3SS-1.0-051`
 
 **正解**: `CapabilityBoundingSet`、CapabilityBoundingSet
 
+**テキスト**: 4. systemd のサービスで使う
+
 `CapabilityBoundingSet=` は、サービスが持てる Capability の上限を決めます。書いたもの以外は外されます。`~` を付けると、書いたものだけを外します。
 
 ### 問52 `LinuC3SS-1.0-052`
 
 **正解**: A
+
+**テキスト**: 4. systemd のサービスで使う
 
 `AmbientCapabilities=` は、root 以外で動くサービスに、Capability を渡します。上限の `CapabilityBoundingSet=` と合わせて書くのが定番です。
 
@@ -886,6 +990,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: B
 
+**テキスト**: 4. systemd のサービスで使う
+
 `NoNewPrivileges=yes` は、実行する側の権限を上げる経路(`setuid`、ファイルの Capability など)を塞ぎます。乗っ取られても、権限を上げにくくなります。
 
 - A. 持っている Capability を外す設定ではありません。外すのは `CapabilityBoundingSet=` です。
@@ -896,6 +1002,8 @@ x86-64 のマシンは、32 ビット用のシステムコールの番号の体�
 
 **正解**: C
 
+**テキスト**: 2. ケーパビリティセット
+
 Effective が、今効いている Capability です。Permitted は使ってよい上限で、プログラムは、その範囲で Effective に入れたり、外したりします。Inheritable は、`exec` で引き継ぐ候補です。
 
 - A. 使ってよい上限です。実際に効いているものは、Effective に入っているものです。
@@ -905,6 +1013,8 @@ Effective が、今効いている Capability です。Permitted は使ってよ
 ### 問55 `LinuC3SS-1.0-055`
 
 **正解**: D
+
+**テキスト**: 2. ケーパビリティセット
 
 `capsh --decode=値` は、16 進数の値を、Capability の名前に直します。`0x400` は `cap_net_bind_service` です。実行中のプロセスの Capability は `getpcaps PID` でも見られます。
 
