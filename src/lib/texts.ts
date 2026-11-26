@@ -76,31 +76,30 @@ export function splitPages(md: string): Page[] {
   if (sections.length === 0) return text.trim() ? [{ heading: '', body: text.trimEnd() }] : []
   const intro = text.slice(0, text.indexOf(sections[0].body)).trim()
 
-  const pages: Page[] = []
-  for (const s of sections) {
-    const parts = splitSubsections(s.body)
-    if (s.body.length <= PAGE_MAX || parts.length === 1) {
-      pages.push({ heading: s.heading, body: s.body })
-      continue
-    }
-    // parts[0] は ## の見出しと、最初の ### までの前置き
-    const merged: { heading: string; body: string }[] = []
-    let cur = { heading: s.heading, body: parts[0].body }
-    for (const p of parts.slice(1)) {
-      if (cur.body.length < PAGE_MIN || p.body.length < PAGE_MIN) {
-        // 短い部分は前とまとめ、見出しは先の部分のものを残す
-        cur = { heading: cur.heading, body: `${cur.body}\n\n${p.body}` }
-      } else {
-        merged.push(cur)
-        cur = { heading: p.heading, body: p.body }
-      }
-    }
-    if (cur.body.length < PAGE_MIN && merged.length > 0) merged[merged.length - 1].body += `\n\n${cur.body}`
-    else merged.push(cur)
-    for (const m of merged) pages.push({ heading: m.heading, parent: s.heading, body: m.body })
-  }
+  const pages = sections.flatMap(sectionPages)
   if (intro) pages[0] = { ...pages[0], body: `${intro}\n\n${pages[0].body}` }
   return pages
+}
+
+/** ## の節 1 つをページに分ける。長い節(PAGE_MAX を超える)は ### ごとに分け、短い部分(PAGE_MIN 未満)は前とまとめる */
+export function sectionPages(s: Section): Page[] {
+  const parts = splitSubsections(s.body)
+  if (s.body.length <= PAGE_MAX || parts.length === 1) return [{ heading: s.heading, body: s.body }]
+  // parts[0] は ## の見出しと、最初の ### までの前置き
+  const merged: { heading: string; body: string }[] = []
+  let cur = { heading: s.heading, body: parts[0].body }
+  for (const p of parts.slice(1)) {
+    if (cur.body.length < PAGE_MIN || p.body.length < PAGE_MIN) {
+      // 短い部分は前とまとめ、見出しは先の部分のものを残す
+      cur = { heading: cur.heading, body: `${cur.body}\n\n${p.body}` }
+    } else {
+      merged.push(cur)
+      cur = { heading: p.heading, body: p.body }
+    }
+  }
+  if (cur.body.length < PAGE_MIN && merged.length > 0) merged[merged.length - 1].body += `\n\n${cur.body}`
+  else merged.push(cur)
+  return merged.map((m) => ({ heading: m.heading, parent: s.heading, body: m.body }))
 }
 
 /** ## の節の本文を ### の見出しで分ける。最初の要素は ### より前(## の見出しを含む)。コードブロック内は無視する */
