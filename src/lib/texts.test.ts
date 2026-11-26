@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import questions from '../data/questions.json'
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { lintSvg, lintTextDiagrams, lintTextImages } from './contentLint'
-import { TEXTS, loadText, parseTextPath, sectionNumbers, splitSections, textFor } from './texts'
+import { PAGE_MAX, PAGE_MIN, TEXTS, loadText, parseTextPath, sectionNumbers, splitPages, splitSections, textFor } from './texts'
 
 describe('parseTextPath', () => {
   it('試験名、番号、題名を取り出す', () => {
@@ -29,6 +29,69 @@ describe('splitSections', () => {
     expect(s[0].body).toContain('## コード内')
     expect(s[0].body).toContain('### 小見出し')
     expect(s[1].body).toBe('## 補足\n本文B')
+  })
+})
+
+describe('splitPages', () => {
+  const long = (n: number) => 'あ'.repeat(n)
+
+  it('短い ## の節は 1 ページにし、前書きを最初のページに付ける', () => {
+    const p = splitPages(['# 題名', '前書き', '## 1.1 節A', '本文A', '### 小見出し', '本文', '## 補足', '本文B'].join('\n'))
+    expect(p.map((x) => [x.heading, x.parent])).toEqual([
+      ['1.1 節A', undefined],
+      ['補足', undefined],
+    ])
+    expect(p[0].body.startsWith('# 題名\n前書き\n\n## 1.1 節A')).toBe(true)
+    expect(p[0].body).toContain('### 小見出し')
+  })
+
+  it('長い ## の節は ### ごとに分け、短い部分は前とまとめる', () => {
+    const md = [
+      '## 2.1 長い節',
+      '前置き',
+      '### 2.1.1 一つ目',
+      long(PAGE_MIN),
+      '### 2.1.2 短い',
+      '短い本文',
+      '### 2.1.3 三つ目',
+      long(PAGE_MAX),
+      '```',
+      '### コード内',
+      '```',
+      '## 2.2 次の節',
+      '本文',
+    ].join('\n')
+    const p = splitPages(md)
+    expect(p.map((x) => [x.heading, x.parent])).toEqual([
+      ['2.1 長い節', '2.1 長い節'],
+      ['2.1.3 三つ目', '2.1 長い節'],
+      ['2.2 次の節', undefined],
+    ])
+    // 前置きは最初の ### と、短い ### は前のページとまとまる
+    expect(p[0].body).toContain('### 2.1.1 一つ目')
+    expect(p[0].body).toContain('### 2.1.2 短い')
+    expect(p[1].body).toContain('### コード内')
+  })
+
+  it('最後の短い部分は前のページにまとめる', () => {
+    const md = ['## 3.1 節', long(PAGE_MIN), '### 3.1.1 一つ目', long(PAGE_MAX), '### 3.1.2 最後', '短い'].join('\n')
+    const p = splitPages(md)
+    expect(p.map((x) => x.heading)).toEqual(['3.1 節', '3.1.1 一つ目'])
+    expect(p[1].body.endsWith('### 3.1.2 最後\n短い')).toBe(true)
+  })
+
+  it('## がなければ全体を 1 ページにする', () => {
+    expect(splitPages('# 題名\n本文\n')).toEqual([{ heading: '', body: '# 題名\n本文' }])
+    expect(splitPages('')).toEqual([])
+  })
+
+  it('同梱のテキストは、本文を落とさずにページに分かれる', async () => {
+    for (const t of TEXTS) {
+      const md = (await loadText(t.id)).replace(/\r\n/g, '\n')
+      const pages = splitPages(md)
+      const squash = (x: string) => x.replace(/\s+/g, '')
+      expect(squash(pages.map((x) => x.body).join('')), t.id).toBe(squash(md))
+    }
   })
 })
 
