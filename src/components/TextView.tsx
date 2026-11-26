@@ -1,11 +1,13 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import data from '../data/questions.json'
 import type { Question } from '../lib/types'
-import { TEXTS as ALL_TEXTS, loadText, splitSections, type TextInfo } from '../lib/texts'
+import { TEXTS as ALL_TEXTS, loadText, splitPages, type Page, type TextInfo } from '../lib/texts'
 
 const Markdown = lazy(() => import('./Markdown'))
 
 const KEY = 'sre-drill:text'
+/** テキストごとに、最後に開いていたページの番号 */
+const PAGE_KEY = 'sre-drill:text-page'
 const QUESTIONS = data as Question[]
 
 function initialId(TEXTS: TextInfo[]): string {
@@ -16,6 +18,44 @@ function initialId(TEXTS: TextInfo[]): string {
     // 保存値が読めなければ先頭を開く
   }
   return TEXTS[0]?.id ?? ''
+}
+
+function readPages(): Record<string, number> {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(PAGE_KEY) ?? '{}')
+    return v && typeof v === 'object' ? (v as Record<string, number>) : {}
+  } catch {
+    return {}
+  }
+}
+
+function savePage(id: string, page: number) {
+  try {
+    localStorage.setItem(PAGE_KEY, JSON.stringify({ ...readPages(), [id]: page }))
+  } catch {
+    // 保存できなくても動作に支障はない
+  }
+}
+
+/** 目次の 1 項目。### で分けた ## の節は、子にそのページを持つ */
+interface TocItem {
+  heading: string
+  /** 分けていない節のページ番号。分けた節は undefined */
+  page?: number
+  children: { heading: string; page: number }[]
+}
+
+function tocOf(pages: Page[]): TocItem[] {
+  const items: TocItem[] = []
+  pages.forEach((p, i) => {
+    if (p.parent === undefined) items.push({ heading: p.heading, page: i, children: [] })
+    else {
+      const last = items[items.length - 1]
+      if (last && last.page === undefined && last.heading === p.parent) last.children.push({ heading: p.heading, page: i })
+      else items.push({ heading: p.parent, children: [{ heading: p.heading, page: i }] })
+    }
+  })
+  return items
 }
 
 interface Props {
@@ -29,8 +69,9 @@ interface Props {
 export function TextView({ exam, onPractice, onOpenHome }: Props) {
   const TEXTS = exam === null ? ALL_TEXTS : ALL_TEXTS.filter((t) => t.exam === exam)
   const [id, setId] = useState(() => initialId(TEXTS))
+  /** 開くページ。'last' は読み込んだ後に最後のページにする(前のテキストへ戻るとき) */
+  const [page, setPage] = useState<number | 'last'>(() => readPages()[id] ?? 0)
   const [loaded, setLoaded] = useState<{ id: string; md: string } | { id: string; error: string } | null>(null)
-  const refs = useRef<(HTMLElement | null)[]>([])
 
   useEffect(() => {
     if (!id) return
@@ -45,19 +86,26 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
 
   const current = loaded?.id === id ? loaded : null
   const md = current && 'md' in current ? current.md : null
-  const sections = useMemo(() => (md ? splitSections(md) : []), [md])
-  // 最初の ## より前(題名と前書き)
-  const intro = useMemo(() => (md && sections.length ? md.slice(0, md.indexOf(sections[0].body)) : (md ?? '')), [md, sections])
+  const pages = useMemo(() => (md ? splitPages(md) : []), [md])
+  const toc = useMemo(() => tocOf(pages), [pages])
+  const pageIndex = pages.length === 0 ? 0 : page === 'last' ? pages.length - 1 : Math.min(Math.max(page, 0), pages.length - 1)
 
-  const select = (next: string, top = false) => {
-    setId(next)
-    if (top) window.scrollTo(0, 0)
+  const open = (nextId: string, nextPage: number | 'last') => {
+    setId(nextId)
+    setPage(nextPage)
+    window.scrollTo(0, 0)
     try {
-      localStorage.setItem(KEY, next)
+      localStorage.setItem(KEY, nextId)
     } catch {
       // 保存できなくても動作に支障はない
     }
+    if (typeof nextPage === 'number') savePage(nextId, nextPage)
   }
+
+  useEffect(() => {
+    // 'last' で開いたときは、決まったページ番号を保存する
+    if (page === 'last' && pages.length > 0) savePage(id, pageIndex)
+  }, [page, pages, id, pageIndex])
 
   if (TEXTS.length === 0) return <section className="card">テキストがありません。`texts/` に Markdown のファイルを置いてください。</section>
 
@@ -65,20 +113,41 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
   const info = ALL_TEXTS.find((t) => t.id === id)
   const textExam = info?.exam ?? null
   const index = TEXTS.findIndex((t) => t.id === id)
-  const prev = index > 0 ? TEXTS[index - 1] : null
-  const next = index >= 0 && index < TEXTS.length - 1 ? TEXTS[index + 1] : null
+  const prevText = index > 0 ? TEXTS[index - 1] : null
+  const nextText = index >= 0 && index < TEXTS.length - 1 ? TEXTS[index + 1] : null
   const count = info ? QUESTIONS.filter((q) => q.exam === info.exam && q.domain === info.number).length : 0
+  const cur = pages[pageIndex]
+  const hasPrevPage = pageIndex > 0
+  const hasNextPage = pageIndex < pages.length - 1
+  const textLabel = (t: TextInfo) => `${t.number} ${t.title}`
+  // 節の途中から始まるページは、どの節の続きかを示す
+  const continued = cur?.parent !== undefined && pageIndex > 0 && pages[pageIndex - 1].parent === cur.parent ? cur.parent : null
+
+  const goPrev = () => {
+    if (hasPrevPage) open(id, pageIndex - 1)
+    else if (prevText) open(prevText.id, 'last')
+  }
+  const goNext = () => {
+    if (hasNextPage) open(id, pageIndex + 1)
+    else if (nextText) open(nextText.id, 0)
+  }
+
+  const pageButton = (heading: string, i: number) => (
+    <button className="link" aria-current={i === pageIndex ? 'page' : undefined} onClick={() => open(id, i)}>
+      {heading}
+    </button>
+  )
 
   return (
     <section className="card">
       <label className="text-head">
         <span className="text-head-label">テキスト</span>
-        <select value={id} onChange={(e) => select(e.target.value)}>
+        <select value={id} onChange={(e) => open(e.target.value, readPages()[e.target.value] ?? 0)}>
           {exams.map((exam) => (
             <optgroup key={exam} label={exam}>
               {TEXTS.filter((t) => t.exam === exam).map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.number} {t.title}
+                  {textLabel(t)}
                 </option>
               ))}
             </optgroup>
@@ -89,36 +158,33 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
       {current && 'error' in current && <p>{current.error}</p>}
       {!current && <p className="meta">読み込み中</p>}
 
-      {md !== null && (
+      {md !== null && cur && (
         <>
-          {sections.length > 1 && (
-            <nav className="toc" aria-labelledby="text-toc-label">
-              <p className="toc-label" id="text-toc-label">
-                このページの内容
-              </p>
+          {pages.length > 1 && (
+            <details key={`${id}-${pageIndex}`} className="toc" open={pageIndex === 0}>
+              <summary className="toc-label">
+                目次(ページ {pageIndex + 1} / {pages.length})
+              </summary>
               <ol>
-                {sections.map((s, i) => (
-                  <li key={i}>
-                    <button className="link" onClick={() => refs.current[i]?.scrollIntoView({ block: 'start' })}>
-                      {s.heading}
-                    </button>
+                {toc.map((item, k) => (
+                  <li key={k}>
+                    {pageButton(item.heading, item.page ?? item.children[0].page)}
+                    {item.children.length > 1 && (
+                      <ol className="toc-sub">
+                        {item.children.slice(1).map((c) => (
+                          <li key={c.page}>{pageButton(c.heading, c.page)}</li>
+                        ))}
+                      </ol>
+                    )}
                   </li>
                 ))}
               </ol>
-            </nav>
+            </details>
           )}
+
+          {continued && <p className="text-crumb">{continued}</p>}
           <Suspense fallback={<p className="meta">読み込み中</p>}>
-            <Markdown text={intro} exam={textExam} textId={id} />
-            {sections.map((s, i) => (
-              <section
-                key={`${id}-${i}`}
-                ref={(el) => {
-                  refs.current[i] = el
-                }}
-              >
-                <Markdown text={s.body} exam={textExam} textId={id} />
-              </section>
-            ))}
+            <Markdown key={`${id}-${pageIndex}`} text={cur.body} exam={textExam} textId={id} />
           </Suspense>
 
           {info && (
@@ -133,14 +199,23 @@ export function TextView({ exam, onPractice, onOpenHome }: Props) {
                   問題演習を開く
                 </button>
               </div>
+              {pages.length > 1 && (
+                <p className="meta text-page-count">
+                  ページ {pageIndex + 1} / {pages.length}
+                </p>
+              )}
               <div className="text-end-pager">
-                <button className="pager prev" disabled={!prev} onClick={() => prev && select(prev.id, true)}>
-                  <span className="pager-label">‹ 前のページ</span>
-                  <span className="pager-title">{prev ? `${prev.number} ${prev.title}` : 'なし'}</span>
+                <button className="pager prev" disabled={!hasPrevPage && !prevText} onClick={goPrev}>
+                  <span className="pager-label">{hasPrevPage || !prevText ? '‹ 前のページ' : '‹ 前のテキスト'}</span>
+                  <span className="pager-title">
+                    {hasPrevPage ? pages[pageIndex - 1].heading : prevText ? textLabel(prevText) : 'なし'}
+                  </span>
                 </button>
-                <button className="pager next" disabled={!next} onClick={() => next && select(next.id, true)}>
-                  <span className="pager-label">次のページ ›</span>
-                  <span className="pager-title">{next ? `${next.number} ${next.title}` : 'なし'}</span>
+                <button className="pager next" disabled={!hasNextPage && !nextText} onClick={goNext}>
+                  <span className="pager-label">{hasNextPage || !nextText ? '次のページ ›' : '次のテキスト ›'}</span>
+                  <span className="pager-title">
+                    {hasNextPage ? pages[pageIndex + 1].heading : nextText ? textLabel(nextText) : 'なし'}
+                  </span>
                 </button>
               </div>
             </nav>
