@@ -218,6 +218,8 @@ default via 192.168.10.1 dev eth0
 
 **正解**: A
 
+**テキスト**: 1. 新旧のコマンドの対応
+
 `ip addr` は、インターフェースのアドレスを表示、設定します。`ifconfig` の代わりです。
 
 - B. `ip route` は、ルーティングテーブルを表示、設定します。古い `route` に当たります。
@@ -227,6 +229,8 @@ default via 192.168.10.1 dev eth0
 ### 問2 `LinuC201-2.03-002`
 
 **正解**: C
+
+**テキスト**: 2. ip コマンドで Ethernet を設定する
 
 `ip route add default via ゲートウェイ` で、デフォルトルートを足します。ゲートウェイは `via` で指定します。
 
@@ -238,6 +242,8 @@ default via 192.168.10.1 dev eth0
 
 **正解**: B、D
 
+**テキスト**: 1. 新旧のコマンドの対応
+
 `ip neigh show` と `arp -n` は、どちらも ARP の表(IP アドレスと MAC アドレスの対応)を表示します。`arp` は古い net-tools のコマンドで、`ip neigh` が新しい書き方です。
 
 - A. `ip route show` は、ルーティングテーブルを表示します。
@@ -246,6 +252,8 @@ default via 192.168.10.1 dev eth0
 ### 問4 `LinuC201-2.03-004`
 
 **正解**: D
+
+**テキスト**: 4. nmcli(NetworkManager の操作)
 
 `nmcli connection modify` は、設定ファイルを書き換えるだけです。`nmcli connection up` で、新しい設定を実際に反映します。
 
@@ -257,6 +265,8 @@ default via 192.168.10.1 dev eth0
 
 **正解**: B
 
+**テキスト**: 5. 無線 LAN の設定
+
 `iw` は新しい道具で、`iw dev wlan0 scan` で周りのアクセスポイントを探します(root の権限が必要です)。
 
 - A. `iwlist` は古い wireless-tools のコマンドです。問題は、新しい道具を求めています。
@@ -266,6 +276,8 @@ default via 192.168.10.1 dev eth0
 ### 問6 `LinuC201-2.03-006`
 
 **正解**: A
+
+**テキスト**: 2. ip コマンドで Ethernet を設定する
 
 `NO-CARRIER` は、NIC がリンクを検出できていない状態です。ケーブルが抜けている、相手のスイッチが止まっているなどを疑います。切り分けの最初の段階(リンク)の問題です。
 
@@ -277,6 +289,8 @@ default via 192.168.10.1 dev eth0
 
 **正解**: C
 
+**テキスト**: 3. ネットワークの設定を保存する場所
+
 Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfaces.d/`)から設定を読みます。
 
 - A. Red Hat 系で使われる、ifcfg ファイルの置き場所です。
@@ -287,17 +301,23 @@ Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfa
 
 **正解**: `ip link set eth0 up`、`ip link set dev eth0 up`、`ip link set up dev eth0`、`ip link set up eth0`
 
+**テキスト**: 2. ip コマンドで Ethernet を設定する
+
 `ip link set` で、インターフェースの状態を変えます。`up` で有効、`down` で無効です。`dev` は省略できます。`up` と `dev eth0` の順番は入れ替えてもかまいません。`ifconfig eth0 up` や `ifup eth0` でも有効にできますが、問題は `ip` コマンドを求めています。
 
 ### 問9 `LinuC201-2.03-009`
 
 **正解**: `route add default gw 192.168.10.1`、`route add -net default gw 192.168.10.1`、`route add -net 0.0.0.0 netmask 0.0.0.0 gw 192.168.10.1`
 
+**テキスト**: 2. ip コマンドで Ethernet を設定する
+
 古い `route` では、ゲートウェイを `gw` で指定します。`ip route` の `via` に当たります。`default` は `-net 0.0.0.0 netmask 0.0.0.0` と同じ意味です。
 
 ### 問10 `LinuC201-2.03-010`
 
 **正解**: D
+
+**テキスト**: 1. 複数のサブネットへの経路
 
 `ip route add あて先ネットワーク via ゲートウェイ` の形です。あて先に `10.20.0.0/16`、ゲートウェイに `192.168.10.254` を書きます。
 
@@ -309,6 +329,8 @@ Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfa
 
 **正解**: B
 
+**テキスト**: 1. 複数のサブネットへの経路
+
 当てはまる経路が複数あるときは、プレフィックス長が最も長い(範囲が最も狭い)経路が優先されます(ロンゲストマッチ)。10.20.1.5 は `10.20.0.0/16` と `10.0.0.0/8` と `default` に当てはまり、このうち最も長いのは `/16` です。
 
 - A. デフォルトルートは、ほかに当てはまる経路がないときだけ使います。
@@ -318,6 +340,8 @@ Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfa
 ### 問12 `LinuC201-2.03-012`
 
 **正解**: C
+
+**テキスト**: 2. IP 転送(Linux をルーターにする)
 
 `/etc/sysctl.conf` か `/etc/sysctl.d/*.conf` に書いた設定は、起動時に読み込まれます。書いた後に `sysctl --system` で、すぐに読み込めます。
 
@@ -329,11 +353,15 @@ Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfa
 
 **正解**: `sysctl -p`、`sysctl --load`
 
+**テキスト**: 2. IP 転送(Linux をルーターにする)
+
 `sysctl -p` は、ファイルを指定しなければ `/etc/sysctl.conf` を読み込みます。`sysctl --system` は、`/etc/sysctl.d/` などのほかのファイルもすべて読み込むので、このファイルだけを読む答えにはなりません。
 
 ### 問14 `LinuC201-2.03-014`
 
 **正解**: A
+
+**テキスト**: 6. tcpdump(パケットの解析)
 
 `-i` で NIC、`-nn` でホスト名とポート名の変換をやめ、`-c 10` で 10 個で止め、`port 53` で条件を絞ります。
 
@@ -345,6 +373,8 @@ Debian 12 の ifupdown は、`/etc/network/interfaces`(と `/etc/network/interfa
 
 **正解**: D
 
+**テキスト**: 7. nmap(ポートの調査)
+
 nmap の `filtered` は、ファイアウォールなどが探査のパケットを止めていて、開いているかどうか判断できない状態です。
 
 - A. 待ち受けているときは `open` と表示されます。
@@ -354,6 +384,8 @@ nmap の `filtered` は、ファイアウォールなどが探査のパケット
 ### 問16 `LinuC201-2.03-016`
 
 **正解**: B
+
+**テキスト**: 8. ss と netstat
 
 `-t` は TCP、`-l` は待ち受け中、`-n` は番号のまま、`-p` はプロセスの表示です。古い `netstat -tlnp` も、同じ内容を表示します。
 
@@ -365,6 +397,8 @@ nmap の `filtered` は、ファイアウォールなどが探査のパケット
 
 **正解**: A、D
 
+**テキスト**: 5. netcat(nc、ncat)
+
 `nc -zv` は、相手のポートに接続できるかだけを試します。`nmap -p 22` は、相手のポートが `open` か `closed` か `filtered` かを調べます。どちらも、このホストから相手に向けて、実際に接続を試します。
 
 - B. `ss -tlnp` は、このホスト自身が待ち受けているポートを表示します。相手のホストは調べられません。
@@ -373,6 +407,8 @@ nmap の `filtered` は、ファイアウォールなどが探査のパケット
 ### 問18 `LinuC201-2.03-018`
 
 **正解**: A
+
+**テキスト**: 2. IP 転送(Linux をルーターにする)
 
 eth0 にはパケットが届き、eth1 から出ていないので、ルーターが転送していません。標準では `net.ipv4.ip_forward` が 0 で、転送は無効です。1 にすると転送が始まります。
 
@@ -384,11 +420,15 @@ eth0 にはパケットが届き、eth1 から出ていないので、ルータ�
 
 **正解**: `nc -l 9000`、`nc -l -p 9000`、`nc -lp 9000`、`ncat -l 9000`、`ncat -l -p 9000`、`ncat -lp 9000`、`netcat -l 9000`、`netcat -l -p 9000`、`netcat -lp 9000`
 
+**テキスト**: 5. netcat(nc、ncat)
+
 `-l` で待ち受けます(listen)。`nc` の版によって、ポートの前に `-p` が要るものと、要らないものがあります。
 
 ### 問20 `LinuC201-2.03-020`
 
 **正解**: C
+
+**テキスト**: 4. ログで、機器の認識や障害を調べる
 
 Red Hat 系では、rsyslog が一般のログを `/var/log/messages` に書きます。
 
@@ -400,6 +440,8 @@ Red Hat 系では、rsyslog が一般のログを `/var/log/messages` に書き�
 
 **正解**: B
 
+**テキスト**: 4. ログで、機器の認識や障害を調べる
+
 `lspci` に出るのは、PCI のデバイスとして、ハードウェアは見つかっているという意味です。`ip link` に出ないのは、ドライバーが読み込まれず、インターフェースが作られていないためと疑います。`dmesg` に、ドライバーの読み込みに失敗したメッセージが出ていることがあります。
 
 - A. DNS は、インターフェースが上がった後の問題です。
@@ -410,11 +452,15 @@ Red Hat 系では、rsyslog が一般のログを `/var/log/messages` に書き�
 
 **正解**: `journalctl -k`、`journalctl --dmesg`
 
+**テキスト**: 4. ログで、機器の認識や障害を調べる
+
 `-k`(`--dmesg`)で、カーネルのメッセージだけを表示します。`dmesg` と同じ内容を、ジャーナルから見られます。`-k` は `-b` を含むので、今回の起動からのカーネルのメッセージが出ます。前回の起動のものは `-k -b -1` で見ます。
 
 ### 問23 `LinuC201-2.03-023`
 
 **正解**: D
+
+**テキスト**: 5. NetworkManager が設定に与える影響
 
 NetworkManager は、`/etc/resolv.conf` を自分の設定で書き換えます。`nmcli connection modify 接続名 ipv4.dns アドレス` で、NetworkManager の設定として DNS サーバーを書くと、残ります。
 
@@ -426,6 +472,8 @@ NetworkManager は、`/etc/resolv.conf` を自分の設定で書き換えます�
 
 **正解**: A
 
+**テキスト**: 1. 設定と状態を調べる
+
 IP アドレスで通信できて、名前だけが解決できないので、名前解決の設定の問題です。`/etc/resolv.conf` の `nameserver` が正しいか、DNS サーバーに届くかを確認します。
 
 - B. リンクが上がっているので、IP アドレスで通信できています。
@@ -435,6 +483,8 @@ IP アドレスで通信できて、名前だけが解決できないので、�
 ### 問25 `LinuC201-2.03-025`
 
 **正解**: B
+
+**テキスト**: 3. traceroute と mtr(経路の確認)
 
 `* * *` は、そのホップから応答がなかったという意味です。ルーターが ICMP の応答を返さない設定でも、通信は通ります。この問題では、そのあとの行にあて先の応答があるので、通信は通っています。
 
@@ -446,6 +496,8 @@ IP アドレスで通信できて、名前だけが解決できないので、�
 
 **正解**: D
 
+**テキスト**: 3. traceroute と mtr(経路の確認)
+
 `mtr` は、あて先までの途中のルーターごとに、パケットを続けて送り、損失率(`Loss%`)と遅延を表示します。`-r` を付けると、測り終えた結果を表で出して終わります。
 
 - A. `tcpdump` は、NIC を流れるパケットを取り込む道具です。
@@ -456,6 +508,8 @@ IP アドレスで通信できて、名前だけが解決できないので、�
 
 **正解**: A、C
 
+**テキスト**: 1. 設定と状態を調べる
+
 `hostnamectl set-hostname` は、実行中のホスト名を変え、`/etc/hostname` にも書きます。`/etc/hostname` を直接編集して再起動する方法も、起動時にそのファイルを読むので、残ります。
 
 - B. `hostname web01` だけでは、今のホスト名が変わるだけで、再起動すると戻ります。
@@ -464,6 +518,8 @@ IP アドレスで通信できて、名前だけが解決できないので、�
 ### 問28 `LinuC201-2.03-028`
 
 **正解**: B
+
+**テキスト**: 1. 設定と状態を調べる
 
 `hosts: files dns` は、`/etc/hosts`(files)を先に見て、なければ DNS を見るという意味です。`/etc/hosts` に db01 があるので、192.168.10.20 が使われ、DNS には問い合わせません。
 
@@ -485,11 +541,15 @@ RHEL 7・8 系では、`/etc/sysconfig/network-scripts/ifcfg-eth0` のような�
 
 **正解**: `systemctl restart NetworkManager`、`systemctl restart NetworkManager.service`
 
+**テキスト**: 5. NetworkManager が設定に与える影響
+
 systemd のサービスは、`systemctl restart ユニット名` で再起動します。`.service` は省略できます。状態の確認は `systemctl status NetworkManager` です。
 
 ### 問31 `LinuC201-2.03-031`
 
 **正解**: C
+
+**テキスト**: 2. 原因を切り分ける順番
 
 `ip neigh` の `FAILED` は、そのアドレスの MAC アドレスを、ARP で解決できなかったことを示します。ゲートウェイの電源、ケーブル、同じネットワークにいるか(アドレスやサブネットマスクの間違い)などを疑います。
 
@@ -500,5 +560,7 @@ systemd のサービスは、`systemctl restart ユニット名` で再起動し
 ### 問32 `LinuC201-2.03-032`
 
 **正解**: `traceroute6 2001:db8::1`、`traceroute -6 2001:db8::1`
+
+**テキスト**: 3. traceroute と mtr(経路の確認)
 
 `traceroute6` は、IPv6 用の traceroute です。`traceroute -6` でも同じです。

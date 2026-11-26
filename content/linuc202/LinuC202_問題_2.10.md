@@ -110,6 +110,8 @@
 
 **入力の別解**: `postalias /etc/aliases`、`sendmail -bi`
 
+**テキスト**: 4. エイリアスと newaliases
+
 `newaliases` は、`/etc/aliases` から、Postfix が読むデータベース(`/etc/aliases.db`)を作り直します。`/etc/aliases` を編集しただけでは反映されません。`postalias /etc/aliases` と `sendmail -bi` も同じ働きです。
 
 - A. `postfix check` は、設定ファイルの誤りを調べるだけで、エイリアスのデータベースは作りません。
@@ -119,6 +121,8 @@
 ### 問2 `LinuC202-2.10-002`
 
 **正解**: C
+
+**テキスト**: 3. main.cf の主なパラメーター
 
 `mynetworks` は、信頼するクライアントのネットワークです。ここからのメールは、中継(自分宛てでないドメインへの送信)が許されます。
 
@@ -130,11 +134,15 @@
 
 **正解**: `postconf -n`
 
+**テキスト**: 2. 設定ファイルとディレクトリ
+
 `postconf -n` は、`main.cf` で変えた設定(既定値と違うもの)だけを表示します。`postconf` だけだと、既定値も含めてすべてが出て、長くなります。`postconf -d` は逆に、既定値の一覧です。
 
 ### 問4 `LinuC202-2.10-004`
 
 **正解**: A
+
+**テキスト**: 5. 仮想ドメイン
 
 `postmap` は、`hash:` 形式のファイルから、Postfix が読むデータベース(`virtual.db`)を作ります。仮想エイリアスのほか、`check_sender_access` のファイルなどでも使います。
 
@@ -145,6 +153,8 @@
 ### 問5 `LinuC202-2.10-005`
 
 **正解**: A、B
+
+**テキスト**: 6. 中継の制限(オープンリレーを防ぐ)
 
 中継を許す相手は、信頼するネットワーク(`mynetworks`)か、SMTP 認証(SASL)に成功したユーザーに絞ります。
 
@@ -157,17 +167,23 @@
 
 **正解**: `MAIL FROM`、`MAIL FROM:`、`mail from`、`mail from:`
 
+**テキスト**: 8. SMTP の基本
+
 `MAIL FROM:<送り主のアドレス>` で、送り主を伝えます。SMTP のコマンドは、大文字と小文字を区別しません。宛先は `RCPT TO:<宛先のアドレス>` で、本文は `DATA` で送ります。
 
 ### 問7 `LinuC202-2.10-007`
 
 **正解**: `mailq`、`postqueue -p`、`sendmail -bp`
 
+**テキスト**: 9. キュー、ログ、監視
+
 どちらも、キュー(`/var/spool/postfix/` の下)に残っているメールの一覧を表示します。`mailq` は、Sendmail 互換のコマンドで、Postfix では `postqueue -p` と同じ動きです。Sendmail 互換の `sendmail -bp` も同じです。`postqueue -f` で、キューのメールをすぐに再配送します。
 
 ### 問8 `LinuC202-2.10-008`
 
 **正解**: D
+
+**テキスト**: 9. キュー、ログ、監視
 
 Red Hat 系(AlmaLinux、RHEL 9 系)では、メールのログは `/var/log/maillog` に出ます。
 
@@ -179,6 +195,8 @@ Red Hat 系(AlmaLinux、RHEL 9 系)では、メールのログは `/var/log/mail
 
 **正解**: B
 
+**テキスト**: 7. SMTP 認証と TLS
+
 `STARTTLS` は、平文でつないだあとに、通信を TLS に切り替える SMTP の命令です。切り替えたあとで SMTP 認証をするので、パスワードが平文で流れません。
 
 - A. `DATA` は、メールの本文を送り始める命令です。
@@ -188,6 +206,8 @@ Red Hat 系(AlmaLinux、RHEL 9 系)では、メールのログは `/var/log/mail
 ### 問10 `LinuC202-2.10-010`
 
 **正解**: C
+
+**テキスト**: 1. メールが届くまでの流れ
 
 Exim は、Postfix と同じ MTA です。Debian では、標準で入る MTA として使われてきました(パッケージ名は `exim4`)。
 
@@ -199,6 +219,8 @@ Exim は、Postfix と同じ MTA です。Debian では、標準で入る MTA �
 
 **正解**: A
 
+**テキスト**: 1. POP3 と IMAP
+
 IMAP は、メールをサーバーに置いたまま読みます。既読の状態やフォルダーもサーバーにあるので、どの端末でも同じに見えます。
 
 - B. POP3 は、メールをメールソフトにダウンロードします。端末ごとにメールが分かれます。
@@ -209,11 +231,15 @@ IMAP は、メールをサーバーに置いたまま読みます。既読の状
 
 **正解**: `doveconf -n`
 
+**テキスト**: 5. doveconf と doveadm
+
 `doveconf -n` は、既定値と違う設定だけを表示します。`doveconf -a` は、すべての設定を表示します。設定が効いているかを確かめるときは、まず `doveconf -n` を見ます。設定は `/etc/dovecot/dovecot.conf` と、`/etc/dovecot/conf.d/` の下のファイルにあります。
 
 ### 問13 `LinuC202-2.10-013`
 
 **正解**: D
+
+**テキスト**: 3. メールの形式: Maildir と mbox
 
 Postfix の `home_mailbox = Maildir/` は、利用者のホームディレクトリの `Maildir/` に、Maildir 形式でメールを入れます。Dovecot は、`mail_location = maildir:~/Maildir` で、同じ場所を読みます。Postfix と Dovecot で形式と場所をそろえることが大切です。
 
@@ -225,6 +251,8 @@ Postfix の `home_mailbox = Maildir/` は、利用者のホームディレクト
 
 **正解**: B
 
+**テキスト**: 4. TLS と認証の設定
+
 Dovecot 2.3 系では、`ssl_cert` の値の頭に `<` を付けます。「このファイルの中身を値にする」という意味です。
 
 - A. `<` がないと、ファイルの名前が証明書の文字として読まれて、失敗します。
@@ -235,6 +263,8 @@ Dovecot 2.3 系では、`ssl_cert` の値の頭に `<` を付けます。「こ�
 
 **正解**: C
 
+**テキスト**: 5. doveconf と doveadm
+
 `doveadm who` は、いま接続しているユーザーと、接続元を表示します。接続を切るときは `doveadm kick` を使います。
 
 - A. `doveconf -n` は、既定値と違う設定を表示します。接続は分かりません。
@@ -244,6 +274,8 @@ Dovecot 2.3 系では、`ssl_cert` の値の頭に `<` を付けます。「こ�
 ### 問16 `LinuC202-2.10-016`
 
 **正解**: A、D
+
+**テキスト**: 1. POP3 と IMAP
 
 つないだ直後から TLS にするのは、POP3 の 995 番(POP3S)と、IMAP の 993 番(IMAPS)です。
 

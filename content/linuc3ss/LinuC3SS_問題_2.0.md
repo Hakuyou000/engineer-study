@@ -318,6 +318,8 @@ secure  UUID=0a1b2c3d-1111-2222-3333-444455556666  none  luks
 
 **正解**: C
 
+**テキスト**: 2. ASLR と kernel.randomize_va_space
+
 ASLR は、実行のたびにメモリ上の配置をランダムにして、攻撃者が住所を決め打ちしにくくする仕組みです。`kernel.randomize_va_space` が 2 のとき、スタックと共有ライブラリに加えて、ヒープもランダムになります。多くの配布版の既定の値です。
 
 - A. 0 はランダム化をしません。
@@ -327,6 +329,8 @@ ASLR は、実行のたびにメモリ上の配置をランダムにして、攻
 ### 問2 `LinuC3SS-2.0-002`
 
 **正解**: B
+
+**テキスト**: 3. 情報を隠す設定
 
 `kernel.kptr_restrict` が 1 のとき、CAP_SYSLOG を持たないユーザーにはカーネルのアドレスが 0 で表示され、root には見えます。
 
@@ -338,6 +342,8 @@ ASLR は、実行のたびにメモリ上の配置をランダムにして、攻
 
 **正解**: D
 
+**テキスト**: 3. 情報を隠す設定
+
 `kernel.yama.ptrace_scope = 1` は、自分の子孫のプロセスにだけ ptrace(アタッチ)を許します。別にログインして動かしているプロセスは、同じユーザーのものでも子孫ではないので、失敗します。
 
 - A. 値が 0 なら成功しますが、1 は同じユーザーでも子孫以外を許しません。
@@ -347,6 +353,8 @@ ASLR は、実行のたびにメモリ上の配置をランダムにして、攻
 ### 問4 `LinuC3SS-2.0-004`
 
 **正解**: A
+
+**テキスト**: 4. sysrq
 
 `kernel.sysrq` は、機能ごとの値を足し合わせたビットマスクです。たとえば 16(sync)、32(読み取り専用で再マウント)、128(再起動)を足した 176 は、その 3 つだけを許す値です。
 
@@ -358,6 +366,8 @@ ASLR は、実行のたびにメモリ上の配置をランダムにして、攻
 
 **正解**: B
 
+**テキスト**: 6. リソースの制限(limits.conf)
+
 `soft` は今の上限で、ログイン直後の値になります。`hard` は、本人が引き上げられる最大の値です。そのため、初期値は 1024 で、本人は 4096 まで引き上げられます。確かめるときは、ログインし直して `ulimit -n` と `ulimit -Hn` を実行します。
 
 - A. 初期値になるのは soft の 1024 です。hard の 4096 までは自分で引き上げられます。
@@ -367,6 +377,8 @@ ASLR は、実行のたびにメモリ上の配置をランダムにして、攻
 ### 問6 `LinuC3SS-2.0-006`
 
 **正解**: D
+
+**テキスト**: 6. リソースの制限(limits.conf)
 
 limits.conf は、ログインのときに PAM の pam_limits が読んで適用します。systemd が `systemctl start` で起動するサービスは、この PAM の流れを通りません。サービスの上限は、ユニットの `LimitNOFILE=` で決めます。
 
@@ -378,6 +390,8 @@ limits.conf は、ログインのときに PAM の pam_limits が読んで適用
 
 **正解**: A
 
+**テキスト**: 7. 名前空間(unshare、nsenter)
+
 `nsenter -t 4321 -n` は、PID 4321 のネットワーク名前空間に入って、続くコマンドを実行します。
 
 - B. `unshare` は、新しい名前空間を作るコマンドです。`-t` で既存のプロセスを指定する使い方はありません。
@@ -387,6 +401,8 @@ limits.conf は、ログインのときに PAM の pam_limits が読んで適用
 ### 問8 `LinuC3SS-2.0-008`
 
 **正解**: C
+
+**テキスト**: 8. cgroup による資源の制限
 
 cgroup v2 の環境では、v1 のパラメーターのファイルがありません。メモリの上限は `memory.max` に書きます。`cgset -r memory.max=100M demo` が、v2 での書き方です。
 
@@ -398,11 +414,15 @@ cgroup v2 の環境では、v1 のパラメーターのファイルがありま�
 
 **正解**: `memory.max`
 
+**テキスト**: 8. cgroup による資源の制限
+
 cgroup v2 では、cgroup のディレクトリの中の `memory.max` に、メモリの上限(バイトか、`100M` のような単位付きの値)を書きます。v1 の `memory.limit_in_bytes` は、v2 では使えません。
 
 ### 問10 `LinuC3SS-2.0-010`
 
 **正解**: B
+
+**テキスト**: 8. cgroup による資源の制限
 
 `cgclassify` は、動いているプロセスを、指定した cgroup に移します。
 
@@ -414,6 +434,8 @@ cgroup v2 では、cgroup のディレクトリの中の `memory.max` に、メ�
 
 **正解**: A
 
+**テキスト**: 9. chroot と pivot_root
+
 `chroot` は、プロセスが見るルートディレクトリを変えるだけです。root 権限のプロセスは抜け出せる場合があるので、セキュリティの境界としては弱いです。コンテナのランタイムは、名前空間と cgroup を組み合わせ、新しいマウント名前空間の中で `pivot_root` を使ってルートを入れ替えます。
 
 - B. ネットワークは分かれません。ネットワークの分離には、ネットワーク名前空間を使います。
@@ -423,6 +445,8 @@ cgroup v2 では、cgroup のディレクトリの中の `memory.max` に、メ�
 ### 問12 `LinuC3SS-2.0-012`
 
 **正解**: B、D
+
+**テキスト**: 5. ICMP に関する設定
 
 ICMP リダイレクトは、「その宛先なら別のルーターが近い」という通知です。偽の通知で経路を書き換えられないように、ルーターではないサーバーでは `accept_redirects = 0` にします。同じく、リダイレクトを送る必要もないので、`send_redirects = 0` にします。
 
@@ -435,6 +459,8 @@ ICMP リダイレクトは、「その宛先なら別のルーターが近い」
 
 **正解**: C
 
+**テキスト**: 5. ICMP に関する設定
+
 `net.ipv4.icmp_echo_ignore_all` が 1 だと、ping(エコー要求)にいっさい答えません。`sysctl net.ipv4.icmp_echo_ignore_all` で確かめます。
 
 - A. `kernel.kptr_restrict` は、カーネルのアドレスの見え方の設定です。
@@ -444,6 +470,8 @@ ICMP リダイレクトは、「その宛先なら別のルーターが近い」
 ### 問14 `LinuC3SS-2.0-014`
 
 **正解**: A
+
+**テキスト**: 2. table、chain、rule
 
 nftables の規則は、table、chain、rule の入れ子です。規則を足す前に、テーブルとチェーンが要ります。何も設定していないと、`inet filter` というテーブルがないので、「No such file or directory」になります。
 
@@ -455,6 +483,8 @@ nftables の規則は、table、chain、rule の入れ子です。規則を足�
 
 **正解**: C
 
+**テキスト**: 2. table、chain、rule
+
 `inet` ファミリーは、IPv4 と IPv6 の両方を 1 つのテーブルで扱います。
 
 - A. `ip` は、IPv4 だけです。
@@ -464,6 +494,8 @@ nftables の規則は、table、chain、rule の入れ子です。規則を足�
 ### 問16 `LinuC3SS-2.0-016`
 
 **正解**: D
+
+**テキスト**: 2. table、chain、rule
 
 `bridge` ファミリーは、ブリッジを通るイーサネットのフレームを扱います。
 
@@ -475,6 +507,8 @@ nftables の規則は、table、chain、rule の入れ子です。規則を足�
 
 **正解**: B
 
+**テキスト**: 3. チェーンの型、hook、priority、policy
+
 `policy drop` は、どの規則にも合わなかったパケットを捨てます。許可する規則が 1 つもないと、続いている SSH の通信のパケットも捨てられます。`ct state established,related accept` と、SSH を許す規則を、先に書く必要があります。
 
 - A. nft は、sshd のプロセスを止めません。
@@ -485,11 +519,15 @@ nftables の規則は、table、chain、rule の入れ子です。規則を足�
 
 **正解**: `ct state established,related accept`、`ct state related,established accept`、`ct state { established, related } accept`、`ct state { related, established } accept`、`ct state {established,related} accept`、`ct state {related,established} accept`、`ct state { established,related } accept`、`ct state { related,established } accept`、`ct state {established, related} accept`、`ct state {related, established} accept`
 
+**テキスト**: 5. 規則の書き方
+
 `ct state` は、コネクション追跡の状態です。確立済みと関連の接続を許可する規則を、`policy drop` のチェーンの先頭近くに置くと、自分が始めた通信の返事が通ります。
 
 ### 問19 `LinuC3SS-2.0-019`
 
 **正解**: A
+
+**テキスト**: 3. チェーンの型、hook、priority、policy
 
 送信元を書き換える(srcnat、マスカレード)のは、送り出す直前の postrouting フックで、型は nat です。
 
@@ -501,6 +539,8 @@ nftables の規則は、table、chain、rule の入れ子です。規則を足�
 
 **正解**: D
 
+**テキスト**: 3. チェーンの型、hook、priority、policy
+
 `type route` は、output フックで、パケットのマークなどを変えた後に、経路(ルーティング)を決め直すための型です。
 
 - A. 宛先アドレスの変換は、`type nat` の prerouting で行います。
@@ -510,6 +550,8 @@ nftables の規則は、table、chain、rule の入れ子です。規則を足�
 ### 問21 `LinuC3SS-2.0-021`
 
 **正解**: B
+
+**テキスト**: 3. チェーンの型、hook、priority、policy
 
 priority は、小さい数字が先に評価されます。-150 は 0 より先です。
 
@@ -521,6 +563,8 @@ priority は、小さい数字が先に評価されます。-150 は 0 より先
 
 **正解**: C
 
+**テキスト**: 5. 規則の書き方
+
 `{ 80, 443 }` は、複数の値を並べたセット(集合)の書き方です。
 
 - A. 空白で並べる書き方は、文法として正しくありません。
@@ -530,6 +574,8 @@ priority は、小さい数字が先に評価されます。-150 は 0 より先
 ### 問23 `LinuC3SS-2.0-023`
 
 **正解**: A
+
+**テキスト**: 6. 永続化と起動
 
 Ubuntu 24.04 では、`nftables.service` が起動時に `/etc/nftables.conf` を読み込みます。サービスが無効のままだと、再起動で規則が消えます。`systemctl enable nftables` で有効にします。
 
@@ -541,11 +587,15 @@ Ubuntu 24.04 では、`nftables.service` が起動時に `/etc/nftables.conf` �
 
 **正解**: `nft -c -f /etc/nftables.conf`、`nft --check -f /etc/nftables.conf`、`nft -cf /etc/nftables.conf`、`nft --check --file /etc/nftables.conf`、`nft -c --file /etc/nftables.conf`、`nft -f /etc/nftables.conf -c`、`nft -f /etc/nftables.conf --check`、`nft --file /etc/nftables.conf --check`、`nft --file /etc/nftables.conf -c`
 
+**テキスト**: 4. 基本のコマンド
+
 `-c`(`--check`)は、反映せずに、文法と内容を確かめます。`policy drop` を入れる設定を反映する前に、確かめておきます。
 
 ### 問25 `LinuC3SS-2.0-025`
 
 **正解**: D
+
+**テキスト**: 2. LUKS1 と LUKS2
 
 LUKS2 は、鍵導出に argon2 系を使えます。メモリを多く使うので、総当たりに強くなります。ヘッダーは JSON 形式のメタデータで、冗長に保存されます。
 
@@ -557,11 +607,15 @@ LUKS2 は、鍵導出に argon2 系を使えます。メモリを多く使うの
 
 **正解**: `cryptsetup luksFormat /dev/vdb1`
 
+**テキスト**: 3. cryptsetup の基本の流れ
+
 `luksFormat` は、LUKS のヘッダーを書いて初期化します。中のデータは使えなくなります。
 
 ### 問27 `LinuC3SS-2.0-027`
 
 **正解**: B
+
+**テキスト**: 3. cryptsetup の基本の流れ
 
 `luksFormat` は、デバイスの先頭に LUKS のヘッダーを書いて、初期化します。元のデータは、読めなくなります。ただし、ヘッダーのほかのデータの領域は書き換えないので、元のデータがディスクの上から消えるわけではありません。データの入ったデバイスで実行する前に、必ず別の場所にバックアップします。
 
@@ -573,6 +627,8 @@ LUKS2 は、鍵導出に argon2 系を使えます。メモリを多く使うの
 
 **正解**: C
 
+**テキスト**: 3. cryptsetup の基本の流れ
+
 `cryptsetup open デバイス 名前` で、パスフレーズを入れて開くと、`/dev/mapper/名前` ができます。dm-crypt が、その後ろで復号と暗号化をします。
 
 - A. `luksFormat` は初期化するコマンドで、データを失います。2 つ目の引数は鍵ファイルとして扱われ、`/dev/mapper/secure` は作られません。
@@ -582,6 +638,8 @@ LUKS2 は、鍵導出に argon2 系を使えます。メモリを多く使うの
 ### 問29 `LinuC3SS-2.0-029`
 
 **正解**: B
+
+**テキスト**: 3. cryptsetup の基本の流れ
 
 ファイルシステムは、開いた後の `/dev/mapper/secure` に作ります。暗号化と復号は、dm-crypt が受け持ちます。
 
@@ -593,6 +651,8 @@ LUKS2 は、鍵導出に argon2 系を使えます。メモリを多く使うの
 
 **正解**: A
 
+**テキスト**: 4. /etc/crypttab と /etc/fstab
+
 crypttab の 3 列目は、鍵ファイルのパスです。`none` は、鍵ファイルのパスを指定せず、起動時にパスフレーズを入力させる指定です。systemd では、`/etc/cryptsetup-keys.d/<名前>.key` があれば、それを自動で使います。
 
 - B. crypttab に書いた行は、すべて暗号化したデバイスです。4 列目の `luks` は、LUKS の形式であることを指定するオプションです。
@@ -602,6 +662,8 @@ crypttab の 3 列目は、鍵ファイルのパスです。`none` は、鍵フ�
 ### 問31 `LinuC3SS-2.0-031`
 
 **正解**: D
+
+**テキスト**: 4. /etc/crypttab と /etc/fstab
 
 crypttab の `secure` が開かれると、`/dev/mapper/secure` ができます。fstab には、この開いた後の名前を書きます。
 
@@ -613,6 +675,8 @@ crypttab の `secure` が開かれると、`/dev/mapper/secure` ができます�
 
 **正解**: C
 
+**テキスト**: 3. cryptsetup の基本の流れ
+
 `luksAddKey` は、新しいキースロットに、パスフレーズ(キー)を追加します。管理者が交代したときや、紛失に備えるときに使います。
 
 - A. `luksFormat` は、初期化してデータを失います。
@@ -623,11 +687,15 @@ crypttab の `secure` が開かれると、`/dev/mapper/secure` ができます�
 
 **正解**: `cryptsetup luksDump /dev/vdb1`
 
+**テキスト**: 3. cryptsetup の基本の流れ
+
 `luksDump` は、ヘッダーの内容を表示します。LUKS の版、暗号の方式、どのキースロットが使われているかが分かります。
 
 ### 問34 `LinuC3SS-2.0-034`
 
 **正解**: A
+
+**テキスト**: 3. cryptsetup の基本の流れ
 
 `cryptsetup luksHeaderBackup /dev/vdb1 --header-backup-file ファイル` で、ヘッダーを保存します。ヘッダーが壊れたときは `luksHeaderRestore` で戻せます。バックアップには、鍵の素になる情報が入っているので、盗まれないように保管します。
 
@@ -639,6 +707,8 @@ crypttab の `secure` が開かれると、`/dev/mapper/secure` ができます�
 
 **正解**: A、C
 
+**テキスト**: 5. fscrypt
+
 fscrypt は、ファイルシステムの機能で、ディレクトリ単位で暗号化します。ユーザーごと、ディレクトリごとに別の鍵を使えます。ファイル名と内容は暗号化されますが、ファイルのサイズやディレクトリの構造などは見えます。
 
 - B. これは LUKS(dm-crypt)の説明です。fscrypt は、ファイルシステムが対応している必要があります。
@@ -647,6 +717,8 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 ### 問36 `LinuC3SS-2.0-036`
 
 **正解**: B
+
+**テキスト**: 2. /etc/audit/auditd.conf
 
 `max_log_file_action = ROTATE` のとき、`max_log_file`(MB)に達すると、`audit.log` を `audit.log.1` にずらして新しいログを作ります。古いものは `num_logs` の数までです。
 
@@ -658,11 +730,15 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 
 **正解**: `/var/log/audit/audit.log`
 
+**テキスト**: 2. /etc/audit/auditd.conf
+
 `log_file` の既定の値です。`ausearch` と `aureport` も、既定ではこのファイルを読みます。
 
 ### 問38 `LinuC3SS-2.0-038`
 
 **正解**: D
+
+**テキスト**: 4. 規則を残す(augenrules と rules.d)
 
 `auditctl` で足した規則は、再起動で消えます。`/etc/audit/rules.d/` の `.rules` に書いて、`augenrules --load` で読み込むと、保存されます。起動時にも、同じ規則が読み込まれます。
 
@@ -674,11 +750,15 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 
 **正解**: `augenrules --load`、`/usr/sbin/augenrules --load`、`/sbin/augenrules --load`
 
+**テキスト**: 4. 規則を残す(augenrules と rules.d)
+
 `augenrules` だけでは、ファイルを作るだけで読み込みません。`--load` を付けると、作ったあとにカーネルに読み込みます。
 
 ### 問40 `LinuC3SS-2.0-040`
 
 **正解**: C
+
+**テキスト**: 3. 規則を作る(auditctl)
 
 `-p` の `w` は書き込み、`a` は属性(権限や所有者)の変更です。`r` は読み取り、`x` は実行です。
 
@@ -690,6 +770,8 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 
 **正解**: A
 
+**テキスト**: 3. 規則を作る(auditctl)
+
 `-k` で付けたキーで、`ausearch -k キー` と探すと、その規則の記録だけが出ます。
 
 - B. `-f` は、ファイル名で探すオプションです。`shadow_change` というファイルはありません。
@@ -699,6 +781,8 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 ### 問42 `LinuC3SS-2.0-042`
 
 **正解**: B
+
+**テキスト**: 5. 記録を読む(ausearch と aureport)
 
 `aureport -l` はログインの報告で、`--failed` で失敗だけに絞れます。`-ts yesterday` で、昨日からに絞ります。
 
@@ -710,6 +794,8 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 
 **正解**: D
 
+**テキスト**: 5. 記録を読む(ausearch と aureport)
+
 `auid` は、最初にログインしたときのユーザー ID で、`sudo` や `su` の後も変わりません。「元の人」は、`auid` で分かります。
 
 - A. `uid` は、その時点のユーザー ID で、`sudo` の後は root(0)です。
@@ -720,6 +806,8 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 
 **正解**: C
 
+**テキスト**: 3. 規則を作る(auditctl)
+
 `-e 2` は、規則を変更できない状態(immutable)にします。侵入した人が規則を消すのを防げます。規則を変えるには、再起動が必要です。そのため、規則ファイルの最後に書きます。
 
 - A. `-e` は、記録の詳しさではありません。
@@ -729,6 +817,8 @@ fscrypt は、ファイルシステムの機能で、ディレクトリ単位で
 ### 問45 `LinuC3SS-2.0-045`
 
 **正解**: B、C
+
+**テキスト**: 4. 規則を残す(augenrules と rules.d)
 
 `-w` は、ファイルやディレクトリへのアクセスを監視します。`augenrules` は、`rules.d` の `*.rules` をファイル名の順に結合します。
 

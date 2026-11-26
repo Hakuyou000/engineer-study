@@ -103,7 +103,7 @@ export function sectionPages(s: Section): Page[] {
 }
 
 /** ## の節の本文を ### の見出しで分ける。最初の要素は ### より前(## の見出しを含む)。コードブロック内は無視する */
-function splitSubsections(body: string): { heading: string; body: string }[] {
+export function splitSubsections(body: string): { heading: string; body: string }[] {
   const out: { heading: string; lines: string[] }[] = [{ heading: '', lines: [] }]
   let inFence = false
   for (const line of body.split('\n')) {
@@ -113,6 +113,17 @@ function splitSubsections(body: string): { heading: string; body: string }[] {
     else out[out.length - 1].lines.push(line)
   }
   return out.map((o) => ({ heading: o.heading, body: o.lines.join('\n').trimEnd() }))
+}
+
+/** 節の中から、見出しが heading の ### の部分を探す。なければ undefined */
+export function findSubsection(sections: Section[], heading: string): { section: Section; body: string } | undefined {
+  for (const section of sections) {
+    const found = splitSubsections(section.body)
+      .slice(1)
+      .find((p) => p.heading === heading.trim())
+    if (found) return { section, body: found.body }
+  }
+  return undefined
 }
 
 /** 問題の小項目名の先頭にある節番号。「2.0 / 2.1 スイッチの基本」→ ['2.0', '2.1'] */
