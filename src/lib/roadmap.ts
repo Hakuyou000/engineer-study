@@ -43,7 +43,7 @@ export const STAGES: RoadmapStage[] = [
       { id: 's1-sh', label: '簡単なシェルスクリプトを書ける', detail: '変数、if、for、引数、終了ステータス' },
       { id: 's1-user', label: 'ユーザー、cron、時刻同期を設定できる' },
     ],
-    certs: [{ cert: 'linuc1', note: 'Linux の基礎。このアプリでは 102 の範囲を学べます' }],
+    certs: [{ cert: 'linuc1', note: 'Linux の基礎。このアプリでは 101 と 102 の両方を学べます' }],
     books: ['[試して理解]Linuxのしくみ 増補改訂版'],
     output: '自分で Linux の環境(仮想マシンや WSL)を作り、毎日触る',
   },
