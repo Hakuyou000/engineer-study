@@ -76,8 +76,23 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
         <div className={`verdict ${isCorrect(q, chosen) ? 'ok' : 'ng'}`}>
           <p className="verdict-head">
             <span className="verdict-word">{isCorrect(q, chosen) ? '正解' : '不正解'}</span>
-            <span>正解は {input ? q.answer.map((a, i) => <code key={i}>{a}</code>) : q.answer.join('、')}</span>
+            {input && <span>正解は {q.answer.map((a, i) => <code key={i}>{a}</code>)}</span>}
           </p>
+          {!input && (
+            // 画面が解説まで送られて選択肢が見えなくても、自分の答えと正解が分かるように、本文も出す
+            <dl className="verdict-answers">
+              {!isCorrect(q, chosen) && (
+                <div>
+                  <dt>あなたの答え</dt>
+                  <dd>{chosen.length > 0 ? choiceLines(q, chosen) : '(未解答)'}</dd>
+                </div>
+              )}
+              <div>
+                <dt>{isCorrect(q, chosen) ? '答え' : '正解'}</dt>
+                <dd>{choiceLines(q, q.answer)}</dd>
+              </div>
+            </dl>
+          )}
           {input && !isCorrect(q, chosen) && <p className="meta">あなたの入力: {chosen[0] ? <code>{chosen[0]}</code> : '(未入力)'}</p>}
           <div className="explain">
             <Md text={q.explanation} link={{ exam: q.exam }} />
@@ -88,4 +103,14 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
       {revealed && <SectionText key={q.id} q={q} />}
     </div>
   )
+}
+
+/** 選択肢の記号と本文を、1 つずつ行に並べる */
+function choiceLines(q: Question, keys: readonly string[]) {
+  return keys.map((k) => (
+    <span key={k} className="verdict-choice">
+      <span className="key">{k}</span>
+      <span>{inline(q.choices.find((c) => c.key === k)?.text ?? '')}</span>
+    </span>
+  ))
 }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { loadResume } from '../lib/resume'
 import { loadShufflePref, saveShufflePref } from '../lib/shuffle'
 import { LAMP_LABEL, lampOf } from '../lib/lamp'
-import { groupByExam, type DomainStat } from '../lib/stats'
+import { examLabel, groupByExam, type DomainStat } from '../lib/stats'
 
 export interface StartOptions {
   kind: 'study' | 'random' | 'exam' | 'weak' | 'input'
@@ -121,7 +121,7 @@ export function Home({ scopeKey, stats, inputCount, onStart, examChoices, onPick
           <button className="resume" onClick={onResume}>
             前回の続きから解く
             <span className="sub">
-              {resume.group ?? 'すべての試験'}の {resume.total} 問のうち {resume.done} 問まで解答済み。{resume.done + 1} 問目から
+              {resume.group === null ? 'すべての試験' : examLabel(resume.group)} の {resume.total} 問のうち {resume.done} 問まで解答済み。{resume.done + 1} 問目から
             </span>
           </button>
         )}

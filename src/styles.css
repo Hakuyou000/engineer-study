@@ -399,6 +399,14 @@ ul.plain, ul.choices { list-style: none; padding: 0; margin: var(--sp-4) 0; }
 .verdict.ok { border-top-color: var(--ok); }
 .verdict.ng { border-top-color: var(--ng); }
 .verdict-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) 14px; margin: 0; }
+.verdict-answers { margin: var(--sp-2) 0 0; display: grid; grid-template-columns: max-content 1fr; gap: var(--sp-1) var(--sp-3); align-items: baseline; }
+.verdict-answers > div { display: contents; }
+.verdict-answers dt { font-size: var(--fs-sm); color: var(--sub); }
+.verdict-answers dd { margin: 0; display: grid; gap: 2px; }
+.verdict-choice { display: flex; gap: var(--sp-2); align-items: baseline; }
+.verdict-choice .key { font-family: var(--mono); font-weight: 700; }
+.verdict.ng .verdict-answers > div:first-child dd { color: var(--ng); }
+.verdict.ng .verdict-answers > div:first-child dd .verdict-choice .key { color: inherit; }
 .verdict-word { font-size: var(--fs-h3); font-weight: 700; }
 .verdict.ok .verdict-word { color: var(--ok); }
 .verdict.ng .verdict-word { color: var(--ng); }
