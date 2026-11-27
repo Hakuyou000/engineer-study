@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown'
+import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkGfm from 'remark-gfm'
 import { termId } from '../lib/glossary'
 import { LINKER } from '../lib/glossaryData'
@@ -46,7 +47,8 @@ export default function Markdown({ text, exam, textId }: { text: string; exam?: 
   return (
     <div className="prose">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, [remarkGlossary, { exam }]]}
+        // remark-cjk-friendly: 「**層(レイヤー)**を」のように、括弧の直後の ** に日本語が続いても太字にする
+        remarkPlugins={[remarkGfm, remarkCjkFriendly, [remarkGlossary, { exam }]]}
         components={{
           table: (props) => (
             <div className="scroll">
