@@ -52,7 +52,7 @@ export function Study({ questions, onAnswer, onHard, onExit, onRetry, resumed = 
     // 正誤と解説が画面の下に隠れていれば、見える位置まで送る
     requestAnimationFrame(() => {
       const v = document.querySelector('.verdict')
-      if (v && v.getBoundingClientRect().top > window.innerHeight * 0.5) v.scrollIntoView({ block: 'start', behavior: 'smooth' })
+      if (v && v.getBoundingClientRect().top > window.innerHeight * 0.5) v.scrollIntoView({ block: 'start' })
     })
   }
   const next = () => {
