@@ -568,7 +568,7 @@ summary.toc-label { margin: 0; cursor: pointer; }
 .cert-bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--accent); }
 
 /* ---------- 用語集 ---------- */
-.term { all: unset; cursor: pointer; border-bottom: 1.5px dotted var(--accent); }
+.term { cursor: pointer; border-bottom: 1px dotted var(--accent); }
 .term:hover { background: var(--accent-soft); }
 .term:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
 .term-sheet-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.38); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
@@ -687,8 +687,11 @@ summary.toc-label { margin: 0; cursor: pointer; }
 .pager-title {
   max-width: 100%;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  /* 長い節の名前は 2 行まで出す */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   font-size: var(--fs-sm);
   color: var(--sub);
 }
@@ -717,3 +720,7 @@ summary.toc-label { margin: 0; cursor: pointer; }
   .stats th[scope='row'] { min-width: 7em; }
   .stats th, .stats td { padding-left: 4px; padding-right: 4px; }
 }
+
+/* 問題演習の上の帯: 問数は折り返さない */
+.question-page .bar .count-label { white-space: nowrap; }
+.question-page .bar .meta { text-align: right; }

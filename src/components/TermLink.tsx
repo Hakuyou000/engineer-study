@@ -20,9 +20,21 @@ export function TermLink({ name, text }: { name: string; text: string }) {
   if (!t) return <>{text}</>
   return (
     <>
-      <button type="button" className="term" onClick={() => setOpen(true)} aria-haspopup="dialog">
+      {/* button は 1 つの塊として折り返され、直後の「)」だけが次の行に残ることがある。文字と同じに流れる span にする */}
+      <span
+        role="button"
+        tabIndex={0}
+        className="term"
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}>
         {text}
-      </button>
+      </span>
       {open &&
         createPortal(
           <div className="term-sheet-backdrop" onClick={() => setOpen(false)}>

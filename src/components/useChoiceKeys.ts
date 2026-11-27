@@ -41,7 +41,8 @@ export function useChoiceKeys({ q, chosen, onChange, onEnter, onPrev, onNext, se
     if (e.key === 'Enter') {
       if (!onEnter) return
       // 選択肢以外のボタン(次へ、指摘する など)や、テキストの開閉にいるときは、その動作に任せる
-      if ((t?.tagName === 'BUTTON' && !t.classList.contains('choice')) || t?.tagName === 'SUMMARY') return
+      const isButton = t?.tagName === 'BUTTON' || t?.getAttribute('role') === 'button'
+      if ((isButton && !t?.classList.contains('choice')) || t?.tagName === 'SUMMARY') return
       e.preventDefault()
       onEnter()
       return

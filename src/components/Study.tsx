@@ -113,9 +113,7 @@ export function Study({ questions, onAnswer, onHard, onExit, onRetry, resumed = 
         <span className="count-label">
           {idx + 1} / {questions.length} 問目
         </span>
-        <button className="link" onClick={onExit}>
-          中断して戻る
-        </button>
+        <span className="meta">やめるときは上の「‹ 戻る」。解いた分は記録済みです</span>
       </div>
       <Progress results={results} total={questions.length} current={idx} />
       <QuestionView
@@ -148,7 +146,11 @@ export function Study({ questions, onAnswer, onHard, onExit, onRetry, resumed = 
           </button>
         )}
       </div>
-      {q.kind !== 'input' && <p className="key-hint meta">キーボード: 1〜{q.choices.length} か A〜{q.choices[q.choices.length - 1]?.key} で選び、Enter で{revealed ? '次へ' : '解答'}</p>}
+      <p className="key-hint meta">
+        {q.kind === 'input'
+          ? `キーボード: 答えを入力して Enter で${revealed ? '次へ' : '解答'}`
+          : `キーボード: 1〜${q.choices.length} か A〜${q.choices[q.choices.length - 1]?.key} で選び、Enter で${revealed ? '次へ' : '解答'}`}
+      </p>
     </section>
   )
 }
