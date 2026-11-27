@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent, useState } from 'react'
 import { isCorrect } from '../lib/srs'
 import type { Question } from '../lib/types'
 import { QuestionView } from './QuestionView'
+import { useChoiceKeys } from './useChoiceKeys'
 
 interface Props {
   questions: Question[]
@@ -9,11 +10,13 @@ interface Props {
   seconds: number
   onFinish: (answers: Map<string, string[]>, elapsedMs: number) => void
   onExit: () => void
+  /** 結果の画面から、間違えた問題を問題演習で解き直す */
+  onRetry: (questions: Question[]) => void
 }
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
-export function Exam({ questions, seconds, onFinish, onExit }: Props) {
+export function Exam({ questions, seconds, onFinish, onExit, onRetry }: Props) {
   const [idx, setIdx] = useState(0)
   const [answers, setAnswers] = useState<Map<string, string[]>>(new Map())
   const [remaining, setRemaining] = useState(seconds)
@@ -40,8 +43,36 @@ export function Exam({ questions, seconds, onFinish, onExit }: Props) {
     return () => clearInterval(t)
   }, [done])
 
+  // 問題を移ったら、問題文の先頭から読めるようにする。提出したら結果の先頭を出す
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [idx, done])
+
+  const current = questions[idx]
+  useChoiceKeys({
+    q: current,
+    chosen: answers.get(current.id) ?? [],
+    onChange: (c) => setAnswers((m) => new Map(m).set(current.id, c)),
+    onPrev: done ? undefined : () => setIdx((i) => Math.max(0, i - 1)),
+    onNext: done ? undefined : () => setIdx((i) => Math.min(questions.length - 1, i + 1)),
+    selectable: !done,
+  })
+
   if (done) {
     const right = questions.filter((q) => isCorrect(q, answers.get(q.id) ?? []))
+    const wrong = questions.filter((q) => !right.includes(q))
+    const actions = (
+      <div className="actions">
+        {wrong.length > 0 && (
+          <button className="primary" onClick={() => onRetry(wrong)}>
+            間違えた {wrong.length} 問を問題演習で解き直す
+          </button>
+        )}
+        <button className={wrong.length > 0 ? '' : 'primary'} onClick={onExit}>
+          問題演習に戻る
+        </button>
+      </div>
+    )
     const domains = [...new Set(questions.map((q) => `${q.exam} ${q.domain} ${q.domainTitle}`))]
     return (
       <section className="card">
@@ -59,15 +90,14 @@ export function Exam({ questions, seconds, onFinish, onExit }: Props) {
             )
           })}
         </ul>
-        <button className="primary" onClick={onExit}>
-          戻る
-        </button>
+        {actions}
         <h3>解答と解説</h3>
         {questions.map((q) => (
           <div key={q.id} className="review">
             <QuestionView q={q} chosen={answers.get(q.id) ?? []} onChange={() => {}} revealed />
           </div>
         ))}
+        {actions}
       </section>
     )
   }

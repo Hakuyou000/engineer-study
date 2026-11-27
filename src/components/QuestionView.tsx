@@ -3,6 +3,7 @@ import type { Question } from '../lib/types'
 import { FlagBox } from './FlagBox'
 import { Md, inline } from './Md'
 import { SectionText } from './SectionText'
+import { toggleChoice } from './useChoiceKeys'
 
 interface Props {
   q: Question
@@ -19,8 +20,7 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
   const multi = !input && q.answer.length > 1
   const toggle = (key: string) => {
     if (revealed) return
-    if (!multi) onChange([key])
-    else onChange(chosen.includes(key) ? chosen.filter((k) => k !== key) : [...chosen, key].sort())
+    onChange(toggleChoice(q, chosen, key))
   }
 
   return (
