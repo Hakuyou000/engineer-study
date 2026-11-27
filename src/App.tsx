@@ -93,6 +93,8 @@ export function App() {
       saveGroup(nextGroup)
     }
     setViewRaw(next)
+    // 新しい画面は先頭から出す(用語集やロードマップは、開いた後に該当の位置へ送る)
+    window.scrollTo(0, 0)
   }
   const setView = (next: View) => navigate(next)
 
@@ -328,6 +330,7 @@ export function App() {
 
       {session?.name === 'study' && (
         <Study
+          key={depth}
           questions={session.questions}
           onAnswer={(q, chosen, ms) => {
             prevCard.current = { id: q.id, card: store.cards.get(q.id) }
@@ -340,11 +343,13 @@ export function App() {
             setStore({ ...store, cards: new Map(store.cards).set(q.id, card) })
           }}
           onExit={home}
+          onRetry={(qs) => setView({ name: 'study', questions: prepare(qs) })}
         />
       )}
 
       {session?.name === 'exam' && (
         <Exam
+          key={depth}
           questions={session.questions}
           seconds={session.questions.length * 90}
           onFinish={(answers, elapsedMs) =>
@@ -358,6 +363,7 @@ export function App() {
             )
           }
           onExit={home}
+          onRetry={(qs) => setView({ name: 'study', questions: prepare(qs) })}
         />
       )}
 

@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { isCorrect } from '../lib/srs'
 import type { Question } from '../lib/types'
 import { QuestionView } from './QuestionView'
+import { useChoiceKeys } from './useChoiceKeys'
 
 interface Props {
   questions: Question[]
@@ -9,9 +10,11 @@ interface Props {
   /** 直前の正答を「自信なし」に格下げする */
   onHard: (q: Question) => void
   onExit: () => void
+  /** 終わった後に、選んだ問題をもう一度解く */
+  onRetry: (questions: Question[]) => void
 }
 
-export function Study({ questions, onAnswer, onHard, onExit }: Props) {
+export function Study({ questions, onAnswer, onHard, onExit, onRetry }: Props) {
   const [idx, setIdx] = useState(0)
   const [chosen, setChosen] = useState<string[]>([])
   const [revealed, setRevealed] = useState(false)
@@ -19,7 +22,48 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
   const [results, setResults] = useState<('ok' | 'ng')[]>([])
   const startedAt = useRef(0)
 
-  if (idx >= questions.length) {
+  // 次の問題は、問題文の先頭から読めるようにする
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [idx])
+
+  const finished = idx >= questions.length
+  const q = finished ? null : questions[idx]
+  const ready = !q ? false : q.kind === 'input' ? (chosen[0] ?? '').trim() !== '' : chosen.length === q.answer.length
+
+  const select = (c: string[]) => {
+    if (startedAt.current === 0) startedAt.current = Date.now()
+    setChosen(c)
+  }
+  const submit = () => {
+    if (!q) return
+    const ms = startedAt.current ? Date.now() - startedAt.current : 0
+    const ok = isCorrect(q, chosen)
+    if (ok) setScore((s) => s + 1)
+    setResults((r) => [...r, ok ? 'ok' : 'ng'])
+    onAnswer(q, chosen, ms)
+    setRevealed(true)
+    // 正誤と解説が画面の下に隠れていれば、見える位置まで送る
+    requestAnimationFrame(() => {
+      const v = document.querySelector('.verdict')
+      if (v && v.getBoundingClientRect().top > window.innerHeight * 0.5) v.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    })
+  }
+  const next = () => {
+    startedAt.current = 0
+    setChosen([])
+    setRevealed(false)
+    setIdx((i) => i + 1)
+  }
+  const enter = () => {
+    if (!revealed && ready) submit()
+    else if (revealed) next()
+  }
+
+  useChoiceKeys({ q: q ?? questions[0], chosen, onChange: select, onEnter: finished ? undefined : enter, selectable: !finished && !revealed })
+
+  if (!q) {
+    const wrong = questions.filter((_, i) => results[i] === 'ng')
     return (
       <section className="page">
         <div className="page-head">
@@ -29,35 +73,33 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
         <p className="result-score">
           <strong>{score}</strong> / {questions.length} 問正解
         </p>
-        <button className="primary" onClick={onExit}>
-          戻る
-        </button>
+        {wrong.length > 0 && (
+          <>
+            <h3 className="section-title">間違えた問題</h3>
+            <ul className="plain wrong-list">
+              {wrong.map((w) => (
+                <li key={w.id}>
+                  <span className="qcode">{w.code}</span> {w.section}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        <div className="actions">
+          {wrong.length > 0 && (
+            <button className="primary" onClick={() => onRetry(wrong)}>
+              間違えた {wrong.length} 問をもう一度解く
+            </button>
+          )}
+          <button className={wrong.length > 0 ? '' : 'primary'} onClick={onExit}>
+            問題演習に戻る
+          </button>
+        </div>
       </section>
     )
   }
 
-  const q = questions[idx]
-  const ready = q.kind === 'input' ? (chosen[0] ?? '').trim() !== '' : chosen.length === q.answer.length
   const correct = revealed && isCorrect(q, chosen)
-
-  const select = (c: string[]) => {
-    if (startedAt.current === 0) startedAt.current = Date.now()
-    setChosen(c)
-  }
-  const submit = () => {
-    const ms = startedAt.current ? Date.now() - startedAt.current : 0
-    const ok = isCorrect(q, chosen)
-    if (ok) setScore((s) => s + 1)
-    setResults((r) => [...r, ok ? 'ok' : 'ng'])
-    onAnswer(q, chosen, ms)
-    setRevealed(true)
-  }
-  const next = () => {
-    startedAt.current = 0
-    setChosen([])
-    setRevealed(false)
-    setIdx((i) => i + 1)
-  }
 
   return (
     <section className="page question-page">
@@ -76,12 +118,9 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
         chosen={chosen}
         onChange={select}
         revealed={revealed}
-        onEnter={() => {
-          if (!revealed && ready) submit()
-          else if (revealed) next()
-        }}
+        onEnter={enter}
       />
-      <div className={revealed ? 'actions sticky-actions' : 'actions sticky-actions pending'}>
+      <div className="actions sticky-actions">
         {!revealed && (
           <button className="primary" disabled={!ready} onClick={submit}>
             解答する
@@ -103,6 +142,7 @@ export function Study({ questions, onAnswer, onHard, onExit }: Props) {
           </button>
         )}
       </div>
+      {q.kind !== 'input' && <p className="key-hint meta">キーボード: 1〜{q.choices.length} か A〜{q.choices[q.choices.length - 1]?.key} で選び、Enter で{revealed ? '次へ' : '解答'}</p>}
     </section>
   )
 }
