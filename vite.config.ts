@@ -1,24 +1,17 @@
 import react from '@vitejs/plugin-react'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
+import { isLocalShutdownRequest } from './scripts/local-request'
 
-/** 開発サーバを画面の「終了」ボタンから止めるための入口。同一オリジンからの POST だけ受け付ける。 */
+/** 開発サーバを画面の「終了」ボタンから止めるための入口。自分の PC(localhost)の同一オリジンからの POST だけ受け付ける。
+ * この入口は Vite の Host の検査より前に動くので、Host もここで確かめる。 */
 function shutdownPlugin(): Plugin {
   return {
     name: 'sre-drill-shutdown',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use('/__shutdown', (req, res) => {
-        const origin = req.headers.origin
-        let sameOrigin = true
-        if (origin) {
-          try {
-            sameOrigin = new URL(origin).host === req.headers.host
-          } catch {
-            sameOrigin = false
-          }
-        }
-        if (req.method !== 'POST' || !sameOrigin) {
+        if (!isLocalShutdownRequest(req)) {
           res.statusCode = 403
           res.end()
           return
