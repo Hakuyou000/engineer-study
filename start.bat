@@ -11,8 +11,12 @@ node -e "const [a,b]=process.versions.node.split('.').map(Number);process.exit(a
 if errorlevel 1 goto oldnode
 
 echo [1/2] 依存パッケージを確認する
-call npm install --no-audit --no-fund
+rem package-lock.json に書かれた版だけを入れる(npm ci)。入れ直しが要らないときは飛ばす
+node scripts\needs-install.mjs
+if errorlevel 1 goto installed
+call npm ci --no-audit --no-fund
 if errorlevel 1 goto failed
+:installed
 
 echo.
 echo [2/2] 起動する。ブラウザが自動で開く
