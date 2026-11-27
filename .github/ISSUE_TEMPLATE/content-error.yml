@@ -1,0 +1,41 @@
+name: 教材の誤りの報告
+description: 問題、テキスト、用語集の誤りや古い情報を知らせる
+title: "[誤り] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        見つけてくださってありがとうございます。メールアドレスなど、個人の情報は書かないでください。Issues は誰でも読めます。
+  - type: dropdown
+    id: kind
+    attributes:
+      label: どこの誤りですか
+      options:
+        - 問題(答え、解説、選択肢)
+        - テキスト
+        - 用語集
+        - その他
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: 問題 ID、またはページの題名と節の見出し
+      description: 問題 ID は問題文の上に `CCNA-1.0-012` のような形で出ています。
+      placeholder: CCNA-1.0-012
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 何が誤りですか
+      description: どこが誤りか、正しいと思う内容を書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: 根拠
+      description: 公式の資料の URL など、確かめられるものを書いてください。
+    validations:
+      required: true

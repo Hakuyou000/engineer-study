@@ -3,3 +3,5 @@ dist/
 # content/ から生成する(npm run gen)
 src/data/questions.json
 src/data/glossary.json
+# tsc が作る(生成物)
+*.tsbuildinfo
