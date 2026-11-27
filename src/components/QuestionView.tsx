@@ -1,6 +1,5 @@
 import { isCorrect } from '../lib/srs'
 import type { Question } from '../lib/types'
-import { FlagBox } from './FlagBox'
 import { Md, inline } from './Md'
 import { SectionText } from './SectionText'
 import { toggleChoice } from './useChoiceKeys'
@@ -99,7 +98,6 @@ export function QuestionView({ q, chosen, onChange, revealed, onEnter }: Props) 
           </div>
         </div>
       )}
-      {revealed && <FlagBox key={`flag:${q.id}`} q={q} />}
       {revealed && <SectionText key={q.id} q={q} />}
     </div>
   )

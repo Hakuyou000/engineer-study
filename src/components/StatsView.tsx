@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import * as db from '../lib/db'
-import type { Flag } from '../lib/types'
+import { useRef, useState } from 'react'
 import { drillsFor } from '../lib/drills'
 import { accuracy, groupByExam, type DomainStat, type SectionStat } from '../lib/stats'
 import type { DrillAttempt } from '../lib/types'
@@ -65,43 +63,6 @@ function Row({
         )}
       </td>
     </tr>
-  )
-}
-
-/** 問題への指摘の一覧。解説の下の「この問題に指摘する」で付けたもの */
-function FlagList() {
-  const [flags, setFlags] = useState<Flag[]>([])
-  useEffect(() => {
-    let live = true
-    db.loadFlags()
-      .then((fs) => live && setFlags(fs.sort((a, b) => b.ts - a.ts)))
-      .catch(() => {})
-    return () => {
-      live = false
-    }
-  }, [])
-  const remove = (id: string) => void db.deleteFlag(id).then(() => setFlags((fs) => fs.filter((f) => f.questionId !== id)))
-
-  return (
-    <>
-      <h3 className="section-title">問題への指摘({flags.length})</h3>
-      <p className="note">
-        解説の下の「この問題に指摘する」で付けた指摘です。エクスポートしたファイルに含まれます。直したら「消す」を押してください。
-      </p>
-      {flags.length > 0 && (
-        <ul className="flag-list">
-          {flags.map((f) => (
-            <li key={f.questionId}>
-              <span className="qcode">{f.code}</span> {f.kind}
-              {f.note && `「${f.note}」`}
-              <button type="button" className="link" onClick={() => remove(f.questionId)}>
-                消す
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
   )
 }
 
@@ -210,7 +171,6 @@ export function StatsView({ exam, stats, drills, onPractice, onExport, onImport,
       </table>
 
       {/* インポートや消去で履歴が変わったら読み直す */}
-      <FlagList key={`${drills.length}:${groups.reduce((s, g) => s + g.attempts, 0)}`} />
 
       <h3 className="section-title">履歴データ</h3>
       <p className="note">解答の履歴は、このブラウザの中(IndexedDB)にだけ保存されます。別の PC やブラウザに移すときは、エクスポートしたファイルをインポートしてください。</p>
