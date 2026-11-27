@@ -17,6 +17,9 @@ interface Props {
   /** 選択中の分野で、入力で解ける問題の数 */
   inputCount: (domains: string[]) => number
   onStart: (o: StartOptions) => void
+  /** 「すべての試験」を選んでいるとき、試験を選ぶための一覧。1 つの試験を選んでいれば null */
+  examChoices: { key: string; label: string }[] | null
+  onPickExam: (exam: string) => void
   /** 途中で離れた問題演習を、続きから解く */
   onResume: () => void
   /** 問題 ID を指定して 1 問だけ解く。見つからなければ false */
@@ -38,7 +41,7 @@ function loadScope(key: string, all: string[]): string[] {
   return all
 }
 
-export function Home({ scopeKey, stats, inputCount, onStart, onResume, onOpenCode }: Props) {
+export function Home({ scopeKey, stats, inputCount, onStart, examChoices, onPickExam, onResume, onOpenCode }: Props) {
   const [saved] = useState(loadResume)
   const resume = saved && { done: saved.results.length, total: saved.items.length, group: saved.group }
   const key = `${KEY}:${scopeKey}`
@@ -95,6 +98,23 @@ export function Home({ scopeKey, stats, inputCount, onStart, onResume, onOpenCod
           </div>
         </dl>
       </div>
+
+      {examChoices && (
+        <div className="pick-exam">
+          <p>
+            いまは<strong>すべての試験</strong>から出題します。1 つの試験に絞るときは、試験を選んでください。
+          </p>
+          <ul className="chips">
+            {examChoices.map((e) => (
+              <li key={e.key}>
+                <button className="chip" onClick={() => onPickExam(e.key)}>
+                  {e.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="start">
         {resume && (

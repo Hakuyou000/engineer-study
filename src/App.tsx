@@ -17,7 +17,7 @@ import { buildStudySession, isCorrect, review, shuffle } from './lib/srs'
 import { loadShufflePref, originalKeys, shuffleChoices } from './lib/shuffle'
 import { examList, loadGroup, saveGroup } from './lib/groups'
 import { canInput, toInput } from './lib/input'
-import { computeStats, groupByExam } from './lib/stats'
+import { computeStats, examLabel, groupByExam } from './lib/stats'
 import { TEXTS } from './lib/texts'
 import { certById } from './lib/certs'
 import { weakQuestions } from './lib/weak'
@@ -362,6 +362,7 @@ export function App() {
           current={group}
           onOpen={openGroup}
           onCert={(id) => setView({ name: 'cert', id })}
+          onRoadmap={() => setView({ name: 'roadmap' })}
         />
       )}
 
@@ -391,6 +392,8 @@ export function App() {
           inputCount={(domains) => QUESTIONS.filter((q) => domains.includes(`${q.exam} ${q.domain}`) && canInput(q)).length}
           onStart={start}
           onResume={resume}
+          examChoices={group === null ? allGroups.map((g) => ({ key: g.key, label: examLabel(g.key) })) : null}
+          onPickExam={(exam) => navigate({ name: 'home' }, exam)}
           onOpenCode={(code) => {
             const q = ALL_QUESTIONS.find((x) => x.code.toLowerCase() === code.trim().toLowerCase())
             if (q) setView({ name: 'study', questions: prepare([q]) })
