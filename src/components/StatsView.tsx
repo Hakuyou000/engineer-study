@@ -107,6 +107,8 @@ function FlagList() {
 
 export function StatsView({ exam, stats, drills, onPractice, onExport, onImport, onReset }: Props) {
   const [confirming, setConfirming] = useState(false)
+  // インポートは今の履歴を消すので、ファイルを選んだ後に確かめる
+  const [pending, setPending] = useState<File | null>(null)
   const [open, setOpen] = useState<Set<string>>(new Set())
   const toggle = (k: string) =>
     setOpen((o) => {
@@ -222,11 +224,28 @@ export function StatsView({ exam, stats, drills, onPractice, onExport, onImport,
           hidden
           onChange={(e) => {
             const f = e.target.files?.[0]
-            if (f) onImport(f)
+            if (f) setPending(f)
             e.target.value = ''
           }}
         />
         {!confirming && <button onClick={() => setConfirming(true)}>履歴を消去</button>}
+        {pending && (
+          <p className="confirm-box">
+            今の履歴をすべて消して、「{pending.name}」の内容に置き換えます。先にエクスポートしておくと、元に戻せます。
+            <span className="actions">
+              <button
+                className="danger"
+                onClick={() => {
+                  onImport(pending)
+                  setPending(null)
+                }}
+              >
+                置き換える
+              </button>
+              <button onClick={() => setPending(null)}>やめる</button>
+            </span>
+          </p>
+        )}
         {confirming && (
           <>
             <button

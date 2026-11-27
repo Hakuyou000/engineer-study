@@ -21,10 +21,12 @@ import { computeStats, groupByExam } from './lib/stats'
 import { TEXTS } from './lib/texts'
 import { certById } from './lib/certs'
 import { weakQuestions } from './lib/weak'
+import { loadResume, saveResume } from './lib/resume'
 import { OPEN_GLOSSARY } from './lib/glossaryData'
 import type { Attempt, Card, DrillAttempt, Question } from './lib/types'
 
 const ALL_QUESTIONS = data as Question[]
+const BY_ID = new Map(ALL_QUESTIONS.map((q) => [q.id, q]))
 const EXAMS = examList([...ALL_QUESTIONS.map((q) => q.exam), ...TEXTS.map((t) => t.exam)])
 
 type View =
@@ -32,7 +34,7 @@ type View =
   | { name: 'roadmap'; focus?: string | null }
   | { name: 'glossary'; focus?: string | null }
   | { name: 'cert'; id: string }
-  | { name: 'study' | 'exam'; questions: Question[] }
+  | { name: 'study' | 'exam'; questions: Question[]; resumed?: ('ok' | 'ng')[] }
 
 /** 履歴に積む画面の記録。問題の一覧は大きいので入れない */
 type ViewEntry = Exclude<View, { questions: Question[] }> | { name: 'study' | 'exam' }
@@ -44,6 +46,26 @@ interface HistoryEntry {
 }
 // 問題演習と模擬試験の問題は大きいので、履歴には入れず、ここに置く(履歴の位置 → 問題)
 const SESSIONS = new Map<number, Question[]>()
+// 画面を離れる前の確認に使う状態。App は 1 つだけなので、モジュールに置く
+const guard = {
+  /** 模擬試験を解いている間は true */
+  examActive: false,
+  /** 今の画面の履歴の記録。「戻る」を取り消したときに積み直す */
+  current: null as HistoryEntry | null,
+}
+const LEAVE_EXAM = '模擬試験を中止しますか。答えは記録されません。'
+/** 模擬試験の途中なら確かめる。離れてよければ true */
+function mayLeave(): boolean {
+  if (guard.examActive && !window.confirm(LEAVE_EXAM)) return false
+  guard.examActive = false
+  return true
+}
+function setExamActive(active: boolean) {
+  guard.examActive = active
+}
+function setCurrent(entry: HistoryEntry) {
+  guard.current = entry
+}
 const toEntry = (v: View): ViewEntry => ('questions' in v ? { name: v.name } : v)
 
 interface Store {
@@ -64,6 +86,8 @@ async function fetchStore(): Promise<Store> {
 export function App() {
   const [store, setStore] = useState<Store | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // 保存や読み込みの失敗。画面はそのままにして、上に知らせる
+  const [notice, setNotice] = useState<string | null>(null)
   // 選択中の試験。null は「すべての試験」
   const [group, setGroup] = useState<string | null>(() => loadGroup(EXAMS))
   // 起動したときは、選んでいた試験に関係なく目次から始める
@@ -80,10 +104,13 @@ export function App() {
 
   /** 画面を移る。ブラウザの履歴にも積むので、ブラウザの「戻る」やスワイプでも前の画面に戻れる */
   const navigate = (next: View, nextGroup: string | null = group) => {
+    if (!mayLeave()) return
     const idx = depth + 1
     if ('questions' in next) SESSIONS.set(idx, next.questions)
+    const entry: HistoryEntry = { sreDrill: true, idx, view: toEntry(next), group: nextGroup }
+    setCurrent(entry)
     try {
-      history.pushState({ sreDrill: true, idx, view: toEntry(next), group: nextGroup }, '')
+      history.pushState(entry, '')
     } catch {
       // 履歴に積めなくても、画面は移る
     }
@@ -100,10 +127,18 @@ export function App() {
 
   // 最初の画面を履歴に記録し、「戻る」で前の画面を出す
   useEffect(() => {
-    history.replaceState({ sreDrill: true, idx: 0, view: toEntry(view), group }, '')
+    const first: HistoryEntry = { sreDrill: true, idx: 0, view: toEntry(view), group }
+    setCurrent(first)
+    history.replaceState(first, '')
     const onPop = (e: PopStateEvent) => {
       const st = e.state as HistoryEntry | null
       if (!st?.sreDrill) return
+      if (!mayLeave()) {
+        // 戻るを取り消す。模擬試験の画面の記録を積み直す
+        if (guard.current) history.pushState(guard.current, '')
+        return
+      }
+      setCurrent(st)
       setDepth(st.idx)
       setGroup(st.group)
       saveGroup(st.group)
@@ -114,13 +149,21 @@ export function App() {
         setViewRaw(st.view as View)
       }
     }
+    // 模擬試験の途中でタブを閉じたり再読み込みしたりするときも確かめる
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if (guard.examActive) e.preventDefault()
+    }
     window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
+    window.addEventListener('beforeunload', onUnload)
+    return () => {
+      window.removeEventListener('popstate', onPop)
+      window.removeEventListener('beforeunload', onUnload)
+    }
     // 最初の 1 回だけ。以降の画面の移動は navigate が履歴に積む
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const fail = (e: unknown) => setError(message(e))
+  const fail = (e: unknown) => setNotice(message(e))
   const reload = () => fetchStore().then(setStore).catch(fail)
 
   // 本文の用語から「用語集で開く」を押したとき
@@ -216,6 +259,23 @@ export function App() {
     if (questions.length > 0) setView({ name: 'study', questions: prepare(questions) })
   }
 
+  /** 前回の途中の問題演習を、続きから再開する */
+  const resume = () => {
+    const r = loadResume()
+    if (!r) return
+    const qs = r.items.map((it) => {
+      const o = BY_ID.get(it.id)
+      return o && (it.input ? toInput(o) : o)
+    })
+    if (qs.some((x) => x === undefined)) {
+      // 問題が見つからない(教材から消えた)ときは、再開できない
+      saveResume(null)
+      setStore({ ...store, now: Date.now() })
+      return
+    }
+    navigate({ name: 'study', questions: prepare(qs as Question[]), resumed: r.results }, r.group)
+  }
+
   const home = () => {
     setStore({ ...store, now: Date.now() })
     setView({ name: 'home' })
@@ -273,7 +333,7 @@ export function App() {
           <div className="appbar-aux">
             {tab('roadmap', 'ロードマップ')}
             {tab('glossary', '用語集')}
-            {import.meta.env.DEV && <Quit onQuit={() => setStopped(true)} onError={setError} />}
+            {import.meta.env.DEV && <Quit onQuit={() => setStopped(true)} onError={setNotice} />}
           </div>
         </div>
         <nav className="sections" aria-label="画面">
@@ -284,6 +344,16 @@ export function App() {
           {tab('stats', '成績')}
         </nav>
       </header>
+      {notice && (
+        <div className="notice" role="alert">
+          <p>
+            うまくいきませんでした: {notice}
+            <br />
+            画面はそのまま使えます。続くときは、成績の画面から履歴をエクスポートしてください。
+          </p>
+          <button onClick={() => setNotice(null)}>閉じる</button>
+        </div>
+      )}
       <main>
       {view.name === 'toc' && (
         <Toc
@@ -320,6 +390,7 @@ export function App() {
           stats={stats}
           inputCount={(domains) => QUESTIONS.filter((q) => domains.includes(`${q.exam} ${q.domain}`) && canInput(q)).length}
           onStart={start}
+          onResume={resume}
           onOpenCode={(code) => {
             const q = ALL_QUESTIONS.find((x) => x.code.toLowerCase() === code.trim().toLowerCase())
             if (q) setView({ name: 'study', questions: prepare([q]) })
@@ -344,6 +415,15 @@ export function App() {
           }}
           onExit={home}
           onRetry={(qs) => setView({ name: 'study', questions: prepare(qs) })}
+          resumed={session.resumed}
+          onProgress={(results) =>
+            saveResume({
+              items: session.questions.map((q) => ({ id: q.id, input: q.kind === 'input' && BY_ID.get(q.id)?.kind !== 'input' })),
+              results,
+              group,
+              ts: Date.now(),
+            })
+          }
         />
       )}
 
@@ -364,6 +444,7 @@ export function App() {
           }
           onExit={home}
           onRetry={(qs) => setView({ name: 'study', questions: prepare(qs) })}
+          onActive={setExamActive}
         />
       )}
 
