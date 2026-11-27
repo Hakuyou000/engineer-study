@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title sre-drill
+title engineer-study
 cd /d "%~dp0"
 
 where npm >nul 2>nul

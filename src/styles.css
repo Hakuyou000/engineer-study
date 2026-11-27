@@ -1,5 +1,5 @@
 /*
- * sre-drill のデザイン。決まりと値の理由は DESIGN.md にある
+ * engineer-study のデザイン。決まりと値の理由は DESIGN.md にある
  * - 地は明るい灰緑の紙、上の帯だけ運用コンソールの濃い色
  * - 目立たせるのは「状態ランプ」だけ(ラックの LED のような 4 色)。ほかは静かに
  * - 塗りのボタンは 1 画面に 1 つ。ダークでは広い面を明るく塗らない
@@ -119,7 +119,7 @@ main { max-width: var(--content); margin: 0 auto; padding: var(--sp-6) var(--gut
 .appbar { background: var(--console); color: var(--console-ink); position: sticky; top: 0; z-index: 20; }
 .appbar-top, .sections { max-width: var(--content); margin: 0 auto; padding: 0 var(--gutter); }
 .appbar-top { display: flex; align-items: center; gap: var(--sp-3); min-height: 52px; }
-.brand { font: 700 var(--fs-base) / 1 var(--mono); letter-spacing: 0.02em; margin: 0; color: var(--console-ink); }
+.brand { font: 700 var(--fs-base) / 1 var(--mono); letter-spacing: 0.02em; margin: 0; color: var(--console-ink); white-space: nowrap; flex-shrink: 0; }
 .appbar .back {
   background: none; border: 0; color: var(--console-ink); padding: var(--sp-1) var(--sp-2) var(--sp-1) 2px; min-height: 36px;
   font-size: var(--fs-ui); display: inline-flex; align-items: center; gap: 2px; white-space: nowrap;
