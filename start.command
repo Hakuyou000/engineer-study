@@ -25,7 +25,10 @@ if [ -z "$NODE_MAJOR" ] || [ "$NODE_MAJOR" -lt 22 ] || { [ "$NODE_MAJOR" -eq 22 
 fi
 
 echo "[1/2] 依存パッケージを確認します"
-npm install --no-audit --no-fund || fail
+# package-lock.json に書かれた版だけを入れる(npm ci)。入れ直しが要らないときは飛ばす
+if node scripts/needs-install.mjs; then
+  npm ci --no-audit --no-fund || fail
+fi
 
 echo
 echo "[2/2] 起動します。ブラウザが自動で開きます"
