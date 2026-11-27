@@ -18,6 +18,17 @@ describe('本文の用語の印', () => {
   })
 })
 
+describe('本文の用語の印の上限', () => {
+  it('1 つの段落には 3 つまで印を付け、残りは次の段落で付ける', () => {
+    const html = renderToStaticMarkup(
+      <Markdown text={'TCP、UDP、DNS、DHCP。\n\nDHCP を使う。'} exam="CCNA" />,
+    )
+    const paras = html.split('</p>')
+    expect(paras[0].match(/class="term"/g)?.length).toBe(3)
+    expect(paras[1]).toContain('class="term"')
+  })
+})
+
 describe('Markdown の画像', () => {
   it('見つからない画像は、説明の文を出す', () => {
     const html = renderToStaticMarkup(<Markdown text={'![損益分岐点のグラフ](images/none.svg)'} textId="itpassport/x" />)

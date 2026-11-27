@@ -139,6 +139,8 @@ export function App() {
         return
       }
       setCurrent(st)
+      // 問題演習から戻ったときに、復習待ちの数を今の時刻で数え直す
+      setStore((s) => s && { ...s, now: Date.now() })
       setDepth(st.idx)
       setGroup(st.group)
       saveGroup(st.group)

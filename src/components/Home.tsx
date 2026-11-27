@@ -97,6 +97,9 @@ export function Home({ scopeKey, stats, inputCount, onStart, examChoices, onPick
             <dd className={weak > 0 ? 'alert' : ''}>{weak}</dd>
           </div>
         </dl>
+        <p className="note">
+          復習待ちは、前に解いた問題のうち、もう一度解く日が来たもの。要復習は、最後に間違えた問題と、2 回以上解いて正答率が 7 割に届かない問題です。
+        </p>
       </div>
 
       {examChoices && (
