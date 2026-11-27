@@ -3,6 +3,7 @@
 ## コンテナの仕組み
 
 ### コンテナ
+別名: コンテナ型
 試験: Docker、K8s
 要約: アプリと必要なものをまとめ、ほかと分けた環境で動かす仕組みです。
 アプリと、その動作に必要なライブラリや設定をまとめ、ほかから分離して動かす仕組みです。ホストのカーネルを共有するので、仮想マシンより軽く、すぐに起動します。
@@ -193,6 +194,23 @@ Red Hat 系(RHEL、AlmaLinux)の標準のコンテナの道具です。`docker` 
 注意: Docker の Rootless と Podman の Rootless は別のものです。ソケットの場所も設定も違います。
 関連: rootless モード、User namespace
 
+### Docker Desktop
+試験: Docker
+要約: Windows や macOS で Docker を使うための、アプリ一式です。
+Linux のカーネルがない OS でコンテナを動かすため、内部で小さな Linux の仮想マシンを動かします。Docker のコマンドと画面の操作がまとまっています。
+例: Windows の PC に入れて、`docker run hello-world` を試します。
+注意: コンテナは仮想マシンの中の Linux カーネルで動くので、PC の OS のカーネルは使いません。
+関連: Docker、コンテナ
+
+### 書き込み層
+別名: コンテナ層、writable layer
+試験: Docker
+要約: コンテナごとに、イメージの上に重なる書き込み用の層です。
+コンテナの中でファイルを作ったり変えたりすると、この層に書かれます。イメージの層は読み取り専用のままです。コンテナを消すと、この層も消えます。
+例: `docker ps -s` で、コンテナごとの書き込み層の大きさが分かります。
+注意: 残したいデータは書き込み層に置かず、ボリュームに置きます。
+関連: レイヤー、ボリューム、OverlayFS
+
 ## Docker
 
 ### Docker
@@ -265,6 +283,7 @@ Red Hat 系(RHEL、AlmaLinux)の標準のコンテナの道具です。`docker` 
 関連: レイヤー、Dockerfile
 
 ### マルチステージビルド
+別名: COPY --from
 試験: Docker
 要約: ビルド用と実行用の段階を分けて、小さなイメージを作る方法です。
 1 つの Dockerfile に複数の `FROM` を書き、ビルドに使う道具は最終のイメージに入れず、できたものだけをコピーする方法です。イメージが小さくなり、脆弱性も減ります。
@@ -281,7 +300,7 @@ Red Hat 系(RHEL、AlmaLinux)の標準のコンテナの道具です。`docker` 
 関連: マルチステージビルド
 
 ### ポートの公開
-別名: -p、EXPOSE
+別名: -p、EXPOSE、docker port
 試験: Docker
 要約: コンテナのポートを、ホストのポートにつないで外から届くようにすることです。
 `docker run -p 8080:80` のように、ホストのポートをコンテナのポートにつなぐことです。Dockerfile の `EXPOSE` は説明の印だけで、公開はしません。
@@ -299,7 +318,7 @@ Red Hat 系(RHEL、AlmaLinux)の標準のコンテナの道具です。`docker` 
 関連: Docker Compose
 
 ### ボリューム
-別名: 名前付きボリューム
+別名: 名前付きボリューム、docker volume、docker volume create、docker volume ls、docker volume inspect、docker volume rm
 試験: Docker、K8s
 要約: コンテナが消えても残る、データの保存場所です。
 コンテナを消しても残る、データの置き場所です。Docker では名前付きボリュームやバインドマウント、Kubernetes では emptyDir や PVC などを使います。
@@ -324,7 +343,7 @@ Red Hat 系(RHEL、AlmaLinux)の標準のコンテナの道具です。`docker` 
 関連: ボリューム
 
 ### ロギングドライバー
-別名: json-file
+別名: json-file、awslogs、max-size、max-file
 試験: Docker
 要約: コンテナの標準出力のログを、どこに送るかを決める設定です。
 コンテナのログの保存先や形式を決める仕組みです。既定の json-file はホストのファイルに書きますが、そのままでは増え続けるので、`max-size` と `max-file` で上限を決めます。
@@ -444,6 +463,453 @@ IP アドレス、マウント、環境変数、終了コード、OOM の有無�
 注意: 本番のホストでは、何が消えるかを確かめてから使います。`--volumes` ではデータが消えます。
 関連: ボリューム、イメージ
 
+### docker logs
+試験: LinuC3PS、Docker
+要約: コンテナが標準出力と標準エラー出力に出した内容を、表示するコマンドです。
+`-f` で続けて表示し、`--tail` で最後の行数、`--since` で期間を絞れます。Docker 20.10 以降は、json-file と local 以外のロギングドライバーでも、手元に残す写し(デュアルロギング)から読めます。
+例: `docker logs -f --tail 100 web`、`docker logs --since 10m web`
+注意: アプリケーションがファイルに書くログは、このコマンドでは見えません。標準出力に出すか、ボリュームを使います。
+関連: Docker、ロギングドライバー
+
+### docker info
+試験: LinuC3PS
+要約: Docker のデーモンの設定と状態を、まとめて表示するコマンドです。
+ストレージドライバー、cgroup の版、使えるランタイム、コンテナとイメージの数などが分かります。環境の確認や、不具合の調査の最初に使います。
+例: `docker info`、`docker info --format '{{.Driver}}'`
+注意: `docker inspect` は、コンテナやイメージ個別の情報です。`docker info` はデーモン全体です。
+関連: Docker デーモン、docker inspect
+
+### docker history
+試験: LinuC3PS、Docker
+要約: イメージの層(レイヤー)ごとの、作った命令と大きさを表示するコマンドです。
+どの命令で、どれだけ大きくなったかが分かります。イメージが大きくなった原因を探すときに使います。
+例: `docker history nginx:1.27`、`docker history --no-trunc myapp`
+注意: ビルド時に渡した秘密の値が、命令に残っていないかも確かめられます。
+関連: レイヤー、Dockerfile、イメージ
+
+### docker image prune
+試験: LinuC3PS、Docker
+要約: 使っていないイメージを、まとめて消すコマンドです。
+既定では、タグのないイメージ(dangling)だけを消します。`-a` を付けると、どのコンテナからも使われていないイメージをすべて消します。
+例: `docker image prune`、`docker image prune -a`
+注意: `-a` は、あとで使うつもりのイメージも消します。再び取得するのに時間がかかります。
+関連: docker system prune、docker builder prune
+
+### docker builder prune
+試験: LinuC3PS
+要約: イメージを作るときのキャッシュ(ビルドキャッシュ)を消すコマンドです。
+ビルドを繰り返すと、キャッシュが溜まって、ディスクを使います。消すと、次のビルドは、最初から作り直しになるので、時間がかかります。
+例: `docker builder prune`、`docker builder prune -a`
+注意: イメージ自体は消えません。消えるのは、ビルドの途中のキャッシュです。
+関連: ビルドキャッシュ、docker image prune
+
+### docker cp
+試験: LinuC3PS、Docker
+要約: コンテナとホストの間で、ファイルやディレクトリをコピーするコマンドです。
+実行中のコンテナでも、止まっているコンテナでも使えます。コンテナ側は、`コンテナ名:パス` の形で書きます。
+例: `docker cp web:/etc/nginx/nginx.conf ./nginx.conf`、`docker cp ./index.html web:/usr/share/nginx/html/`
+注意: コンテナを作り直すと、コピーしたファイルは消えます。続けて使うなら、ボリュームを使います。
+関連: ボリューム、バインドマウント
+
+### HEALTHCHECK
+試験: LinuC3PS、Docker
+要約: Dockerfile で、コンテナが正常に動いているかを調べるコマンドを決める命令です。
+指定した間隔でコマンドを実行します。結果で、コンテナの状態が `healthy`、`unhealthy`、`starting` に変わります。
+例: `HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD curl -f http://localhost/ || exit 1`
+注意: Docker 単体では、`unhealthy` になってもコンテナを自動で再起動しません。再起動は、Swarm や別の仕組みが行います。
+関連: ヘルスチェック、Dockerfile、再起動ポリシー
+
+### docker login
+試験: LinuC3PS、Docker
+要約: コンテナレジストリにログインするコマンドです。
+ログインの情報は、`~/.docker/config.json` に保存されます。認証の情報を外部の保管庫(credential helper)に任せる設定もできます。
+例: `docker login registry.example.com`、`cat ~/.docker/config.json`
+注意: 既定では、パスワードがエンコードされただけで保存されます。ファイルの権限を絞り、できれば credential helper を使います。
+関連: レジストリ、Docker
+
+### env_file
+試験: LinuC3PS、Docker
+要約: Docker Compose で、環境変数を、別のファイルから読み込む設定です。
+`KEY=値` の形で書いたファイルを、サービスに渡します。設定を、Compose のファイルから分けられます。
+例: `env_file: .env.web`
+注意: ファイルに秘密の値を書くなら、Git に入れないようにします。
+関連: Docker Compose、環境変数
+
+### 特権コンテナ
+別名: --privileged
+試験: LinuC3SS、Docker
+要約: ホストのほぼすべての権限を与えて動かす、コンテナです。
+`--privileged` を付けると、すべてのケーパビリティと、ホストのデバイスへのアクセスが与えられ、seccomp などの制限も外れます。コンテナの隔離が、ほとんど働きません。
+例: `docker run --privileged ...`
+注意: 通常は使いません。必要な権限だけを、`--cap-add` や `--device` で与えます。
+関連: ケーパビリティ、seccomp、Docker
+
+### 読み取り専用ルートファイルシステム
+別名: --read-only
+試験: LinuC3SS、Docker、K8s
+要約: コンテナのルートファイルシステムを、読み取り専用にする設定です。
+攻撃者がコンテナに入っても、ファイルを書き換えにくくなります。書き込みが必要な場所だけ、`tmpfs` やボリュームを付けます。
+例: `docker run --read-only --tmpfs /tmp nginx`
+注意: アプリケーションが、書き込めない場所に書こうとして、起動に失敗することがあります。書き込みの必要な場所を、先に調べます。
+関連: tmpfs、ボリューム、securityContext
+
+### docker run
+試験: Docker
+要約: イメージからコンテナを作って起動するコマンドです。
+イメージがなければ、先に取得します。オプションで、名前、ポート、ボリューム、環境変数などを決めます。`docker create` は作るだけで、起動しません。
+例: `docker run -d --name web -p 8080:80 nginx`
+注意: 後ろに書いた引数は、イメージの CMD を置き換えます。
+関連: docker run のオプション、docker ps、ENTRYPOINT
+
+### docker run のオプション
+別名: -it、--rm、--env-file、--entrypoint
+試験: Docker
+要約: `docker run` で、コンテナの動き方を決める主なオプションです。
+`-it` は対話操作のために端末をつなぎます。`--rm` は終了したときにコンテナを自動で消します。`--env-file` はファイルから環境変数を渡し、`--entrypoint` はイメージの ENTRYPOINT を置き換えます。
+例: `docker run --rm -it ubuntu bash`
+注意: `-it` は、`-i`(入力を開いたままにする)と `-t`(端末を割り当てる)を合わせたものです。
+関連: docker run、ENTRYPOINT
+
+### docker pull
+試験: Docker
+要約: レジストリからイメージを取得するコマンドです。
+`docker push` は逆に、手元のイメージをレジストリへ送ります。タグを省くと `latest` を取得します。
+例: `docker pull nginx:1.27`
+注意: push するには、送り先(Docker Hub ならユーザー名、ほかのレジストリならレジストリ名)を含む名前を、イメージに付けておきます。
+関連: レジストリ、タグ、docker login
+
+### docker ps
+別名: docker container ls
+試験: Docker
+要約: 動いているコンテナの一覧を表示するコマンドです。
+`-a` を付けると、止まったコンテナも出ます。名前、状態、公開ポートなどが分かります。
+例: `docker ps -a`
+注意: 終了したコンテナは `-a` を付けないと出ません。
+関連: docker run、docker logs
+
+### docker images
+別名: docker image ls
+試験: Docker
+要約: 手元にあるイメージの一覧を表示するコマンドです。
+名前、タグ、イメージ ID、大きさが出ます。不要なイメージは `docker rmi` で消します。
+例: `docker images`
+注意: コンテナの削除は `docker rm`、イメージの削除は `docker rmi` です。
+関連: イメージ、docker rm
+
+### docker rm
+試験: Docker
+要約: コンテナを削除するコマンドです。
+イメージの削除は `docker rmi` です。動いているコンテナは、`-f` を付けるか、先に止める必要があります。コンテナが使っているイメージは、そのままでは消せません。
+例: `docker rm web`、`docker rmi nginx:1.27`
+注意: 名前が似ていますが、`rm` はコンテナ、`rmi` はイメージです。
+関連: docker ps、docker images
+
+### docker top
+試験: Docker
+要約: コンテナの中で動いているプロセスの一覧を、ホストから見るコマンドです。
+コンテナに入らずに、動いているプロセスを確かめられます。
+例: `docker top web`
+注意: コンテナの中でプロセスを調べたいなら、`docker exec` を使います。
+関連: docker exec、docker stats
+
+### docker diff
+試験: Docker
+要約: コンテナが、元のイメージから変えたファイルの一覧を表示するコマンドです。
+追加(A)、変更(C)、削除(D)のしるしが付きます。書き込み層の中身を確かめるのに使います。
+例: `docker diff web`
+注意: ボリュームやバインドマウントの変更は出ません。
+関連: 書き込み層
+
+### docker events
+試験: Docker
+要約: Docker デーモンで起きたできごとを、流れで表示するコマンドです。
+コンテナの起動、停止、強制終了、イメージの取得などが出ます。障害の時刻をたどるときに使います。
+例: `docker events --since 1h`
+注意: 過去の全履歴を持つものではなく、指定した期間のものだけが出ます。
+関連: Docker デーモン
+
+### Dockerfile の命令
+別名: FROM、RUN、COPY、ADD、WORKDIR、LABEL
+試験: Docker
+要約: イメージの作り方を書く、Dockerfile の主な命令です。
+`FROM` はもとになるイメージ、`RUN` はビルド中に実行するコマンド、`COPY` と `ADD` はファイルの取り込みです。`WORKDIR` は作業するディレクトリ、`LABEL` はイメージに付ける情報を決めます。
+例: `FROM node:22`、`RUN npm ci`、`COPY . /app`
+注意: `ADD` は URL や圧縮ファイルの展開もできるので、ふつうは動きの分かりやすい `COPY` を使います。
+関連: Dockerfile、レイヤー
+
+### ENV と ARG
+別名: ENV、ARG、--build-arg
+試験: Docker
+要約: Dockerfile で変数を決める 2 つの命令です。
+`ENV` で決めた値は、できたイメージとコンテナの環境変数として残ります。`ARG` はビルド中だけ使い、`--build-arg` で値を渡します。
+例: `ARG VERSION=1.0` と `docker build --build-arg VERSION=2.0 .`
+注意: パスワードを ENV や ARG に書くと、イメージの履歴から読めてしまいます。
+関連: Dockerfile、docker build
+
+### exec 形式と shell 形式
+別名: exec form、shell form
+試験: Docker
+要約: RUN、CMD、ENTRYPOINT の、コマンドの 2 通りの書き方です。
+exec 形式は `["a", "b"]` のように配列で書き、シェルを通さず直接実行します。shell 形式は文字列で書き、`/bin/sh -c` を通して実行します。
+例: `CMD ["nginx", "-g", "daemon off;"]`(exec 形式)
+注意: shell 形式ではシェルが PID 1 になり、`docker stop` の SIGTERM がアプリに届かないことがあります。
+関連: ENTRYPOINT、PID 1
+
+### tini
+別名: --init、docker-init
+試験: Docker
+要約: コンテナの PID 1 として動く、小さな初期化プロセスです。
+シグナルを子プロセスに転送し、終わった子プロセス(ゾンビ)を回収します。`docker run --init` で有効になります。
+例: `docker run --init myapp`
+注意: アプリが PID 1 の役目を持たないと、シグナルが効かずゾンビが残ります。
+関連: PID 1、docker stop
+
+### 終了コード 137
+別名: Exited (137)
+試験: Docker、K8s
+要約: コンテナが SIGKILL で強制終了されたことを示す終了コードです。
+137 は 128 に 9(SIGKILL の番号)を足した値です。メモリの上限を超えた OOM や、`docker stop` の猶予が切れたときに出ます。
+例: `docker inspect --format '{{.State.OOMKilled}}' web` が `true` なら、メモリ不足です。
+注意: 137 だけでは原因が決まりません。OOMKilled の値も確かめます。
+関連: OOMKilled、docker stop
+
+### コンテナのリソース制限
+別名: --memory、--cpus、--pids-limit、--memory-swap
+試験: Docker
+要約: コンテナが使うメモリ、CPU、プロセス数の上限を決める設定です。
+`--memory` を超えると OOM で強制終了されます。`--cpus` は CPU の使用量を抑え、`--pids-limit` はプロセス数を抑えます。`--memory-swap` はメモリとスワップを合わせた上限です。
+例: `docker run --memory 512m --cpus 1.5 myapp`
+注意: メモリの上限は強制終了につながり、CPU の上限は遅くなるだけです。
+関連: cgroups、OOMKilled
+
+### ゾンビプロセス
+別名: defunct
+試験: Docker
+要約: 終了したのに、親が終了状態を回収していないプロセスです。
+プロセス表に残り続けます。コンテナの PID 1 が子プロセスを回収しないと、たまります。
+例: `ps` の表示で状態が `Z` になっているプロセスです。
+注意: すでに終了しているので、`kill` では消せません。回収する親を直すか、親を終了させます。
+関連: tini、PID 1
+
+### host ネットワーク
+別名: --network host
+試験: Docker
+要約: コンテナが、ホストのネットワークをそのまま使う方式です。
+ネットワークの分離がなくなり、ポートの公開(`-p`)は不要です。ホストのポートと衝突することがあります。
+例: `docker run --network host nginx`
+注意: ネットワークの分離がなくなるので、安全性は下がります。
+関連: bridge ネットワーク、ポートの公開
+
+### none ネットワーク
+別名: --network none
+試験: Docker
+要約: コンテナに、外部へのネットワークをつながない方式です。
+ループバックだけがあり、外とは通信できません。ネットワークが要らない処理や、通信を禁じたい処理に使います。
+例: `docker run --network none busybox`
+注意: ポートを公開しても、外からはつながりません。
+関連: bridge ネットワーク
+
+### overlay ネットワーク
+試験: Docker
+要約: 複数のホストにまたがって、コンテナ同士をつなぐネットワークです。
+Docker Swarm などで、別々のホストのコンテナが同じネットワークにいるように通信できます。単一のホストの学習では、bridge を使います。
+例: `docker network create -d overlay mynet`
+注意: 同じホストの中だけなら、bridge で足ります。
+関連: bridge ネットワーク、macvlan
+
+### docker network
+別名: docker network create、docker network ls、docker network connect、docker network inspect
+試験: Docker
+要約: Docker のネットワークを作ったり、調べたり、つなぎ替えたりするコマンドです。
+`create` で作り、`ls` で一覧、`inspect` で中身を見ます。`connect` で、動いているコンテナを別のネットワークにもつなげます。
+例: `docker network create app-net`
+注意: 既定の bridge では、コンテナ名で名前解決できません。ユーザー定義ネットワークを作って使います。
+関連: bridge ネットワーク、コンテナ名による名前解決
+
+### コンテナ名による名前解決
+別名: Docker の組み込み DNS
+試験: Docker
+要約: ユーザー定義ネットワークで、コンテナ名が IP アドレスに変わる仕組みです。
+Docker が持つ DNS サーバーが、コンテナの中から `127.0.0.11` で見えます。同じネットワークのコンテナ同士は、名前で接続できます。
+例: web から `db:5432` に接続します。
+注意: 既定の bridge ネットワークでは動きません。
+関連: bridge ネットワーク、docker network
+
+### ネットワーク名前空間の共有
+別名: --network container:
+試験: Docker
+要約: 別のコンテナと、同じネットワーク名前空間に入る指定です。
+IP アドレスやポートを共有します。調査用のコンテナを、問題のコンテナと同じネットワークの中で動かすときに使います。
+例: `docker run -it --network container:web nicolaka/netshoot`
+注意: 共有したコンテナの間では、ポートが衝突します。
+関連: namespace、netshoot
+
+### netshoot
+別名: nicolaka/netshoot
+試験: Docker、K8s
+要約: ネットワークの調査道具を詰め込んだ、コンテナイメージです。
+`dig`、`curl`、`tcpdump` などが入っています。調べたいコンテナや Pod のネットワークに入って、通信を確かめるときに使います。
+例: `docker run -it --network container:web nicolaka/netshoot`
+注意: 本番に常駐させず、調査のときだけ動かします。
+関連: ネットワーク名前空間の共有、エフェメラルコンテナ
+
+### --link
+別名: レガシーリンク
+試験: Docker
+要約: コンテナ同士をつなぐ、古い方法です。
+別のコンテナの名前を、自分から見える名前にします。今は、ユーザー定義ネットワークの名前解決が代わりです。
+例: `docker run --link db:db web`
+注意: 古い方法なので、新しく使いません。
+関連: コンテナ名による名前解決
+
+### host.docker.internal
+別名: host-gateway
+試験: Docker
+要約: コンテナの中から、ホストを指す名前です。
+Docker Desktop では、この名前が使えます。Linux では `--add-host=host.docker.internal:host-gateway` を付けると使えます。
+例: コンテナから、ホストで動く DB に `host.docker.internal:5432` で接続します。
+注意: `localhost` は、コンテナ自身を指します。ホストではありません。
+関連: bridge ネットワーク、Docker Desktop
+
+### -v と --mount
+別名: --mount、--volume
+試験: Docker
+要約: コンテナにボリュームやディレクトリを取り付ける、2 つの書き方です。
+`-v` は `元:先:オプション` を 1 つの文字列で書きます。`--mount` は `type=`、`source=`、`target=` のように名前を付けて書きます。
+例: `-v data:/var/lib/mysql`、`--mount type=volume,source=data,target=/var/lib/mysql`
+注意: `-v` で存在しないホストのパスを指すと、ディレクトリが作られます。`--mount` ではエラーになります。
+関連: ボリューム、バインドマウント
+
+### --volumes-from
+試験: Docker
+要約: 別のコンテナのボリュームを、そのまま取り付けるオプションです。
+データの退避(バックアップ)用のコンテナを作るときに使います。
+例: `docker run --rm --volumes-from db -v $(pwd):/backup busybox tar cf /backup/db.tar /var/lib/mysql`
+注意: 取り付けたボリュームは、元のコンテナと同じ場所に見えます。
+関連: ボリューム
+
+### dangling イメージ
+別名: dangling
+試験: Docker
+要約: 名前もタグもなくなって、どこからも参照されていないイメージです。
+`<none>` と表示されます。同じタグで作り直すと、古いイメージがこうなります。
+例: `docker image prune` で消せます。
+注意: `-a` を付けると、使っていないイメージも消えます。
+関連: docker image prune、イメージ
+
+### docker system df
+試験: Docker
+要約: Docker が使っているディスクの量を、種類ごとに表示するコマンドです。
+イメージ、コンテナ、ボリューム、ビルドキャッシュの大きさと、消せる量が分かります。
+例: `docker system df`
+注意: 容量不足のときに、まず何が大きいかを確かめます。
+関連: docker system prune、docker image prune
+
+### /var/lib/docker
+別名: data-root
+試験: Docker
+要約: Docker が、イメージやボリュームなどを置く、既定のディレクトリです。
+場所は `daemon.json` の `data-root` で変えられます。容量の大きいディスクに移すときに使います。
+例: `docker system df` の使用量が、このディレクトリの大きさに近くなります。
+注意: 移すときは、Docker を止めてから、中身をコピーします。
+関連: daemon.json、docker system df
+
+### docker context
+別名: docker context create、docker context use、DOCKER_CONTEXT
+試験: Docker
+要約: どの Docker デーモンにつなぐかを、名前で切り替える仕組みです。
+別のホストの Docker に、`ssh://` で接続できます。`--context` や `DOCKER_CONTEXT` で、コマンドごとにも切り替えられます。
+例: `docker context create remote --docker "host=ssh://user@host"`
+注意: 環境変数 `DOCKER_HOST` を設定すると、context より優先されます。
+関連: Docker デーモン
+
+### Compose のプロジェクト名
+別名: COMPOSE_PROJECT_NAME
+試験: Docker
+要約: Compose が、コンテナやネットワークの名前の頭に付ける名前です。
+既定ではディレクトリの名前です。`-p` か環境変数で変えられます。既定のネットワークは `<プロジェクト名>_default` になります。
+例: `docker compose -p demo up -d`
+注意: プロジェクト名が違うと、同じ compose.yaml でも別のものとして扱われます。
+関連: Docker Compose
+
+### Compose の depends_on
+別名: service_started、service_healthy、service_completed_successfully
+試験: Docker
+要約: Compose で、サービスの起動の順番と待つ条件を決める設定です。
+`service_started` は起動しただけ、`service_healthy` はヘルスチェックが通るまで、`service_completed_successfully` は正常に終了するまで待ちます。
+例: `depends_on: { db: { condition: service_healthy } }`
+注意: 条件を書かないと、起動を待つだけで、準備ができるまでは待ちません。
+関連: HEALTHCHECK、Docker Compose
+
+### docker compose の主なコマンド
+別名: docker compose up、docker compose down、docker compose run、docker compose config
+試験: Docker
+要約: Compose でサービスを起動、停止、確認するコマンドです。
+`up -d` は作って起動し、`down` は止めて消します。`down -v` はボリュームも消します。`config` は展開後の設定を表示します。
+例: `docker compose up -d --build`
+注意: `down -v` でデータのボリュームが消えます。
+関連: Docker Compose、docker exec
+
+### .env ファイル
+試験: Docker
+要約: Compose で、変数の値を書いておくファイルです。
+compose.yaml の中の `${VAR}` に、値を入れます。`${VAR:-既定値}` は未設定のときの値、`${VAR:?メッセージ}` は未設定ならエラーにします。サービスの `env_file` は、コンテナの環境変数にする別の仕組みです。
+例: `${TAG:-latest}`
+注意: `.env` は compose.yaml の中の展開用で、`env_file` はコンテナの中に渡します。
+関連: Docker Compose
+
+### compose.override.yaml
+試験: Docker
+要約: compose.yaml に重ねて、設定を上書きするファイルです。
+開発用の設定を分けるときに使います。`-f` を並べて、複数のファイルを重ねることもできます。
+例: `docker compose -f compose.yaml -f compose.prod.yaml up -d`
+注意: ファイルの名前が既定のものなら、自動で読み込まれます。
+関連: Docker Compose
+
+### Compose の profiles
+試験: Docker
+要約: 特定のサービスを、必要なときだけ起動するための印です。
+サービスに `profiles` を付けると、指定しない限り起動しません。デバッグ用のサービスなどに使います。
+例: `docker compose --profile debug up`
+注意: profiles を付けたサービスは、指定しなければ起動しません。
+関連: Docker Compose
+
+### docker compose watch
+別名: up --watch
+試験: Docker
+要約: ファイルの変更を見て、自動で反映する Compose の機能です。
+`sync` はファイルをコンテナに同期し、`rebuild` はイメージを作り直します。`sync+restart` は同期してから再起動します。開発のときに使います。
+例: `docker compose watch`
+注意: 依存関係のファイル(`package.json` など)を変えたときは、`rebuild` の動きにします。
+関連: Docker Compose
+
+### Compose の secrets
+別名: /run/secrets
+試験: Docker
+要約: パスワードなどを、環境変数を使わずにコンテナへ渡す仕組みです。
+値はコンテナの `/run/secrets/` の下にファイルとして置かれます。元はファイルか環境変数で決めます。
+例: `secrets: { db_password: { file: ./db_password.txt } }`
+注意: 環境変数に書くより、`inspect` などで見えにくくなります。
+関連: _FILE 形式、Docker Compose
+
+### _FILE 形式
+別名: _FILE
+試験: Docker
+要約: 値そのものでなく、値を入れたファイルのパスを渡す、環境変数の書き方です。
+公式イメージの多くが対応しています。Compose の secrets と組み合わせて使います。
+例: `POSTGRES_PASSWORD_FILE=/run/secrets/db_password`
+注意: すべてのイメージが対応しているわけではありません。
+関連: Compose の secrets
+
+### Compose の資源制限
+別名: mem_limit、reservations
+試験: Docker
+要約: Compose で、サービスが使うメモリや CPU を決める設定です。
+`mem_limit` と `cpus` は上限です。`reservations` は、確保しておく量を決めます。
+例: `deploy: { resources: { limits: { memory: 512m } } }`
+注意: 上限を超えるメモリを使うと、強制終了されます。
+関連: コンテナのリソース制限、Docker Compose
+
 ## イメージの配布と信頼
 
 ### レジストリ
@@ -490,6 +956,169 @@ IP アドレス、マウント、環境変数、終了コード、OOM の有無�
 例: `docker buildx build --sbom=true`、`syft app:1.0`
 注意: 新しい脆弱性が見つかったときに、影響を受けるイメージをすぐに探せます。
 関連: 脆弱性スキャン
+
+### Alpine Linux
+試験: Docker
+要約: 小さく作られた Linux のディストリビューションです。
+イメージが小さいため、コンテナのもとによく使われます。標準の C ライブラリに、glibc でなく musl を使います。
+例: `FROM alpine:3.20`
+注意: glibc を前提にしたバイナリは、動かないことがあります。
+関連: slim イメージ、scratch
+
+### slim イメージ
+別名: -slim
+試験: Docker
+要約: 標準のイメージから、不要なものを減らした版です。
+名前に `-slim` が付きます。Debian がもとで、glibc のまま小さくできます。
+例: `FROM python:3.12-slim`
+注意: 必要な道具が入っていないことがあるので、足りないものは自分で入れます。
+関連: Alpine Linux、イメージ
+
+### scratch
+試験: Docker
+要約: 中身が空の、特別なもとのイメージです。
+静的にリンクした実行ファイルだけを置いて、とても小さなイメージを作れます。シェルも入っていません。
+例: `FROM scratch` の後に `COPY app /app` と書きます。
+注意: シェルがないので、`docker exec` でシェルには入れません。
+関連: distroless、マルチステージビルド
+
+### BuildKit
+試験: Docker
+要約: Docker の新しいイメージのビルドエンジンです。
+並列に作り、キャッシュを細かく使えます。`docker buildx` は、BuildKit を使うためのコマンドです。`RUN --mount=type=cache` でキャッシュを残せ、`--mount=type=secret` で秘密の値をイメージに残さず渡せます。
+例: `docker buildx build -t app .`
+注意: 最近の Docker では、既定で使われます。
+関連: ビルドキャッシュ、マルチステージビルド
+
+### docker build
+試験: Docker
+要約: Dockerfile からイメージを作るコマンドです。
+`-t` で名前とタグを付け、`-f` で Dockerfile を指定します。`--build-arg` で値を渡し、`--platform` で CPU の種類を決めます。最後の引数は、ビルドコンテキストです。
+例: `docker build -t myapp:1.0 .`
+注意: 末尾の `.` を忘れると、ビルドコンテキストがなくてエラーになります。
+関連: Dockerfile、ビルドコンテキスト
+
+### docker tag
+試験: Docker
+要約: 既存のイメージに、別の名前やタグを付けるコマンドです。
+中身は複製されず、同じイメージに名前が増えます。レジストリへ push する前に、レジストリ名を付けるのに使います。
+例: `docker tag myapp:1.0 registry.example.com/myapp:1.0`
+注意: イメージの複製ではなく、名前を足すだけです。
+関連: タグ、docker pull
+
+### latest タグ
+別名: latest
+試験: Docker
+要約: タグを省いたときに使われる、既定のタグです。
+最新という意味ではありません。上書きされるので、本番では版を固定したタグを使います。
+例: `nginx` と書くと、`nginx:latest` になります。
+注意: `latest` は、最後に push したものを指すだけで、いつ変わるか分かりません。
+関連: タグ、ダイジェスト(イメージ)
+
+### Docker Hub
+試験: Docker
+要約: Docker が運営する、既定のコンテナレジストリです。
+レジストリ名を省くと、ここから取得します。匿名で取得できる回数には制限があります【要確認】。公式イメージは、`docker.io/library/` の下にあります。
+例: `docker pull nginx` は、`docker.io/library/nginx:latest` になります。
+注意: 取得の回数を超えると、pull が拒否されます。
+関連: レジストリ、レジストリミラー
+
+### GHCR
+別名: GitHub Container Registry
+試験: Docker
+要約: GitHub が提供する、コンテナのレジストリです。
+`ghcr.io` を使います。GitHub のアカウントやトークンで認証できます。
+例: `docker pull ghcr.io/owner/app:1.0`
+注意: push には、パッケージの書き込みの権限を持つトークンが要ります。
+関連: レジストリ、docker login
+
+### Artifact Registry
+試験: Docker
+要約: Google Cloud が提供する、コンテナイメージなどのレジストリです。
+Google Cloud の権限の仕組み(IAM)と連携して使います。Azure では、Azure Container Registry(ACR)が同じ役割です。
+例: `asia-northeast1-docker.pkg.dev/プロジェクト/リポジトリ/app:1.0`
+注意: 古い Google Container Registry(GCR)は、Artifact Registry に置き換えられています【要確認】。
+関連: ECR、レジストリ
+
+### プライベートレジストリ
+別名: registry:2
+試験: Docker、Terraform
+要約: 自分で運用する、社内などのコンテナレジストリです。
+公式の `registry:2` イメージで、手軽に作れます。認証や暗号化(TLS)は、別に設定します。
+例: `docker run -d -p 5000:5000 registry:2`
+注意: 認証も TLS もない状態を、外に公開しません。
+関連: レジストリ、docker pull
+
+### レジストリミラー
+別名: プルスルーキャッシュ
+試験: Docker
+要約: 外のレジストリの内容を、手前で保存して配るレジストリです。
+取得の回数制限を避けたり、取得を速くしたりできます。デーモンの設定で、ミラーを指定します。
+例: `daemon.json` の `registry-mirrors` にミラーの URL を書きます(Docker Hub からの取得にだけ使われます)。
+注意: ミラーが落ちると取得できなくなるので、元のレジストリへの切り替えも考えます。
+関連: Docker Hub、daemon.json
+
+### セマンティックバージョニング
+別名: セマンティックバージョン、semver
+試験: Docker、Terraform
+要約: 版を、主、副、修正の 3 つの数で表す決め方です。
+`1.4.2` のように書きます。互換性のない変更は主を、機能の追加は副を、修正は最後の数を上げます。
+例: `myapp:1.4.2`
+注意: タグには、`latest` でなく版を付けて、どの版かを分かるようにします。
+関連: タグ、latest タグ
+
+### マルチアーキテクチャイメージ
+別名: manifest list
+試験: Docker
+要約: 1 つのタグで、複数の CPU の種類に対応するイメージです。
+`manifest list` が、CPU ごとのイメージを指します。取得するときに、自分の CPU に合うものが選ばれます。`docker buildx build --platform` で作れます。
+例: `docker buildx build --platform linux/amd64,linux/arm64 -t app:1.0 --push .`
+注意: CPU が違うイメージは、そのままでは動きません。
+関連: BuildKit、タグ
+
+### provenance
+別名: 来歴
+試験: Docker
+要約: イメージを、どこで、どうビルドしたかを記録した情報です。
+イメージに付ける証明(attestation)の 1 つです。SBOM と合わせて、供給元の確かさを確かめるのに使います。
+例: `docker buildx build --provenance=true --sbom=true`
+注意: 署名とは別のもので、来歴は作った経緯の記録です。
+関連: SBOM、イメージの署名
+
+### docker.sock
+別名: /var/run/docker.sock
+試験: Docker
+要約: Docker デーモンが待ち受ける、UNIX ソケットのファイルです。
+これをコンテナにマウントすると、そのコンテナが、ホストの Docker を操作できます。事実上、ホストの root と同じ権限になります。
+例: `-v /var/run/docker.sock:/var/run/docker.sock`
+注意: 信頼できないコンテナに、マウントしません。
+関連: Docker デーモン、docker グループ
+
+### docker グループ
+試験: Docker
+要約: Docker を sudo なしで使えるようにする、Linux のグループです。
+このグループに入ると、デーモンを操作できます。結果として、root と同じ権限を持つことになります。
+例: `usermod -aG docker ユーザー`
+注意: 信頼できる人だけを入れます。
+関連: docker.sock、Docker デーモン
+
+### Linux ケーパビリティ制限
+別名: --cap-drop、--cap-add
+試験: Docker
+要約: コンテナの権限を、細かく減らしたり足したりする指定です。
+`--cap-drop ALL` で全部を外し、必要なものだけを `--cap-add` で足します。
+例: `docker run --cap-drop ALL --cap-add NET_BIND_SERVICE nginx`
+注意: 外せる権限は外し、足すのは必要なものだけにします。
+関連: ケーパビリティ
+
+### ビルドシークレット
+別名: --mount=type=secret
+試験: Docker
+要約: ビルド中だけ秘密の値を使い、イメージに残さない仕組みです。
+BuildKit の機能です。`RUN --mount=type=secret` で、ビルド中だけファイルとして見えます。
+例: `docker build --secret id=token,src=token.txt .`
+注意: `ARG` や `ENV` で渡した値は、イメージに残ります。
+関連: BuildKit、ENV と ARG
 
 ## Kubernetes の構成
 
@@ -622,6 +1251,40 @@ API サーバーを通さず、kubelet がノードの `/etc/kubernetes/manifest
 注意: kubectl で消しても kubelet がすぐに作り直します。止めるにはファイルを移します。
 関連: kubelet、kubeadm
 
+### cloud-controller-manager
+試験: K8s
+要約: クラウド事業者との連携を担う、コントロールプレーンの部品です。
+ロードバランサーや、ノードの情報など、クラウドの機能を Kubernetes から使うための処理をまとめています。
+例: Service の type を LoadBalancer にすると、クラウドのロードバランサーを作ります。
+注意: クラウドの外のクラスタには、ないことがあります。
+関連: コントロールプレーン、kube-controller-manager
+
+### バージョンスキュー
+試験: K8s
+要約: クラスタの部品どうしで、許される版の差です。
+アップグレードは、マイナーバージョンを 1 つずつ上げます。kubelet は API サーバーより新しくできません。
+例: 1.30 から 1.32 に、いきなり上げません。
+注意: 許される差は、公式の対応表で確かめます。
+関連: kubeadm、kubelet
+
+### etcd のバックアップ
+別名: etcdctl snapshot save、etcdctl snapshot restore
+試験: K8s
+要約: etcd の内容を、スナップショットに保存して戻す手順です。
+`etcdctl snapshot save` で保存し、`restore` で別のディレクトリに戻します。クラスタの状態をすべて含みます。
+例: `etcdctl snapshot save /backup/snap.db`
+注意: 接続には、エンドポイントと証明書を指定します。
+関連: etcd、kubeadm
+
+### コントロールプレーンの HA
+別名: --control-plane-endpoint
+試験: K8s
+要約: コントロールプレーンを、複数台で冗長にした構成です。
+`kubeadm init` に、`--control-plane-endpoint` で共通のアドレスを渡します。ロードバランサーが API サーバーに振り分けます。
+例: `kubeadm init --control-plane-endpoint "lb.example.com:6443"`
+注意: etcd の過半数(クォーラム)が要るので、台数は奇数にします。
+関連: kubeadm、クォーラム
+
 ## kubectl と設定
 
 ### kubectl
@@ -642,6 +1305,7 @@ kubectl が使う、クラスタの場所、認証情報、既定の Namespace �
 関連: kubectl
 
 ### kubeadm
+別名: kubeadm init、kubeadm join、kubeadm token、kubeadm upgrade、kubeadm certs、kubeadm reset
 試験: K8s
 要約: Kubernetes のクラスタを作り、アップグレードするコマンドです。
 Kubernetes のクラスタを作り(`kubeadm init`、`kubeadm join`)、アップグレードするための道具です。コントロールプレーンの部品は静的 Pod として動かします。
@@ -681,6 +1345,116 @@ kubectl の出力から、決まった項目だけを取り出す書き方です
 例: `kubectl certificate approve alice`、`.status.certificate` を base64 で戻す
 注意: 証明書ができても、権限は RBAC で別に与えます。
 関連: kubeconfig、RBAC
+
+### kubectl apply
+試験: K8s
+要約: マニフェストの内容に、クラスタの状態を合わせるコマンドです。
+同じファイルを何度実行しても、同じ結果になります。変更だけが反映されます。ディレクトリも、`-k` で kustomize も指定できます。
+例: `kubectl apply -f deploy.yaml`
+注意: 存在しなければ作り、あれば更新します。`create` は、あるとエラーになります。
+関連: マニフェスト、kubectl create
+
+### kubectl create
+試験: K8s
+要約: リソースを、その場で作るコマンドです。
+マニフェストなしで、`kubectl create deployment` のように作れます。`kubectl run` は Pod を作ります。
+例: `kubectl create deployment web --image=nginx`
+注意: すでにあるリソースに実行すると、エラーになります。
+関連: kubectl apply、マニフェスト
+
+### --dry-run
+別名: --dry-run=client
+試験: K8s
+要約: 実際には作らずに、内容だけを確かめるオプションです。
+`-o yaml` と合わせると、マニフェストの雛形を作れます。試験でも、雛形づくりによく使います。
+例: `kubectl create deployment web --image=nginx --dry-run=client -o yaml`
+注意: `client` は手元で、`server` は API サーバーで検証します。
+関連: kubectl create、マニフェスト
+
+### kubectl explain
+試験: K8s
+要約: リソースのフィールドの意味を、コマンドで調べる機能です。
+`pod.spec.containers` のように、階層で指定します。`--recursive` で全体を見られます。
+例: `kubectl explain pod.spec.containers`
+注意: 試験で、ドキュメントを開かずに調べられます。
+関連: マニフェスト、kubectl
+
+### kubectl api-resources
+別名: api-resources
+試験: K8s
+要約: クラスタで使えるリソースの種類を、一覧にするコマンドです。
+名前、短縮名、apiVersion、namespace に属するか、kind が分かります。CRD で足したリソースも出ます。
+例: `kubectl api-resources`
+注意: 短縮名(`deploy`、`svc` など)を探すのにも使えます。
+関連: CRD、kubectl explain
+
+### kubectl edit
+試験: K8s
+要約: 動いているリソースを、直接変更するコマンドです。
+`edit` はエディタで、`patch` は変更部分だけを、`replace` はファイル全体で置き換えます。
+例: `kubectl patch deployment web -p '{"spec":{"replicas":3}}'`
+注意: 直接変えた内容は、マニフェストのファイルと食い違います。
+関連: kubectl apply、マニフェスト
+
+### kubectl auth can-i
+試験: K8s
+要約: ある操作が、許されているかを確かめるコマンドです。
+`--as` で、別のユーザーや ServiceAccount になりすまして確かめられます。RBAC の設定を確かめるのに使います。
+例: `kubectl auth can-i create pods --as system:serviceaccount:dev:app`
+注意: 結果は yes か no だけで、理由は出ません。
+関連: RBAC、ServiceAccount
+
+### 集約された ClusterRole
+別名: aggregated ClusterRole、集約 ClusterRole
+試験: K8s
+要約: ほかの ClusterRole の権限を、ラベルで自動的にまとめた ClusterRole です。
+組み込みの `view`、`edit`、`admin` は、これです。CRD の権限を足すときも、ラベルを付けるだけで加えられます。
+例: `aggregationRule` で、`rbac.authorization.k8s.io/aggregate-to-view: "true"` を持つものを集めます。
+注意: 組み込みの `cluster-admin` は、集約ではなく、すべての権限を持ちます。
+関連: RBAC
+
+### Helm リリース
+別名: helm install、helm upgrade、helm rollback、helm uninstall、helm history
+試験: K8s
+要約: Helm でクラスタに入れた、チャートの 1 回分の導入です。
+`install` で入れ、`upgrade` で更新し、`rollback` で前のリビジョンに戻します。`history` で履歴を見ます。
+例: `helm upgrade --install web ./chart -n app`
+注意: リリースには名前と履歴があり、`uninstall` で消します。
+関連: Helm、values.yaml
+
+### values.yaml
+試験: K8s
+要約: Helm のチャートに、設定の値を渡すファイルです。
+チャートの既定値を、上書きします。`--set` でも、コマンドで 1 つずつ上書きできます。
+例: `helm install web ./chart -f values.yaml --set replicas=3`
+注意: 同じ値を複数で指定すると、後ろに書いたものが優先されます。
+関連: Helm、Helm リリース
+
+### Helm リポジトリ
+別名: helm repo
+試験: K8s
+要約: Helm のチャートを配る置き場です。
+`helm repo add` で登録し、`helm search repo` で探します。
+例: `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
+注意: 登録した後は、`helm repo update` で最新の一覧を取り込みます。
+関連: Helm
+
+### helm template
+試験: K8s
+要約: チャートから、マニフェストを作って表示するコマンドです。
+クラスタには入れません。`helm list` は、入れたリリースの一覧です。
+例: `helm template web ./chart -f values.yaml`
+注意: `template` は表示だけで、導入はしません。
+関連: Helm、Helm リリース
+
+### kustomization.yaml
+別名: patches、namePrefix、configMapGenerator、kubectl kustomize
+試験: K8s
+要約: Kustomize で、何を、どう変えるかを書くファイルです。
+元のマニフェストを書き換えずに、`patches` で一部を変え、`namePrefix` で名前の頭に文字を付け、`images` でイメージを替えます。`configMapGenerator` で ConfigMap を作れます。
+例: `kubectl apply -k overlays/prod`
+注意: `kubectl kustomize` は、展開した結果を表示するだけです。
+関連: Kustomize、マニフェスト
 
 ## ワークロード
 
@@ -802,6 +1576,93 @@ Pod が Kubernetes の API を使うときの ID です。RBAC で権限を与�
 注意: 権限は Role と RoleBinding で、ServiceAccount に必要なものだけを与えます。
 関連: RBAC、IRSA
 
+### maxSurge と maxUnavailable
+別名: maxSurge、maxUnavailable
+試験: K8s
+要約: ローリングアップデートの速さと、止められる数を決める設定です。
+`maxSurge` は、一時的に増やせる Pod の数です。`maxUnavailable` は、同時に使えなくしてよい Pod の数です。割合でも指定できます。
+例: `maxSurge: 1`、`maxUnavailable: 0`
+注意: 両方を 0 にすると、検証のエラーになり、作れません。
+関連: ローリングアップデート、Deployment
+
+### kubectl rollout
+別名: kubectl rollout status、kubectl rollout history、kubectl rollout restart、kubectl rollout undo
+試験: K8s
+要約: Deployment の更新の進み方を見たり、操作したりするコマンドです。
+`status` で進み具合、`history` で履歴(`--revision` で詳細)を見ます。`pause` と `resume` で一時停止と再開、`restart` で再起動、`undo` でロールバックします。
+例: `kubectl rollout status deployment/web`
+注意: `restart` は、Pod を順に作り直します。
+関連: Deployment、ロールバック
+
+### envFrom と valueFrom
+別名: envFrom、valueFrom、configMapKeyRef、secretKeyRef
+試験: K8s
+要約: ConfigMap や Secret を、環境変数として Pod に渡す書き方です。
+`valueFrom` の `configMapKeyRef` や `secretKeyRef` は、キーを 1 つずつ指定します。`envFrom` は、全部のキーをまとめて渡します。
+例: `envFrom: [{ configMapRef: { name: app-config } }]`
+注意: 環境変数は、Pod を作り直すまで更新されません。
+関連: ConfigMap、Secret
+
+### Base64
+試験: K8s
+要約: データを、文字だけで表す符号化の方法です。
+Secret の値は、Base64 で保存されます。暗号化ではなく、誰でも元に戻せます。
+例: `echo -n password | base64`
+注意: Secret の値は、暗号化されていません。権限の管理と、etcd の暗号化が要ります。
+関連: Secret
+
+### Secret の種類
+別名: kubernetes.io/tls、kubernetes.io/dockerconfigjson
+試験: K8s
+要約: Secret の、用途ごとに決まった型です。
+`Opaque` は自由な値、`kubernetes.io/tls` は証明書と鍵、`kubernetes.io/dockerconfigjson` はレジストリの認証情報です。
+例: `kubectl create secret docker-registry regcred --docker-server=...`
+注意: 型によって、必要なキーが決まっています。
+関連: Secret、レジストリ
+
+### Immutable な Secret と ConfigMap
+試験: K8s
+要約: 作った後に、中身を変えられなくする設定です。
+`immutable: true` を付けます。誤って変えるのを防ぎ、API サーバーの負荷も減ります。
+例: `immutable: true`
+注意: 変えるには、消して作り直します。
+関連: ConfigMap、Secret
+
+### etcd の暗号化
+別名: EncryptionConfiguration
+試験: K8s
+要約: Secret を、etcd に保存するとき暗号化する設定です。
+API サーバーに、`EncryptionConfiguration` のファイルを渡します。既定では、暗号化されません。
+例: `--encryption-provider-config` で設定ファイルを指定します。
+注意: 設定した後に、既存の Secret を書き直さないと、暗号化されません。
+関連: etcd、Secret
+
+### プローブの検査方式
+別名: httpGet、tcpSocket、grpc
+試験: K8s
+要約: プローブが、どのように正常かを確かめるかの種類です。
+`httpGet` は HTTP のステータス、`tcpSocket` はポートへの接続、`exec` はコマンドの終了コード、`grpc` は gRPC のヘルスチェックを見ます。
+例: `httpGet: { path: /healthz, port: 8080 }`
+注意: 種類は、アプリの性質で選びます。
+関連: livenessProbe、readinessProbe
+
+### restartPolicy
+試験: K8s
+要約: Pod のコンテナが終了したときに、再起動するかを決める設定です。
+`Always`、`OnFailure`、`Never` があります。Deployment は `Always`、Job は `OnFailure` か `Never` です。
+例: `restartPolicy: OnFailure`
+注意: Deployment の Pod には、`Always` しか指定できません。
+関連: Job、再起動ポリシー
+
+### Job の再試行と並列
+別名: backoffLimit、completions、parallelism
+試験: K8s
+要約: Job が、何回やり直し、何個の Pod を、いくつ同時に動かすかの設定です。
+`backoffLimit` は失敗の再試行の上限、`completions` は成功させる数、`parallelism` は同時に動かす数です。
+例: `completions: 5`、`parallelism: 2`
+注意: `backoffLimit` を超えて失敗すると、Job は失敗になります。
+関連: Job、restartPolicy
+
 ## スケジューリングと資源
 
 ### requests
@@ -848,7 +1709,7 @@ requests と limits の決め方による、Pod の区分です。Guaranteed(全
 関連: kubelet、QoS クラス
 
 ### taint
-別名: toleration
+別名: toleration、NoSchedule、NoExecute、PreferNoSchedule
 試験: K8s
 要約: ノードに付けて、合う toleration のない Pod を置かせない印です。
 ノードに付けて、合う toleration を持たない Pod を置かせないようにする印です。toleration は「置いてもよい」という許可で、そのノードに引き寄せはしません。
@@ -875,6 +1736,7 @@ Pod を、決まったラベルのノードに置くための条件です。簡�
 関連: nodeAffinity、topologySpreadConstraints
 
 ### topologySpreadConstraints
+別名: maxSkew、topologyKey
 試験: K8s
 要約: Pod をゾーンやノードに均等に散らす設定です。
 同じアプリの Pod を、ゾーンやノードに均等に散らして置くための設定です。1 つのゾーンが止まっても、全部が止まらないようにします。
@@ -910,13 +1772,21 @@ ResourceQuota は、Namespace 全体で使える CPU、メモリ、Pod の数な
 関連: PodDisruptionBudget
 
 ### PodDisruptionBudget
-別名: PDB
+別名: PDB、minAvailable
 試験: K8s
 要約: drain などで、同時に止めてよい Pod の数を制限するリソースです。
 ノードの drain のような計画的な中断のときに、同時に止めてよい Pod の数を制限するリソースです。ノードの故障のような計画外の停止は防げません。
 例: `minAvailable: 2` または `maxUnavailable: 1`
 注意: replicas と同じ数を minAvailable にすると、drain が永遠に進みません。
 関連: drain
+
+### nodeName
+試験: K8s
+要約: Pod を置くノードを、名前で直接指定する設定です。
+スケジューラーを通りません。ノードの条件や空きは確かめられません。
+例: `nodeName: worker-1`
+注意: 置けない場合も、スケジューラーは助けません。ふつうは nodeAffinity か nodeSelector を使います。
+関連: nodeAffinity、kube-scheduler
 
 ## 健全性と障害
 
@@ -1004,9 +1874,97 @@ Kubernetes のリソースに起きた出来事の記録です(スケジュー�
 注意: API サーバーが止まっていても使えるので、コントロールプレーンの障害の調査に使います。
 関連: CRI、静的 Pod
 
+### terminationGracePeriodSeconds
+試験: K8s
+要約: Pod を止めるとき、SIGKILL までに待つ秒数です。
+既定は 30 秒です。まず SIGTERM を送り、この時間がたっても終わらなければ、SIGKILL で強制終了します。
+例: `terminationGracePeriodSeconds: 60`
+注意: preStop の処理の時間も、この秒数に含まれます。
+関連: preStop、グレースフルシャットダウン
+
+### CPU スロットリング
+別名: CPU throttling
+試験: K8s
+要約: CPU の limits に達して、処理が一時的に遅くされることです。
+強制終了はされず、遅くなります。メモリの limits を超えたときの OOMKilled とは違います。
+例: 応答が遅いのに、メモリは足りている場合に疑います。
+注意: limits を小さくしすぎると、遅くなります。
+関連: limits、requests
+
+### kubectl describe
+別名: kubectl describe node、kubectl describe pod
+試験: K8s
+要約: リソースの詳しい状態と、最近のイベントを表示するコマンドです。
+Pod では、状態の理由や再起動の履歴が出ます。ノードでは、`Conditions` で不調の種類を確かめます。
+例: `kubectl describe pod web-0`
+注意: 原因は、末尾の Events に出ることが多いです。
+関連: イベント、kubectl logs
+
+### kubectl logs
+別名: --previous
+試験: K8s
+要約: Pod のコンテナのログを表示するコマンドです。
+`-c` でコンテナ、`-f` で追い続け、`--previous` で再起動前のコンテナのログを見ます。`--tail` や `--since` で絞り、`-l` でラベルを指定できます。
+例: `kubectl logs web-0 -c app --previous`
+注意: 再起動を繰り返す Pod の原因は、`--previous` に残ります。
+関連: kubectl describe、CrashLoopBackOff
+
+### /var/log/pods
+別名: /var/log/containers
+試験: K8s
+要約: ノードの上で、コンテナのログが置かれるディレクトリです。
+API サーバーが動かないときに、ノードに入って、ログを直接見るために使います。
+例: `/var/log/pods/<namespace>_<pod>_<uid>/`
+注意: `kubectl logs` が使えないときの手段です。
+関連: kubectl logs、kubelet
+
+### kubelet の設定ファイル
+別名: /var/lib/kubelet/config.yaml
+試験: K8s
+要約: kubelet の動きを決める、ノード上の設定ファイルです。
+kubeadm で作ったクラスタでは、`/var/lib/kubelet/config.yaml` にあります。`clusterDNS` もここにあります。
+例: kubelet が起動しないときに、このファイルを確かめます。
+注意: 変更した後は、kubelet を再起動します。
+関連: kubelet、kubeadm
+
+### Allocatable
+試験: K8s
+要約: ノードの資源のうち、Pod に割り当てられる量です。
+ノードの全体から、システム用の分を引いた量です。`kubectl describe node` で、Allocatable と、すでに割り当てた量(Allocated resources)を比べられます。
+例: Pod が Pending のとき、requests に対して、Allocatable に空きがあるかを見ます。
+注意: Allocated は、実際の使用量ではなく、requests の合計です。
+関連: requests、kubectl describe
+
+### kubectl top
+別名: kubectl top node、kubectl top pod
+試験: K8s
+要約: ノードや Pod の、CPU とメモリの使用量を表示するコマンドです。
+Metrics API を通して取得します。`--containers` でコンテナごと、`--sort-by` で並べ替えられます。
+例: `kubectl top pod --sort-by=memory`
+注意: metrics-server が入っていないと動きません。
+関連: metrics-server、Metrics API
+
+### Metrics API
+別名: metrics.k8s.io
+試験: K8s
+要約: ノードや Pod の資源の使用量を、取得するための API です。
+metrics-server が提供します。`kubectl top` と HPA が使います。
+例: `kubectl get --raw /apis/metrics.k8s.io/v1beta1/nodes`
+注意: 履歴は持たず、直近の値だけです。
+関連: metrics-server、HPA
+
+### cAdvisor
+試験: K8s
+要約: コンテナの資源の使用量を集める、kubelet に組み込まれた部品です。
+CPU、メモリ、ネットワーク、ディスクの値を集めます。metrics-server や Prometheus が、これを読みます。
+例: kubelet のメトリクスとして、コンテナごとの使用量が出ます。
+注意: 長い期間の履歴は、持ちません。
+関連: kubelet、metrics-server
+
 ## ネットワーク
 
 ### Service
+別名: kubectl expose
 試験: K8s
 要約: Pod の集まりに、変わらない IP アドレスと DNS の名前を付けるリソースです。
 ラベルで選んだ Pod の集まりに、変わらない仮想の IP アドレスと DNS の名前を与え、通信を振り分けるリソースです。種類に ClusterIP(既定、クラスタの中だけ)、NodePort、LoadBalancer があります。
@@ -1050,7 +2008,7 @@ Service の振り分け先になる、Ready の Pod の IP アドレスとポー
 関連: Gateway API、Service
 
 ### Gateway API
-別名: HTTPRoute
+別名: HTTPRoute、parentRefs、backendRefs
 試験: K8s
 要約: Ingress の後継の、役割ごとに分けたリソースで通信を振り分ける仕組みです。
 Ingress の後継の、外からの通信を管理する API です。GatewayClass(実装)、Gateway(入口)、HTTPRoute(振り分けのルール)と、役割ごとにリソースが分かれています。重みで通信の割合も決められます。
@@ -1076,12 +2034,121 @@ Ingress の後継の、外からの通信を管理する API です。GatewayCla
 関連: CoreDNS、DNS
 
 ### NetworkPolicy
+別名: podSelector、namespaceSelector
 試験: K8s
 要約: Pod の間の通信を、ラベルやアドレスで制限するリソースです。
 Pod の間の通信を、ラベルや Namespace で許可するルールです。ある Pod を選ぶポリシーができると、その Pod には許可した通信しか届かなくなります。守らせるのは CNI プラグインです。
 例: `podSelector: {}` と `policyTypes: [Ingress]` で全部の受信を拒否
 注意: 対応した CNI が必要です。kind の既定の CNI は NetworkPolicy に対応していません。
 関連: CNI プラグイン、ラベル
+
+### Pod のネットワーク名前空間
+試験: K8s
+要約: Pod の中のコンテナが共有する、ネットワークの空間です。
+多くのランタイムでは、この空間を保つために、`pause` という小さなコンテナが使われます。同じ IP アドレスとポートを使い、`localhost` で互いにつながります。
+例: 同じ Pod の 2 つのコンテナは、`localhost:8080` で通信します。
+注意: 同じ Pod の中では、ポートが衝突しないようにします。
+関連: Pod、namespace
+
+### ExternalName
+試験: K8s
+要約: Service の名前を、外部の DNS 名に置き換える種類です。
+ClusterIP を持たず、CNAME を返します。クラスタ内から、外のサービスを、Service の名前で呼べます。
+例: `type: ExternalName` と `externalName: db.example.com`
+注意: プロキシはしないので、ポートの変換はできません。
+関連: Service、CoreDNS
+
+### sessionAffinity
+試験: K8s
+要約: 同じ利用者の通信を、同じ Pod に送り続ける設定です。
+`ClientIP` にすると、送信元の IP で決めます。
+例: `sessionAffinity: ClientIP`
+注意: 負荷が偏ることがあります。
+関連: Service
+
+### externalTrafficPolicy
+試験: K8s
+要約: 外からの通信を、どのノードの Pod に送るかを決める設定です。
+`Local` は、そのノードの Pod にだけ送り、送信元 IP が残ります。`Cluster` は、ほかのノードにも送ります。
+例: `externalTrafficPolicy: Local`
+注意: `Local` のとき、Pod がないノードは、通信を受けません。
+関連: NodePort、Service
+
+### default deny
+別名: デフォルト拒否
+試験: K8s
+要約: NetworkPolicy で、すべての通信を拒否する基本の設定です。
+空の `podSelector` で全 Pod を選び、許可の規則を書かないことで、通信を止めます。その上に、必要な許可だけを足します。
+例: `podSelector: {}` と `policyTypes: [Ingress]`
+注意: policyTypes を書かないと Ingress だけが対象になり、Egress(外向き)は止まりません。
+関連: NetworkPolicy
+
+### IngressClass
+別名: ingressClassName
+試験: K8s
+要約: どの Ingress コントローラーが、その Ingress を扱うかを決める設定です。
+Ingress の `ingressClassName` で指定します。コントローラーが複数あるときに使います。
+例: `ingressClassName: nginx`
+注意: 既定の IngressClass がないときに指定しないと、どのコントローラーも扱わないことがあります。
+関連: Ingress
+
+### pathType
+試験: K8s
+要約: Ingress で、パスの一致のさせ方を決める設定です。
+`Prefix` は前方一致(パスの区切りごと)、`Exact` は完全一致です。
+例: `path: /api`、`pathType: Prefix`
+注意: `Prefix` の `/api` は、`/apis` には一致しません。
+関連: Ingress
+
+### GatewayClass
+試験: K8s
+要約: Gateway API で、どの実装が Gateway を扱うかを決めるリソースです。
+Ingress の IngressClass にあたります。クラスタを管理する人が用意します。
+例: `gatewayClassName: example` を Gateway に書きます。
+注意: Gateway と HTTPRoute は、`parentRefs` と `backendRefs` でつながります。
+関連: Gateway API、IngressClass
+
+### Service の DNS 名
+別名: svc.cluster.local
+試験: K8s
+要約: Service に付く、クラスタ内の名前です。
+`<サービス>.<namespace>.svc.cluster.local` の形です。同じ namespace なら、サービス名だけでも引けます。
+例: `web.app.svc.cluster.local`
+注意: 別の namespace の Service は、`web.app` のように namespace まで書きます。
+関連: CoreDNS、Service
+
+### Pod の DNS 名
+試験: K8s
+要約: Pod の IP アドレスから作られる、クラスタ内の名前です。
+`10-1-2-3.<namespace>.pod.cluster.local` のように、IP のドットをハイフンにします。
+例: IP が `10.1.2.3` の Pod は、`10-1-2-3.app.pod.cluster.local`
+注意: Pod の IP は変わるので、ふつうは Service の名前を使います。
+関連: Service の DNS 名、CoreDNS
+
+### kube-dns
+試験: K8s
+要約: CoreDNS の前に置かれる、DNS 用の Service の名前です。
+`kube-system` にあり、Pod の `/etc/resolv.conf` の DNS サーバーが、この ClusterIP を指します。kubelet の `clusterDNS` で指定します。
+例: `kubectl -n kube-system get svc kube-dns`
+注意: 中身は CoreDNS ですが、Service の名前は `kube-dns` のままです。
+関連: CoreDNS、kubelet の設定ファイル
+
+### dnsPolicy
+別名: ClusterFirst
+試験: K8s
+要約: Pod が使う DNS の方式を決める設定です。
+既定の `ClusterFirst` は、クラスタの DNS を先に使い、解決できない名前を外へ回します。`Default` は、ノードの設定を使います。
+例: `dnsPolicy: ClusterFirst`
+注意: `Default` という名前ですが、既定ではありません。
+関連: CoreDNS、kube-dns
+
+### targetPort
+試験: K8s
+要約: Service が、Pod のどのポートに送るかを決める設定です。
+`port` は Service が受けるポートです。`targetPort` が、Pod のコンテナが待ち受けるポートと違うと、つながりません。
+例: `port: 80`、`targetPort: 8080`
+注意: つながらないときは、まず `targetPort` を疑います。
+関連: Service、EndpointSlice
 
 ## ストレージ
 
@@ -1122,7 +2189,7 @@ PVC が作られたときに、どの CSI ドライバーで、どんなディ�
 関連: PVC、PV
 
 ### アクセスモード
-別名: ReadWriteOnce、ReadWriteMany
+別名: ReadWriteOnce、ReadWriteMany、ReadWriteOncePod
 試験: K8s
 要約: ボリュームを、どのノードから読み書きできるかの決まりです。
 ボリュームをどうマウントできるかです。ReadWriteOnce(RWO)は 1 つのノードから読み書き、ReadWriteMany(RWX)は多くのノードから読み書き、ReadWriteOncePod は 1 つの Pod だけです。
@@ -1131,7 +2198,7 @@ PVC が作られたときに、どの CSI ドライバーで、どんなディ�
 関連: PVC
 
 ### reclaimPolicy
-別名: Retain、回収の方針
+別名: Retain、回収の方針、Recycle
 試験: K8s
 要約: PVC を消したときに、PV と中のデータをどうするかの決まりです。
 PVC を消したときに、PV と実際のディスクをどうするかの設定です。Delete は一緒に消し(動的プロビジョニングの既定)、Retain はデータを残します。
@@ -1155,6 +2222,57 @@ Kubernetes のリソースとボリュームを、まとめてバックアップ
 注意: etcd のバックアップはクラスタ全体、Velero は Namespace やアプリの単位で戻せます。
 関連: etcd、VolumeSnapshot
 
+### projected ボリューム
+別名: projected
+試験: K8s
+要約: 複数の元を、1 つのディレクトリにまとめて取り付けるボリュームです。
+ConfigMap、Secret、ServiceAccount のトークンなどを、1 か所に並べられます。
+例: `volumes: [{ name: all, projected: { sources: [...] } }]`
+注意: 取り付け先のパスが同じだと衝突します。
+関連: ConfigMap、Secret
+
+### claimRef
+試験: K8s
+要約: PV が、どの PVC に割り当てられているかを示す欄です。
+PV が Released のときは、`claimRef` を消すと、再び使えます。
+例: `kubectl patch pv pv1 -p '{"spec":{"claimRef":null}}'`
+注意: 中のデータは、そのまま残っています。
+関連: PV、reclaimPolicy
+
+### volumeClaimTemplates
+試験: K8s
+要約: StatefulSet が、Pod ごとの PVC を自動で作るための雛形です。
+Pod ごとに別の PVC が作られ、Pod を作り直しても、同じ PVC につながります。
+例: StatefulSet `web` の `volumeClaimTemplates` に `data` を書くと、`data-web-0` が作られます。
+注意: StatefulSet を消しても、PVC は残ります。
+関連: StatefulSet、PVC
+
+### 既定の StorageClass
+別名: is-default-class
+試験: K8s
+要約: PVC に storageClassName がないとき、使われる StorageClass です。
+アノテーション `storageclass.kubernetes.io/is-default-class: "true"` で決めます。`storageClassName: ""` と書くと、動的な作成を使いません。
+例: `kubectl get storageclass` で `(default)` が付くものです。
+注意: `""` と、書かないことは、動きが違います。
+関連: StorageClass、PVC
+
+### volumeBindingMode
+別名: WaitForFirstConsumer
+試験: K8s
+要約: PVC を、いつ PV に結び付けるかを決める設定です。
+`Immediate` は、すぐ結びます。`WaitForFirstConsumer` は、使う Pod が置かれるまで待ちます。
+例: `volumeBindingMode: WaitForFirstConsumer`
+注意: ゾーンのあるディスクでは、Pod の置き場所に合わせるため、`WaitForFirstConsumer` にします。
+関連: StorageClass、PVC
+
+### allowVolumeExpansion
+試験: K8s
+要約: 作った後に、PVC の容量を増やせるようにする設定です。
+StorageClass に `true` を書きます。PVC の `requests.storage` を大きくします。
+例: `allowVolumeExpansion: true`
+注意: 増やせても、小さくはできません。
+関連: StorageClass、PVC
+
 ## セキュリティと権限
 
 ### RBAC
@@ -1176,6 +2294,7 @@ Namespace のラベルで、Pod の安全の基準(privileged、baseline、restr
 関連: securityContext
 
 ### securityContext
+別名: runAsNonRoot、runAsUser、allowPrivilegeEscalation
 試験: K8s
 要約: Pod やコンテナの、実行するユーザーや権限の設定です。
 Pod やコンテナを動かすユーザー、権限の昇格の禁止、ケーパビリティ、読み取り専用のファイルシステムなどを決める設定です。
@@ -1200,10 +2319,19 @@ EKS で、ServiceAccount に IAM ロールを結び付け、Pod に一時的な 
 注意: `chroot` は見えるルートを変えるだけで、`pivot_root` はルートそのものを入れ替えます。どちらも、これだけでは安全な隔離になりません。
 関連: chroot、namespace
 
+### PodSecurityPolicy
+別名: PSP
+試験: K8s
+要約: 以前あった、Pod の安全性を決める仕組みで、v1.25 で削除されました。
+今は、Pod Security Admission が代わりです。
+例: v1.25 より前のクラスタで使われていました。
+注意: 今のクラスタには、ありません。
+関連: Pod Security Admission
+
 ## スケールと運用
 
 ### HPA
-別名: HorizontalPodAutoscaler
+別名: HorizontalPodAutoscaler、minReplicas、maxReplicas、kubectl autoscale、averageUtilization
 試験: K8s
 要約: 負荷に合わせて、Pod の数を自動で増やしたり減らしたりする仕組みです。
 CPU の使用率などに合わせて、Pod の数を自動で増やしたり減らしたりするリソースです。metrics-server と、Pod の requests が必要です。
@@ -1289,3 +2417,55 @@ Kubernetes の費用を、Namespace や Deployment ごとに分けて見える�
 例: OpenCost、Kubecost
 注意: 費用は requests から割り振るので、requests が大きすぎると無駄が見えます。
 関連: requests、コストの最適化
+
+### Argo Rollouts
+試験: K8s
+要約: カナリアやブルーグリーンなどの配布を、Kubernetes で実現するコントローラーです。
+Deployment の代わりに `Rollout` リソースを使い、段階的に切り替えます。
+例: 最初の 10% だけ新しい版にして、様子を見てから増やします。
+注意: Kubernetes に標準で入っているものではありません。
+関連: カナリアリリース、Deployment
+
+### External Secrets Operator
+試験: K8s
+要約: 外の秘密情報の置き場から、Kubernetes の Secret を作るオペレーターです。
+AWS の Secrets Manager などと連携し、値を Git に置かなくて済みます。
+例: Secrets Manager の値を、Secret として同期します。
+注意: Sealed Secrets は暗号化して Git に置き、これは外の置き場から読みます。
+関連: Secret、Sealed Secrets
+
+### HPA の behavior
+別名: stabilizationWindowSeconds
+試験: K8s
+要約: HPA が、増減をどれだけ急ぐかを決める設定です。
+`autoscaling/v2` で使えます。縮小の前に待つ時間を決めて、数が上下するのを抑えます。
+例: `behavior.scaleDown.stabilizationWindowSeconds: 300`
+注意: 既定では、縮小は 300 秒の安定化の期間を置き、拡大は待たずに行います。
+関連: HPA
+
+### Google GKE
+別名: GKE
+試験: K8s
+要約: Google Cloud が提供する、マネージドな Kubernetes です。
+コントロールプレーンは事業者が運用します。Autopilot モードは、ノードの管理も任せる動き方です。
+例: `gcloud container clusters create-auto` でクラスタを作れます。
+注意: 既定では版が自動で更新されるので、メンテナンスの時間帯を決めておきます。
+関連: EKS、Kubernetes
+
+### Azure AKS
+別名: AKS
+試験: K8s
+要約: Microsoft Azure が提供する、マネージドな Kubernetes です。
+コントロールプレーンは事業者が運用します。
+例: `az aks create` でクラスタを作れます。
+注意: 版の更新を自動にするかどうかは、クラスタの設定で選びます。
+関連: EKS、Kubernetes
+
+### VPC CNI
+別名: Amazon VPC CNI
+試験: K8s
+要約: EKS で、Pod に VPC の IP アドレスを直接割り当てる CNI プラグインです。
+Pod が VPC の中で、直接つながります。サブネットの IP アドレスが足りなくならないよう注意します。
+例: Pod の IP が、ノードと同じ VPC のサブネットから払い出されます。
+注意: IP アドレスの数に限りがあります。
+関連: EKS、CNI プラグイン
