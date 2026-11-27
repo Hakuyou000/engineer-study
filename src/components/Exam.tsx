@@ -12,15 +12,29 @@ interface Props {
   onExit: () => void
   /** 結果の画面から、間違えた問題を問題演習で解き直す */
   onRetry: (questions: Question[]) => void
+  /** 解いている間は true。画面を離れる前に確かめるために使う */
+  onActive: (active: boolean) => void
 }
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
-export function Exam({ questions, seconds, onFinish, onExit, onRetry }: Props) {
+export function Exam({ questions, seconds, onFinish, onExit, onRetry, onActive }: Props) {
   const [idx, setIdx] = useState(0)
   const [answers, setAnswers] = useState<Map<string, string[]>>(new Map())
   const [remaining, setRemaining] = useState(seconds)
   const [done, setDone] = useState(false)
+  const [aborting, setAborting] = useState(false)
+
+  useEffect(() => {
+    onActive(!done)
+    return () => onActive(false)
+    // onActive は App の ref を書くだけなので、done の変化だけを見る
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done])
+  const abort = () => {
+    onActive(false)
+    onExit()
+  }
 
   const finish = () => {
     if (done) return
@@ -112,10 +126,19 @@ export function Exam({ questions, seconds, onFinish, onExit, onRetry }: Props) {
           {idx + 1} / {questions.length}
         </span>
         <span className={remaining < 60 ? 'timer low' : 'timer'}>残り {mmss(remaining)}</span>
-        <button className="link" onClick={onExit}>
+        <button className="link" disabled={aborting} onClick={() => setAborting(true)}>
           中止(記録しない)
         </button>
       </div>
+      {aborting && (
+        <p className="confirm">
+          答えを捨てて中止しますか。
+          <button className="danger" onClick={abort}>
+            中止する
+          </button>
+          <button onClick={() => setAborting(false)}>続ける</button>
+        </p>
+      )}
       <QuestionView
         key={q.id}
         q={q}
