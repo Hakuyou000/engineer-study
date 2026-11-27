@@ -105,7 +105,7 @@
 
 欠陥は直すだけで終わらせない。次の順に回す。手順と分類の詳細は `docs/改善ログ.md` にある。
 
-1. 見つける: `npm run gen`(内容の検査)、`npm run coverage`(網羅性)、pull request ごとのレビュー(問題は `/review-questions`)、`npm run triage -- <バックアップ>`(アプリの「この問題に指摘する」で付けた指摘と、正答率の低い問題)
+1. 見つける: `npm run gen`(内容の検査)、`npm run coverage`(網羅性)、pull request ごとのレビュー(問題は `/review-questions`)、GitHub の Issues(学習した人からの指摘)、`npm run triage -- <バックアップ>`(正答率の低い問題)
 2. 直す。
 3. 記録する: `docs/改善ログ.md` の「記録」に 1 行足す。分類はその表にあるものを使う。
 4. 検査に変える: 同じ分類が 2 回目に出たら、`src/lib/contentLint.ts` に規則とテストを足す。機械で見つけられないものは、4 章か 5 章に足す。

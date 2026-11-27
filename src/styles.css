@@ -432,15 +432,6 @@ ul.plain, ul.choices { list-style: none; padding: 0; margin: var(--sp-4) 0; }
 .explain { margin-top: 10px; border-top: 1px solid var(--rule); }
 .explain .md { line-height: var(--lh-prose); max-width: var(--measure); }
 .explain .md p { margin: var(--sp-3) 0; }
-.flag-box { margin: var(--sp-3) 0 0; }
-.flag-box.meta .link { margin-left: var(--sp-2); }
-.flag-form { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-lg); padding: var(--sp-3) 14px; }
-.flag-form label { display: grid; gap: var(--sp-1); font-size: var(--fs-sm); color: var(--sub); }
-.flag-form select, .flag-form textarea { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--rule-strong); border-radius: var(--r-md); padding: 6px var(--sp-2); width: 100%; box-sizing: border-box; }
-.flag-form .actions { margin-top: 0; }
-.flag-list { list-style: none; padding: 0; margin: var(--sp-2) 0; }
-.flag-list li { padding: var(--sp-2) 0; border-bottom: 1px solid var(--rule); }
-.flag-list .link { margin-left: var(--sp-2); }
 .review { border-top: 1px solid var(--rule); padding-top: var(--sp-4); margin-top: var(--sp-4); }
 .result-score { font-size: var(--fs-lg); }
 .result-score strong { font-size: var(--fs-display); font-variant-numeric: tabular-nums; margin-right: var(--sp-1); }

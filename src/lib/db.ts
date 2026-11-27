@@ -1,11 +1,12 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { Attempt, Card, DrillAttempt, Flag } from './types'
+import type { Attempt, Card, DrillAttempt } from './types'
 
 interface Schema extends DBSchema {
   attempts: { key: number; value: Attempt; indexes: { questionId: string } }
   cards: { key: string; value: Card }
   drills: { key: number; value: DrillAttempt }
-  flags: { key: string; value: Flag }
+  /** 以前の「この問題に指摘する」の保存先。機能はなくしたが、DB の版を変えないために残す。読み書きしない */
+  flags: { key: string; value: unknown }
 }
 
 export interface Backup {
@@ -14,8 +15,8 @@ export interface Backup {
   attempts: Attempt[]
   cards: Card[]
   drills: DrillAttempt[]
-  /** 問題への指摘。指摘を足す前のバックアップにはない */
-  flags?: Flag[]
+  /** 以前のバックアップにある、問題への指摘。今は読まずに無視する */
+  flags?: unknown
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | null = null
@@ -54,44 +55,25 @@ export async function saveDrill(a: DrillAttempt) {
   await (await db()).add('drills', a)
 }
 
-export async function loadFlags(): Promise<Flag[]> {
-  return (await db()).getAll('flags')
-}
-
-export async function loadFlag(questionId: string): Promise<Flag | undefined> {
-  return (await db()).get('flags', questionId)
-}
-
-export async function saveFlag(f: Flag) {
-  await (await db()).put('flags', f)
-}
-
-export async function deleteFlag(questionId: string) {
-  await (await db()).delete('flags', questionId)
-}
-
 export async function exportAll(): Promise<Backup> {
-  return { version: 1, exportedAt: new Date().toISOString(), ...(await loadAll()), flags: await loadFlags() }
+  return { version: 1, exportedAt: new Date().toISOString(), ...(await loadAll()) }
 }
 
-/** 既存の履歴をすべて置き換える。 */
+/** 既存の履歴をすべて置き換える。以前のバックアップの指摘(flags)は無視する。 */
 export async function importAll(b: Backup) {
   if (b.version !== 1 || !Array.isArray(b.attempts) || !Array.isArray(b.cards) || !Array.isArray(b.drills)) {
     throw new Error('このファイルは、このアプリのバックアップの形式ではありません')
   }
-  if (b.flags !== undefined && !Array.isArray(b.flags)) throw new Error('このファイルの指摘(flags)の形式が誤っています')
   const d = await db()
-  const tx = d.transaction(['attempts', 'cards', 'drills', 'flags'], 'readwrite')
+  const tx = d.transaction(['attempts', 'cards', 'drills'], 'readwrite')
   await Promise.all([
     tx.objectStore('attempts').clear(),
     tx.objectStore('cards').clear(),
     tx.objectStore('drills').clear(),
-    tx.objectStore('flags').clear(),
   ])
   for (const a of b.attempts) await tx.objectStore('attempts').add({ ...a, id: undefined })
   for (const c of b.cards) await tx.objectStore('cards').put(c)
   for (const x of b.drills) await tx.objectStore('drills').add({ ...x, id: undefined })
-  for (const f of b.flags ?? []) await tx.objectStore('flags').put(f)
   await tx.done
 }
 
