@@ -132,8 +132,8 @@ describe('本文の用語の検出', () => {
 })
 
 describe('同梱の用語集', () => {
-  it('400 語前後あり、整合している', () => {
-    expect(TERMS.length).toBeGreaterThanOrEqual(380)
+  it('2,300 語前後あり、整合している', () => {
+    expect(TERMS.length).toBeGreaterThanOrEqual(2200)
     expect(() => validateGlossary(TERMS, EXAMS)).not.toThrow()
   })
 
