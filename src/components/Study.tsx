@@ -12,14 +12,18 @@ interface Props {
   onExit: () => void
   /** 終わった後に、選んだ問題をもう一度解く */
   onRetry: (questions: Question[]) => void
+  /** 途中から再開するとき、すでに解いた問題の結果 */
+  resumed?: ('ok' | 'ng')[]
+  /** 1 問解くたびに、それまでの結果を知らせる(途中で離れても再開できるように) */
+  onProgress?: (results: ('ok' | 'ng')[]) => void
 }
 
-export function Study({ questions, onAnswer, onHard, onExit, onRetry }: Props) {
-  const [idx, setIdx] = useState(0)
+export function Study({ questions, onAnswer, onHard, onExit, onRetry, resumed = [], onProgress }: Props) {
+  const [idx, setIdx] = useState(resumed.length)
   const [chosen, setChosen] = useState<string[]>([])
   const [revealed, setRevealed] = useState(false)
-  const [score, setScore] = useState(0)
-  const [results, setResults] = useState<('ok' | 'ng')[]>([])
+  const [score, setScore] = useState(() => resumed.filter((r) => r === 'ok').length)
+  const [results, setResults] = useState<('ok' | 'ng')[]>(resumed)
   const startedAt = useRef(0)
 
   // 次の問題は、問題文の先頭から読めるようにする
@@ -40,8 +44,10 @@ export function Study({ questions, onAnswer, onHard, onExit, onRetry }: Props) {
     const ms = startedAt.current ? Date.now() - startedAt.current : 0
     const ok = isCorrect(q, chosen)
     if (ok) setScore((s) => s + 1)
-    setResults((r) => [...r, ok ? 'ok' : 'ng'])
+    const nextResults: ('ok' | 'ng')[] = [...results, ok ? 'ok' : 'ng']
+    setResults(nextResults)
     onAnswer(q, chosen, ms)
+    onProgress?.(nextResults)
     setRevealed(true)
     // 正誤と解説が画面の下に隠れていれば、見える位置まで送る
     requestAnimationFrame(() => {

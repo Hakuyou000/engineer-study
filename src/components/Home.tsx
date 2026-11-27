@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { loadResume } from '../lib/resume'
 import { loadShufflePref, saveShufflePref } from '../lib/shuffle'
 import { LAMP_LABEL, lampOf } from '../lib/lamp'
 import { groupByExam, type DomainStat } from '../lib/stats'
@@ -16,6 +17,8 @@ interface Props {
   /** 選択中の分野で、入力で解ける問題の数 */
   inputCount: (domains: string[]) => number
   onStart: (o: StartOptions) => void
+  /** 途中で離れた問題演習を、続きから解く */
+  onResume: () => void
   /** 問題 ID を指定して 1 問だけ解く。見つからなければ false */
   onOpenCode: (code: string) => boolean
 }
@@ -35,7 +38,9 @@ function loadScope(key: string, all: string[]): string[] {
   return all
 }
 
-export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props) {
+export function Home({ scopeKey, stats, inputCount, onStart, onResume, onOpenCode }: Props) {
+  const [saved] = useState(loadResume)
+  const resume = saved && { done: saved.results.length, total: saved.items.length, group: saved.group }
   const key = `${KEY}:${scopeKey}`
   const all = stats.map((d) => d.key)
   const [domains, setDomains] = useState<string[]>(() => loadScope(key, all))
@@ -92,6 +97,14 @@ export function Home({ scopeKey, stats, inputCount, onStart, onOpenCode }: Props
       </div>
 
       <div className="start">
+        {resume && (
+          <button className="resume" onClick={onResume}>
+            前回の続きから解く
+            <span className="sub">
+              {resume.group ?? 'すべての試験'}の {resume.total} 問のうち {resume.done} 問まで解答済み。{resume.done + 1} 問目から
+            </span>
+          </button>
+        )}
         <button
           className="primary big-action"
           disabled={none || due + unseen === 0}
