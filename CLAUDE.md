@@ -4,7 +4,7 @@
 
 ## 1. このアプリ
 
-- 資格(ITパスポート、基本情報技術者、LinuC 101 と 102、CCNA、AWS SAA、AWS DevOps Engineer – Professional、Terraform Associate、CKA)と SRE の基礎を学ぶ、ブラウザだけで動く学習アプリ。
+- ITエンジニアのための勉強アプリ。資格(ITパスポート、基本情報技術者、LinuC レベル1〜3、CCNA、AWS SAA、AWS DevOps Engineer – Professional、Terraform Associate、CKA)と実務の基礎(Docker、Kubernetes、SRE など)を、ブラウザだけで学ぶ。
 - 使う人: 学習している本人。エンジニアになって 1 年以内の人に分かる内容にする。
 - 構成: Vite + React 19 + TypeScript。テストは vitest、lint は eslint。
 - 教材は Markdown が正。`npm run gen`(`scripts/build-questions.ts`)が `content/`、`texts/`、`glossary/` から `src/data/*.json` を作る。JSON は Git に入れない。
