@@ -122,7 +122,13 @@ npm run dev
 
 ## 誤りを見つけたら
 
-問題の解説の下にある「この問題に指摘する」で、答えの誤りや別の正解を記録できます。記録した指摘は、成績の画面に一覧で出て、エクスポートにも入ります。
+答えの誤り、別の正解、古くなった情報などを見つけたら、作者に知らせてください。GitHub の Issues で受け付けています(GitHub のアカウントが要ります)。
+
+1. このリポジトリの GitHub のページで「Issues」を開き、「New issue」を押します
+2. 題名に、問題 ID と、何がおかしいかを短く書きます。問題 ID は、問題文の上に `CCNA-1.0-012` のような形で出ています
+3. 本文に、どこが誤りか、正しいと思う答えと、その根拠(公式の資料の URL など)を書きます。テキストや用語集の誤りなら、ページの題名と節の見出しを書きます
+
+メールアドレスなど、個人の情報は書かないでください。Issues は、リポジトリを見られる人に公開されます。
 
 ---
 
@@ -142,7 +148,7 @@ npm run dev
 | `npm run build` | 型検査と本番ビルド(`dist/`) |
 | `npm run gen` | `content/` から `src/data/questions.json` を生成し、内容を検査する |
 | `npm run coverage` | 出題範囲の用語が問題に出てくるかを表示する。`-- --check` で検査、`-- --update` で基準を更新 |
-| `npm run triage -- <バックアップ>` | エクスポートした履歴から、指摘のある問題と正答率の低い問題を一覧にする |
+| `npm run triage -- <バックアップ>` | エクスポートした履歴から、正答率の低い問題を一覧にする |
 | `npm run metrics` | 改善ループの指標を `docs/指標.md` に記録する |
 | `npm run check` | lint、テスト、網羅性の検査、ビルドをまとめて実行する(CI と同じ) |
 | `npm run check-chapter -- <問題> <テキスト> [用語の表.json]` | 1 章ぶんの問題とテキストだけを検査する(内容の検査、テキストの節との対応、正解の位置、用語の出現)。教材を章ごとに書くときに使う |
@@ -155,7 +161,8 @@ npm run dev
 
 - 内容の検査(`src/lib/contentLint.ts`): `npm run gen` のたびに実行します。ほかの問題を前提にした書き方、並べ替えで崩れる解説の記号、複数選択の数の食い違い、同じ問題文、取り決めた版との違いなどを見つけると、生成が失敗します
 - 網羅性の検査(`scripts/coverage/`): 試験ごとの用語の表(`terms/`)と基準(`baseline.json`)を比べ、出てこなくなった用語、問題のない小項目、2 問未満の小項目があると失敗します
-- 学習中の指摘: 解説の下の「この問題に指摘する」で、答えの誤りや別解を記録できます。成績画面に一覧が出て、エクスポートに含まれます
+- 学習した人からの指摘: GitHub の Issues で受け付けます(「誤りを見つけたら」)。直したら、Issue に直した PR を書いて閉じます
+- 正答率の低い問題: `npm run triage -- <バックアップ>` で、何度解いても正答率の低い問題を一覧にします。問題そのものが誤っていることがあります
 
 ### 問題の追加
 
@@ -262,9 +269,9 @@ show interfaces の出力など
 content/            問題の正本(Markdown)
 texts/              テキスト(Markdown)
 glossary/           用語集(Markdown)
-scripts/            Markdown → JSON の変換、網羅性の検査、指標、指摘の一覧
+scripts/            Markdown → JSON の変換、網羅性の検査、指標、正答率の低い問題の一覧
 src/lib/contentLint.ts 問題の内容の検査
-src/lib/triage.ts   指摘と正答率から直す候補を選ぶ
+src/lib/triage.ts   正答率から直す候補を選ぶ
 src/lib/parser.ts   問題 Markdown の解析
 src/lib/srs.ts      間隔反復と出題順
 src/lib/weak.ts     間違えた問題の抽出
@@ -277,7 +284,7 @@ src/lib/roadmap.ts  ロードマップの内容
 src/lib/certs.ts    資格の表紙の内容
 src/lib/order.ts    試験の表示順(ITパスポート → 基本情報 → LinuC → CCNA → AWS SAA → AWS DOP → Terraform → Docker → K8s)
 src/lib/drills/     計算ドリルの生成と採点
-src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴、問題への指摘)
+src/lib/db.ts       IndexedDB(解答履歴、カード、ドリル履歴)
 src/components/     画面
 ```
 
