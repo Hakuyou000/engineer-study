@@ -13,7 +13,7 @@ interface Props {
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v * 100)}%`)
 
-/** SRE を目指す学習の段階と、やることのチェックリスト。 */
+/** SRE を目指す人向けの学習の段階と、やることのチェックリスト。 */
 export function RoadmapView({ groups, onOpen, onCert, focus }: Props) {
   const [checked, setChecked] = useState(loadChecked)
 
