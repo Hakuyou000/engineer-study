@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { triage } from './triage'
-import type { Attempt, Flag, Question } from './types'
+import type { Attempt, Question } from './types'
 
 const q = (n: number): Question => ({
   id: `t-1.0-q${n}`,
@@ -16,24 +16,19 @@ const q = (n: number): Question => ({
   explanation: 'e',
 })
 const at = (n: number, correct: boolean): Attempt => ({ questionId: `t-1.0-q${n}`, ts: 0, chosen: [], correct, ms: 0, mode: 'study' })
-const flag = (n: number): Flag => ({ questionId: `t-1.0-q${n}`, code: `T-1.0-00${n}`, ts: 1, kind: '答えが違う', note: 'x' })
 
 describe('triage', () => {
-  it('指摘のある問題と、何度解いても正答率の低い問題を挙げる', () => {
-    const qs = [q(1), q(2), q(3), q(4)]
+  it('3 回以上解いて正答率が 34% 以下の問題だけを、正答率の低い順に挙げる', () => {
+    const qs = [q(1), q(2), q(3), q(4), q(5)]
     const attempts = [
+      ...[true, false, false].map((c) => at(1, c)),
       ...[false, false, false].map((c) => at(2, c)),
       ...[true, true, false].map((c) => at(3, c)),
       ...[false, false].map((c) => at(4, c)),
     ]
-    const { items } = triage(qs, attempts, [flag(1)])
-    expect(items.map((i) => [i.code, !!i.flag, i.suspect])).toEqual([
-      ['T-1.0-001', true, false],
-      ['T-1.0-002', false, true],
+    expect(triage(qs, attempts).map((i) => [i.code, i.correct, i.attempts])).toEqual([
+      ['T-1.0-002', 0, 3],
+      ['T-1.0-001', 1, 3],
     ])
-  })
-
-  it('もうない問題への指摘は unknown に入れる', () => {
-    expect(triage([q(1)], [], [flag(9)]).unknown.map((f) => f.code)).toEqual(['T-1.0-009'])
   })
 })
