@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { checkField, drillsFor, type Drill } from '../lib/drills'
+import { examLabel } from '../lib/stats'
 import { inline, Md } from './Md'
 
 interface Props {
@@ -42,25 +43,44 @@ export function DrillView({ exam, onRecord }: Props) {
   return (
     <section className="card">
       <h2>計算ドリル</h2>
-      <div className="kinds">
-        {groups.map((g) => (
-          <fieldset key={g}>
-            <legend>{g}</legend>
-            {DRILLS.filter((d) => d.group === g).map((d) => (
-              <label key={d.type}>
-                <input
-                  type="checkbox"
-                  checked={enabled.includes(d.type)}
-                  onChange={(e) =>
-                    setEnabled(e.target.checked ? [...enabled, d.type] : enabled.filter((t) => t !== d.type))
-                  }
-                />
-                {d.label}
-              </label>
-            ))}
-          </fieldset>
-        ))}
-      </div>
+      <p className="meta">
+        {exam === null ? 'すべての試験の種類から出します。' : `${examLabel(exam)} に関係する種類だけを出します。`}
+        上の「試験」で切り替えられます。
+      </p>
+      {/* 解いている間は種類の選択を畳み、問題を画面の上に出す */}
+      <details className="kinds-box" open={!drill} key={drill ? 'on' : 'off'}>
+        <summary>
+          出す種類({enabled.length} / {DRILLS.length})
+        </summary>
+        <div className="kinds-tools">
+          <button type="button" className="quiet" onClick={() => setEnabled(DRILLS.map((d) => d.type))}>
+            すべて選ぶ
+          </button>
+          <button type="button" className="quiet" onClick={() => setEnabled([])}>
+            すべて外す
+          </button>
+          {drill && <span className="meta">変えた種類は、次の問題から使います。</span>}
+        </div>
+        <div className="kinds">
+          {groups.map((g) => (
+            <fieldset key={g}>
+              <legend>{g}</legend>
+              {DRILLS.filter((d) => d.group === g).map((d) => (
+                <label key={d.type}>
+                  <input
+                    type="checkbox"
+                    checked={enabled.includes(d.type)}
+                    onChange={(e) =>
+                      setEnabled(e.target.checked ? [...enabled, d.type] : enabled.filter((t) => t !== d.type))
+                    }
+                  />
+                  {d.label}
+                </label>
+              ))}
+            </fieldset>
+          ))}
+        </div>
+      </details>
 
       {!drill && (
         <button className="primary" disabled={enabled.length === 0} onClick={next}>
@@ -74,8 +94,7 @@ export function DrillView({ exam, onRecord }: Props) {
             e.preventDefault()
             if (checked) next()
             else check()
-          }}
-        >
+          }}>
           <div className="bar">
             <span>
               今回 {tally.ok} / {tally.n}
@@ -112,6 +131,9 @@ export function DrillView({ exam, onRecord }: Props) {
           <div className="actions">
             <button className="primary" type="submit" disabled={enabled.length === 0 && checked}>
               {checked ? '次の問題' : '判定する'}
+            </button>
+            <button type="button" onClick={() => setDrill(null)}>
+              終わる
             </button>
           </div>
         </form>

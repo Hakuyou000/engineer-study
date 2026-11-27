@@ -91,7 +91,7 @@ export function ExamSwitch({ groups, current, locked, onSelect, onToc, defaultOp
           }
         }}>
         <span className="sr-only">試験: </span>
-        {current === null ? 'すべての試験' : examLabel(current)}
+        <span className="exam-switch-label">{current === null ? 'すべての試験' : examLabel(current)}</span>
         <span aria-hidden="true" className="caret" />
       </button>
       {open && (
