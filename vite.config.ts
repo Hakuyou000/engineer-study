@@ -7,7 +7,7 @@ import { isLocalShutdownRequest } from './scripts/local-request'
  * この入口は Vite の Host の検査より前に動くので、Host もここで確かめる。 */
 function shutdownPlugin(): Plugin {
   return {
-    name: 'sre-drill-shutdown',
+    name: 'engineer-study-shutdown',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use('/__shutdown', (req, res) => {

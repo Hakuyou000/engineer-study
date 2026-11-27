@@ -287,7 +287,7 @@ export function App() {
     const blob = new Blob([JSON.stringify(await db.exportAll())], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `sre-drill-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `engineer-study-backup-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(a.href)
   }
@@ -324,7 +324,7 @@ export function App() {
               <span className="back-label">戻る</span>
             </button>
           )}
-          <h1 className="brand">sre-drill</h1>
+          <h1 className="brand">engineer-study</h1>
           <ExamSwitch
             groups={allGroups}
             current={group}

@@ -1,5 +1,5 @@
 // エクスポートしたバックアップから、直す候補の問題を一覧にする。
-//   npm run triage -- <sre-drill-backup-YYYY-MM-DD.json>
+//   npm run triage -- <engineer-study-backup-YYYY-MM-DD.json>
 // 3 回以上解いて正答率が 34% 以下の問題を、Markdown の表で出す。問題そのものの誤りを疑う候補。
 // 直したら、docs/改善ログ.md に書く。
 import { readdirSync, readFileSync } from 'node:fs'
