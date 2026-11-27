@@ -24,6 +24,7 @@ export function Exam({ questions, seconds, onFinish, onExit, onRetry, onActive }
   const [remaining, setRemaining] = useState(seconds)
   const [done, setDone] = useState(false)
   const [aborting, setAborting] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     onActive(!done)
@@ -87,7 +88,10 @@ export function Exam({ questions, seconds, onFinish, onExit, onRetry, onActive }
         </button>
       </div>
     )
-    const domains = [...new Set(questions.map((q) => `${q.exam} ${q.domain} ${q.domainTitle}`))]
+    // 分野は試験と分野の番号の順に並べる(出題の順ではない)
+    const domains = [...new Set(questions.map((q) => `${q.exam} ${q.domain} ${q.domainTitle}`))].sort((x, y) =>
+      x.localeCompare(y, 'ja', { numeric: true }),
+    )
     return (
       <section className="card">
         <h2>結果</h2>
@@ -118,6 +122,7 @@ export function Exam({ questions, seconds, onFinish, onExit, onRetry, onActive }
 
   const q = questions[idx]
   const answered = (x: Question) => (answers.get(x.id)?.length ?? 0) > 0
+  const unanswered = questions.filter((x) => !answered(x)).length
 
   return (
     <section className="card">
@@ -153,18 +158,29 @@ export function Exam({ questions, seconds, onFinish, onExit, onRetry, onActive }
         <button disabled={idx === questions.length - 1} onClick={() => setIdx(idx + 1)}>
           次へ
         </button>
-        <button className="primary" onClick={finish}>
-          提出する(未解答 {questions.filter((x) => !answered(x)).length})
+        <button
+          className="primary"
+          disabled={submitting}
+          onClick={() => (unanswered > 0 ? setSubmitting(true) : finish())}>
+          提出する(未解答 {unanswered})
         </button>
       </div>
+      {submitting && (
+        <p className="confirm">
+          未解答が {unanswered} 問あります。提出しますか。
+          <button className="primary" onClick={finish}>
+            提出する
+          </button>
+          <button onClick={() => setSubmitting(false)}>続ける</button>
+        </p>
+      )}
       <div className="grid">
         {questions.map((x, i) => (
           <button
             key={x.id}
             className={['cell', i === idx && 'cur', answered(x) && 'ans'].filter(Boolean).join(' ')}
             onClick={() => setIdx(i)}
-            aria-label={`問題 ${i + 1}${answered(x) ? '(解答済み)' : ''}`}
-          >
+            aria-label={`問題 ${i + 1}${answered(x) ? '(解答済み)' : ''}`}>
             {i + 1}
           </button>
         ))}

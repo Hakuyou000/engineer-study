@@ -66,7 +66,8 @@ export function GlossaryView({ exam, focus }: { exam: string | null; focus?: str
     <section className="card glossary">
       <h2>用語集</h2>
       <p className="meta">
-        {TERMS.length} 語。用語を押すと、詳しい説明、例、注意が開きます。テキストと解説の中の点線の付いた語からも開けます。
+        {list.length === TERMS.length ? `${TERMS.length} 語` : `全 ${TERMS.length} 語のうち ${list.length} 語`}
+        。用語を押すと、詳しい説明、例、注意が開きます。テキストと解説の中の点線の付いた語からも開けます。
       </p>
       <div className="glossary-tools">
         <input
@@ -110,7 +111,14 @@ export function GlossaryView({ exam, focus }: { exam: string | null; focus?: str
         </details>
       )}
 
-      {list.length === 0 && <p>見つかりませんでした。</p>}
+      {list.length === 0 && (
+        <p>
+          見つかりませんでした。
+          {onlyExam &&
+            exam !== null &&
+            `「${examLabel(exam)} の用語だけ」で絞り込んでいます。外すと、すべての用語から探します。`}
+        </p>
+      )}
       {sections.map((s) => (
         <section key={s.category} className="glossary-category">
           <h3 id={anchor(s.category)}>{s.category}</h3>

@@ -54,7 +54,7 @@ function Row({
         </span>
         {pct(acc)}
       </td>
-      <td>{s.attempts}</td>
+      <td className="col-attempts">{s.attempts}</td>
       <td>{s.due}</td>
       <td>
         {s.weak}
@@ -165,7 +165,7 @@ export function StatsView({ exam, stats, drills, onPractice, onExport, onImport,
               <th>分野</th>
               <th>着手</th>
               <th>正答率</th>
-              <th>解答数</th>
+              <th className="col-attempts">解答数</th>
               <th>復習待ち</th>
               <th>要復習</th>
             </tr>
