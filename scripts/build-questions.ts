@@ -45,10 +45,10 @@ mkdirSync(join(root, 'src', 'data'), { recursive: true })
 writeFileSync(outFile, JSON.stringify(all, null, 1) + '\n')
 console.log(`合計 ${all.length} 問 → ${relative(root, outFile)}`)
 
-// 用語集
+// 用語集。索引の並びはファイルの番号の順(用語集_10 を 用語集_2 の後ろにする)
 const glossaryDir = join(root, 'glossary')
 const terms: Term[] = []
-for (const file of walk(glossaryDir)) {
+for (const file of walk(glossaryDir).sort((a, b) => a.localeCompare(b, 'ja', { numeric: true }))) {
   const ts = parseGlossary(readFileSync(file, 'utf8'), relative(root, file))
   terms.push(...ts)
   console.log(`${relative(root, file)}: ${ts.length} 語`)
