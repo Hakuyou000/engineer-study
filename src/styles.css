@@ -342,6 +342,11 @@ ul.scope { list-style: none; padding: 0; margin: 0; }
 .kinds { display: flex; flex-wrap: wrap; gap: var(--sp-3) 40px; margin: var(--sp-2) 0 20px; }
 .kinds fieldset legend { font-weight: 700; font-size: var(--fs-ui); padding-bottom: var(--sp-1); }
 .kinds label { display: flex; align-items: center; padding: 6px 0; cursor: pointer; }
+.verdict { scroll-margin-top: 112px; }
+@media (max-width: 720px) { .verdict { scroll-margin-top: 64px; } }
+.key-hint { margin-top: 0; }
+@media (hover: none) { .key-hint { display: none; } }
+.wrong-list li { padding: 2px 0; }
 .verdict > strong { font-size: var(--fs-h3); }
 .verdict.ok > strong { color: var(--ok); }
 .verdict.ng > strong { color: var(--ng); }
@@ -416,7 +421,7 @@ ul.plain, ul.choices { list-style: none; padding: 0; margin: var(--sp-4) 0; }
 /* 解答のボタンを、スマホでは画面の下に残す */
 .sticky-actions { position: relative; padding: 14px 0 var(--sp-3); margin-top: var(--sp-2); }
 @media (max-width: 720px) {
-  .sticky-actions.pending { position: sticky; bottom: calc(var(--bottom-nav) + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to bottom, transparent, var(--paper) 30%); padding: 14px 0 var(--sp-3); margin-top: var(--sp-2); z-index: 5; }
+  .sticky-actions { position: sticky; bottom: calc(var(--bottom-nav) + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to bottom, transparent, var(--paper) 30%); padding: 14px 0 var(--sp-3); margin-top: var(--sp-2); z-index: 5; }
 }
 
 /* 模擬試験の問題一覧 */
