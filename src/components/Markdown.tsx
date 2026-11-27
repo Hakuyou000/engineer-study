@@ -17,28 +17,39 @@ interface MdNode {
 
 // 見出し、コード、リンクの中には印を付けない
 const SKIP = new Set(['heading', 'code', 'inlineCode', 'link', 'linkReference', 'html', 'definition'])
+// 段落や表のセルごとの印の上限。導入の段落に点線が並びすぎないようにする
+const BLOCKS = new Set(['paragraph', 'tableCell'])
+const MAX_TERMS_PER_BLOCK = 3
 
-/** 本文の用語を、用語集へのリンクの印に置き換える remark のプラグイン。用語ごとに最初の 1 回だけ */
+/** 本文の用語を、用語集へのリンクの印に置き換える remark のプラグイン。用語ごとに最初の 1 回だけ。1 つの段落に MAX_TERMS_PER_BLOCK 個まで */
 function remarkGlossary(options: { exam?: string | null }) {
   return (tree: MdNode) => {
     const seen = new Set<string>()
-    const walk = (node: MdNode) => {
+    const walk = (node: MdNode, block: { count: number }) => {
       if (!node.children || SKIP.has(node.type)) return
+      const here = BLOCKS.has(node.type) ? { count: 0 } : block
       const next: MdNode[] = []
       for (const child of node.children) {
         if (child.type === 'text' && child.value) {
           for (const p of LINKER.split(child.value, seen, options.exam)) {
             if (typeof p === 'string') next.push({ type: 'text', value: p })
-            else next.push({ type: 'link', url: PREFIX + termId(p.term.name), children: [{ type: 'text', value: p.text }] })
+            else if (here.count >= MAX_TERMS_PER_BLOCK) {
+              // 上限を超えた語は印を付けず、後の段落で付けられるようにする
+              seen.delete(p.term.name)
+              next.push({ type: 'text', value: p.text })
+            } else {
+              here.count += 1
+              next.push({ type: 'link', url: PREFIX + termId(p.term.name), children: [{ type: 'text', value: p.text }] })
+            }
           }
         } else {
-          walk(child)
+          walk(child, here)
           next.push(child)
         }
       }
       node.children = next
     }
-    walk(tree)
+    walk(tree, { count: 0 })
   }
 }
 
